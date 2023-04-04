@@ -15,7 +15,7 @@ router = Router()
 openai = OpenAI()
 
 
-@router.message(F.text.startswith("@cyberpaperbot"))
+@router.message(F.text.startswith("@cyberpaperbot"), F.chat.type.in_({'group', 'supergroup'}))
 async def ask(message: types.Message, state: FSMContext) -> None:
     await state.set_state(Text.get)
     uid = message.from_user.id
@@ -55,22 +55,3 @@ async def info(message: types.Message):
                "\n" \
                "Автор: @vistee"
         await message.reply(text, parse_mode=None)
-
-
-@router.message(F.content_type.in_({'text'}), F.chat.type.in_({'private'}))
-async def ask(message: types.Message, state: FSMContext) -> None:
-    await state.set_state(Text.get)
-    uid = message.from_user.id
-    if uid in config.banned_user_ids:
-        text = "не хочу с тобой разговаривать"
-        await message.reply(text, parse_mode=None)
-    else:
-        logging.info("%s", message)
-        # Generate response
-        replay_text = openai.send_turbo(message.text)
-        try:
-            await message.reply(replay_text, parse_mode=None)
-        except ValueError as err:
-            logging.info('error: %s', err)
-            text = err
-            await message.reply(text, parse_mode=None)
