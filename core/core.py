@@ -1,5 +1,4 @@
 import logging
-import os
 
 from aiogram import types, F, Router
 from aiogram.filters.command import Command
