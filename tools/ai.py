@@ -55,6 +55,7 @@ making jokes related to sound and sound engineering, and can share facts related
 "Snap Heap (Kilohearts)"
 ],
 "avoid_xfer_serum": true,
+"avoid_waves_plugins" : true,
 "audio_interfaces": {
 "budget": ["Steinberg UR22", "Scarlett", "Behringer", "M-Audio"],
 "midrange": ["Arturia Fusion", "Audient ID14", "Scarlett", "Native Instruments", "Zen Go"]
