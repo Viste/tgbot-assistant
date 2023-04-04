@@ -28,6 +28,7 @@ async def ask(message: types.Message, state: FSMContext) -> None:
 
         # Generate response
         replay_text = openai.send_turbo(trimmed)
+        print(replay_text)
         try:
             await message.reply(replay_text, parse_mode=None)
         except ValueError as err:
