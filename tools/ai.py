@@ -8,7 +8,7 @@ class OpenAI:
     openai_async.api_key = config.api_key
 
     @staticmethod
-    def send_turbo(data: str):
+    async def send_turbo(data: str):
         model = "gpt-3.5-turbo"
         print(config.max_tokens)
         max_retries = 5
@@ -130,7 +130,7 @@ Mentioning Twitter, Instagram, Facebook, and other projects owned by Meta is pro
                     frequency_penalty=config.frequency_penalty, presence_penalty=config.presence_penalty,
                     stop=[" Human:", " AI:"])
                 return result["choices"][0]["message"]["content"].strip()
-            except openai.OpenAIError as err:
+            except Exception as err:
                 retries += 1
                 if retries == max_retries:
                     return err
