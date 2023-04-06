@@ -129,7 +129,7 @@ Mentioning Twitter, Instagram, Facebook, and other projects owned by Meta is pro
                     max_tokens=config.max_tokens, n=1, temperature=config.temperature,
                     frequency_penalty=config.frequency_penalty, presence_penalty=config.presence_penalty,
                     stop=[" Human:", " AI:"])
-                return result["choices"][0]["message"]["content"].strip()
+                return result.json()["choices"][0]["message"].strip()
             except Exception as err:
                 retries += 1
                 if retries == max_retries:
