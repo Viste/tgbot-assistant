@@ -1,4 +1,4 @@
-import openai_async
+import openai
 
 from tools.utils import config
 
@@ -73,21 +73,16 @@ class OpenAI:
           }
         }"""
 
-    async def send_turbo(self, data: str):
+    def send_turbo(self, data: str):
         max_retries = 5
         retries = 0
         while retries < max_retries:
             try:
-                result = await openai_async.chat_complete(self.api_key, timeout=2,
-                                                          payload={
-                                                              "model": self.model,
-                                                              "messages": [{"role": "system", "content": self.content}, {"role": "user", "content": data}],
-                                                              "max_tokens": config.max_tokens, "n": 1, "temperature": config.temperature,
-                                                              "frequency_penalty": config.frequency_penalty, "presence_penalty": config.presence_penalty,
-                                                              "stop": [" Human:", " AI:"]
-                                                          })
-                print("printing result: %s", result)
-                return result
+                result = openai.ChatCompletion.create(self.api_key, model=self.model, messages=[{"role": "system", "content": self.content},
+                                                                                                {"role": "user", "content": data}], max_tokens=config.max_tokens, n=1,
+                                                      temperature=config.temperature, frequency_penalty=config.frequency_penalty, presence_penalty=config.presence_penalty,
+                                                      stop=[" Human:", " AI:"])
+                return result["choices"][0]["message"]["content"].strip()
             except Exception as err:
                 retries += 1
                 if retries == max_retries:
