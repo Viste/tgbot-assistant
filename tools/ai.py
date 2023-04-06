@@ -126,7 +126,9 @@ Mentioning Twitter, Instagram, Facebook, and other projects owned by Meta is pro
                              """
                         },
                         {"role": "user", "content": data}],
-                    max_tokens=512, n=1, temperature=0.8, frequency_penalty=0.0, presence_penalty=0.8, stop=[" Human:", " AI:"])
+                    max_tokens=config.max_tokens, n=1, temperature=config.temperature,
+                    frequency_penalty=config.frequency_penalty, presence_penalty=config.presence_penalty,
+                    stop=[" Human:", " AI:"])
                 return result["choices"][0]["message"]["content"].strip()
             except openai.OpenAIError as err:
                 retries += 1

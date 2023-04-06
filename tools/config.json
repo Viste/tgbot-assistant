@@ -3,5 +3,9 @@
   "api_key": "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",
   "admins": [58800377, 910007939, 350493882, 824834852],
   "banned_user_ids": [62520772, 903623904, 902416013],
-  "allowed_group": [-1001647523732]
+  "allowed_group": [-1001647523732],
+  "max_tokens": 4096,
+  "temperature": 0.8,
+  "frequency_penalty": 0.0,
+  "presence_penalty": 0.7
 }
