@@ -1,11 +1,11 @@
-import openai
+import openai_async
 
 from tools.utils import config
 
 
 class OpenAI:
 
-    openai.api_key = config.api_key
+    openai_async.api_key = config.api_key
 
     @staticmethod
     def send_turbo(data: str):
@@ -15,7 +15,7 @@ class OpenAI:
         retries = 0
         while retries < max_retries:
             try:
-                result = openai.ChatCompletion().create(
+                result = await openai_async.chat_complete(
                     model=model, messages=[
                         {
                             "role": "system",
