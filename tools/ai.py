@@ -10,7 +10,7 @@ class OpenAI:
     @staticmethod
     def send_turbo(data: str):
         model = "gpt-3.5-turbo"
-
+        print(config.max_tokens)
         max_retries = 5
         retries = 0
         while retries < max_retries:
