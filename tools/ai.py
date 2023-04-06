@@ -74,7 +74,6 @@ class OpenAI:
         }"""
 
     async def send_turbo(self, data: str):
-        print(config.max_tokens)
         max_retries = 5
         retries = 0
         while retries < max_retries:
@@ -87,7 +86,7 @@ class OpenAI:
                                                               "frequency_penalty": config.frequency_penalty, "presence_penalty": config.presence_penalty,
                                                               "stop": [" Human:", " AI:"]
                                                           })
-                print(result)
+                print("printing result: %s", result)
                 return result
             except Exception as err:
                 retries += 1
