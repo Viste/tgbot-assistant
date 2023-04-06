@@ -87,7 +87,8 @@ class OpenAI:
                                                               "frequency_penalty": config.frequency_penalty, "presence_penalty": config.presence_penalty,
                                                               "stop": [" Human:", " AI:"]
                                                           })
-                return result.json()["choices"][0]["message"].strip()
+                print(result)
+                return result
             except Exception as err:
                 retries += 1
                 if retries == max_retries:
