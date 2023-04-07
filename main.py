@@ -3,6 +3,7 @@ import logging
 import sys
 
 from aiogram import Bot, Dispatcher
+from aiogram.fsm.strategy import FSMStrategy
 
 from core import setup_routers
 from tools.utils import config
@@ -17,12 +18,12 @@ async def main():
         stream=sys.stdout,
     )
 
-    worker = Dispatcher()
+    worker = Dispatcher(fsm_strategy=FSMStrategy.GLOBAL_USER)
     router = setup_routers()
     worker.include_router(router)
     useful_updates = worker.resolve_used_update_types()
     logging.info("Starting bot")
-    await worker.start_polling(paper, allowed_updates=useful_updates)
+    await worker.start_polling(paper, allowed_updates=useful_updates, handle_signals=True)
 
 
 if __name__ == '__main__':
