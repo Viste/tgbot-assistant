@@ -60,3 +60,9 @@ async def info(message: types.Message):
                "\n" \
                "Автор: @vistee"
         await message.reply(text, parse_mode=None)
+
+
+@router.message(F.chat.type.in_({'private'}), F.from_user.id.in_(config.admins))
+async def usage(message: types.Message):
+    text = openai.get_money()
+    await message.reply(text, parse_mode=None)
