@@ -14,9 +14,12 @@ router = Router()
 openai = OpenAI()
 
 
-@router.message(F.text.startswith("@cyberpaperbot"), F.chat.type.in_({'group', 'supergroup'}), F.message.chat_id == config.allowed_group)
+@router.message(F.text.startswith("@cyberpaperbot"), F.chat.type.in_({'group', 'supergroup'}))
 async def ask(message: types.Message, state: FSMContext) -> None:
     await state.set_state(Text.get)
+    if message.chat.id != config.allowed_group:
+        return
+
     uid = message.from_user.id
     if uid in config.banned_user_ids:
         text = "не хочу с тобой разговаривать"
@@ -40,9 +43,11 @@ async def ask(message: types.Message, state: FSMContext) -> None:
                     await message.reply(error, parse_mode=None)
 
 
-@router.message(Text.get, F.reply_to_message.from_user.is_bot, F.chat.type.in_({'group', 'supergroup'}), F.message.chat_id == config.allowed_group)
+@router.message(Text.get, F.reply_to_message.from_user.is_bot, F.chat.type.in_({'group', 'supergroup'}))
 async def process_ask(message: types.Message) -> None:
     uid = message.from_user.id
+    if message.chat.id != config.allowed_group:
+        return
     if uid in config.banned_user_ids:
         text = "не хочу с тобой разговаривать"
         await message.reply(text, parse_mode=None)
@@ -66,8 +71,10 @@ async def process_ask(message: types.Message) -> None:
                     await message.reply(error, parse_mode=None)
 
 
-@router.message(Command(commands="help"), F.message.chat_id == config.allowed_group)
+@router.message(Command(commands="help"))
 async def info(message: types.Message):
+    if message.chat.id != config.allowed_group:
+        return
     uid = message.from_user.id
     if uid in config.banned_user_ids:
         text = "не хочу с тобой разговаривать"
