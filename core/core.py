@@ -40,10 +40,30 @@ async def ask(message: types.Message, state: FSMContext) -> None:
                     await message.reply(error, parse_mode=None)
 
 
-@router.message(Text.get)
-async def process_ask(message: types.Message, state: FSMContext) -> None:
-    await state.set_state(Text.result)
-    logging.info("%s", message)
+@router.message(Text.get, F.reply_to_message, F.chat.type.in_({'group', 'supergroup'}))
+async def process_ask(message: types.Message) -> None:
+    uid = message.from_user.id
+    if uid in config.banned_user_ids:
+        text = "не хочу с тобой разговаривать"
+        await message.reply(text, parse_mode=None)
+    else:
+        logging.info("%s", message)
+        trimmed = trim_name(message.text)
+
+        # Generate response
+        replay_text, total_tokens = await openai.get_response(query=trimmed, user_id=uid)
+        chunks = split_into_chunks(replay_text)
+        for index, chunk in enumerate(chunks):
+            try:
+                if index == 0:
+                    await message.reply(chunk, parse_mode=None)
+                    logging.info("%s", message)
+            except Exception:
+                try:
+                    await message.reply(chunk, parse_mode=None)
+                except Exception as error:
+                    logging.info('error: %s', error)
+                    await message.reply(error, parse_mode=None)
 
 
 @router.message(Command(commands="help"))
