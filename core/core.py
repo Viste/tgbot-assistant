@@ -1,7 +1,8 @@
 import logging
 
-from aiogram import types, F, Router
+from aiogram import types, F, Router, flags
 from aiogram.filters.command import Command
+from aiogram.enums import ChatAction
 from aiogram.fsm.context import FSMContext
 
 from tools.ai_tools import OpenAI
@@ -14,7 +15,7 @@ router = Router()
 openai = OpenAI()
 
 
-@router.message(F.text.startswith("@cyberpaperbot"), F.chat.id.in_(config.allowed_group), F.chat.type.in_({'group', 'supergroup'}))
+@router.message(F.text.startswith("@cyberpaperbot"), F.chat.id.in_(config.allowed_group), F.chat.type.in_({'group', 'supergroup'}), flags={'chat_action': 'typing'})
 async def ask(message: types.Message, state: FSMContext) -> None:
     await state.set_state(Text.get)
     uid = message.from_user.id
@@ -40,7 +41,7 @@ async def ask(message: types.Message, state: FSMContext) -> None:
                     await message.reply(error, parse_mode=None)
 
 
-@router.message(Text.get, F.reply_to_message.from_user.is_bot, F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_group))
+@router.message(Text.get, F.reply_to_message.from_user.is_bot, F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_group), flags={'chat_action': 'typing'})
 async def process_ask(message: types.Message) -> None:
     uid = message.from_user.id
     if uid in config.banned_user_ids:
