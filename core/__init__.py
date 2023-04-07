@@ -5,8 +5,6 @@ from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ReplyKeyboardRemove, Message
 
-from tools.utils import config
-
 logger = logging.getLogger("__name__")
 
 
@@ -14,7 +12,6 @@ def setup_routers() -> Router:
     from . import core
 
     router = Router()
-    router.message.filter(F.chat.id != config.allowed_group)
 
     @router.message(Command(commands=["cancel"]))
     @router.message(F.text.casefold() == "cancel")
