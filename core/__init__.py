@@ -26,10 +26,7 @@ def setup_routers() -> Router:
 
         logging.info("Cancelling state %r", current_state)
         await state.clear()
-        await message.answer(
-            "Cancelled.",
-            reply_markup=ReplyKeyboardRemove(),
-        )
+        await message.answer("Контекст обнулен.", reply_markup=ReplyKeyboardRemove())
 
     router.include_router(core.router)
 
