@@ -14,7 +14,7 @@ router = Router()
 openai = OpenAI()
 
 
-@router.message(F.text.startswith("@cyberpaperbot"), F.chat_id.in_(config.allowed_group), F.chat.type.in_({'group', 'supergroup'}))
+@router.message(F.text.startswith("@cyberpaperbot"), F.chat.id.in_(config.allowed_group), F.chat.type.in_({'group', 'supergroup'}))
 async def ask(message: types.Message, state: FSMContext) -> None:
     await state.set_state(Text.get)
     if message.chat.id != config.allowed_group:
@@ -43,7 +43,7 @@ async def ask(message: types.Message, state: FSMContext) -> None:
                     await message.reply(error, parse_mode=None)
 
 
-@router.message(Text.get, F.reply_to_message.from_user.is_bot, F.chat.type.in_({'group', 'supergroup'}), F.chat_id.in_(config.allowed_group))
+@router.message(Text.get, F.reply_to_message.from_user.is_bot, F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_group))
 async def process_ask(message: types.Message) -> None:
     uid = message.from_user.id
     if message.chat.id != config.allowed_group:
@@ -71,7 +71,7 @@ async def process_ask(message: types.Message) -> None:
                     await message.reply(error, parse_mode=None)
 
 
-@router.message(Command(commands="help"), F.chat_id.in_(config.allowed_group), F.chat.type.in_({'group', 'supergroup'}))
+@router.message(Command(commands="help"), F.chat.id.in_(config.allowed_group), F.chat.type.in_({'group', 'supergroup'}))
 async def info(message: types.Message):
     if message.chat.id != config.allowed_group:
         return
