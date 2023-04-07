@@ -4,10 +4,9 @@ from aiogram import types, F, Router
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 
-from tools.ai import OpenAI
+from tools.ai_tools import OpenAI
 from tools.states import Text
-from tools.utils import config
-from tools.utils import trim_name
+from tools.utils import config, trim_name, split_into_chunks
 
 logger = logging.getLogger("__name__")
 router = Router()
@@ -27,13 +26,18 @@ async def ask(message: types.Message, state: FSMContext) -> None:
         trimmed = trim_name(message.text)
 
         # Generate response
-        replay_text = openai.send_turbo(trimmed)
-        try:
-            await message.reply(replay_text, parse_mode=None)
-        except ValueError as err:
-            logging.info('error: %s', err)
-            text = err
-            await message.reply(text, parse_mode=None)
+        replay_text = openai.get_response(query=trimmed, user_id=uid)
+        chunks = split_into_chunks(replay_text)
+        for index, chunk in enumerate(chunks):
+            try:
+                if index == 0:
+                    await message.reply(chunk, parse_mode=None)
+            except Exception:
+                try:
+                    await message.reply(chunk, parse_mode=None)
+                except Exception as error:
+                    logging.info('error: %s', error)
+                    await message.reply(error, parse_mode=None)
 
 
 @router.message(Text.get)
