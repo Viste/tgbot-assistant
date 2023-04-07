@@ -40,7 +40,7 @@ async def ask(message: types.Message, state: FSMContext) -> None:
                     await message.reply(error, parse_mode=None)
 
 
-@router.message(Text.get, F.reply_to_message, F.chat.type.in_({'group', 'supergroup'}))
+@router.message(Text.get, F.reply_to_message.from_user.is_bot, F.chat.type.in_({'group', 'supergroup'}))
 async def process_ask(message: types.Message) -> None:
     uid = message.from_user.id
     if uid in config.banned_user_ids:
