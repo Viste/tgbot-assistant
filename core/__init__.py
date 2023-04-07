@@ -4,6 +4,7 @@ from aiogram import Router, F
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ReplyKeyboardRemove, Message
+from tools.utils import config
 
 logger = logging.getLogger("__name__")
 
@@ -13,7 +14,7 @@ def setup_routers() -> Router:
 
     router = Router()
 
-    @router.message(Command(commands=["cancel"]))
+    @router.message(Command(commands=["cancel"]), F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_group))
     @router.message(F.text.casefold() == "cancel")
     async def cancel_handler(message: Message, state: FSMContext) -> None:
         current_state = await state.get_state()
