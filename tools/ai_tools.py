@@ -14,7 +14,7 @@ logger = logging.getLogger("__name__")
 
 args = {
     "temperature": 0.8,
-    "max_tokens": 512,
+    "max_tokens": 768,
     "top_p": 1,
     "frequency_penalty": 0,
     "presence_penalty": 0.8,
@@ -149,26 +149,6 @@ class OpenAI:
 
                 return await openai.ChatCompletion.acreate(model=self.model, messages=self.user_dialogs[user_id], **args)
 
-            except openai.error.RateLimitError as e:
-                self.retries += 1
-                if self.retries == self.max_retries:
-                    raise Exception(f'⚠️ OpenAI: Превышены лимиты ⚠️\n{str(e)}') from e
-
-            except openai.error.InvalidRequestError as e:
-                self.retries += 1
-                if self.retries == self.max_retries:
-                    raise Exception(f'⚠️ OpenAI: кривой запрос ⚠️\n{str(e)}') from e
-
-            except Exception as e:
-                self.retries += 1
-                if self.retries == self.max_retries:
-                    raise Exception(f'⚠️ Ошибочка вышла ⚠️\n{str(e)}') from e
-
-    async def send_dalle(self, data):
-        while self.retries < self.max_retries:
-            try:
-                result = await openai.Image().acreate(prompt=data + "4k resolution", n=1, size="1024x1024")
-                return result.get("data")[0].get("url")
             except openai.error.RateLimitError as e:
                 self.retries += 1
                 if self.retries == self.max_retries:

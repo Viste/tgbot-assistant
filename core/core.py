@@ -26,7 +26,7 @@ async def ask(message: types.Message, state: FSMContext) -> None:
         trimmed = trim_name(message.text)
 
         # Generate response
-        replay_text = openai.get_response(query=trimmed, user_id=uid)
+        replay_text = await openai.get_response(query=trimmed, user_id=uid)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             try:
