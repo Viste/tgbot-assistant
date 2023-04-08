@@ -10,7 +10,7 @@ from core import setup_routers
 from tools.utils import config
 from aioredis.client import Redis
 
-redis_client = Redis.from_url(config.redis_url)
+redis_client = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db, decode_responses=True)
 paper = Bot(token=config.token, parse_mode="HTML")
 
 

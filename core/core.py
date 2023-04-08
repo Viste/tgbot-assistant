@@ -34,9 +34,9 @@ async def ask(message: types.Message, state: FSMContext) -> None:
             try:
                 if index == 0:
                     await message.reply(chunk, parse_mode=None)
-            except Exception:
+            except Exception as err:
                 try:
-                    await message.reply(chunk, parse_mode=None)
+                    await message.reply(err, parse_mode=None)
                 except Exception as error:
                     logging.info('error: %s', error)
                     await message.reply(error, parse_mode=None)
