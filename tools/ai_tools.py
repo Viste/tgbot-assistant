@@ -139,28 +139,32 @@ class OpenAI:
                     logging.info(f'Chat history for chat ID {user_id} is too long. Summarising...')
                     try:
                         summary = await self.__summarise(self.user_dialogs[user_id][:-1])
-                        logging.debug(f'Summary: {summary}')
+                        logging.info(f'Summary: {summary}')
                         self.__reset_chat_history(user_id)
                         self.__add_to_history(user_id, role="assistant", content=summary)
                         self.__add_to_history(user_id, role="user", content=query)
+                        print(self.user_dialogs[user_id])
                     except Exception as e:
-                        logging.warning(f'Error while summarising chat history: {str(e)}. Popping elements instead...')
+                        logging.info(f'Error while summarising chat history: {str(e)}. Popping elements instead...')
                         self.user_dialogs[user_id] = self.user_dialogs[user_id][-self.max_history_size:]
 
                 return await openai.ChatCompletion.acreate(model=self.model, messages=self.user_dialogs[user_id], **args)
 
             except openai.error.RateLimitError as e:
                 self.retries += 1
+                print(self.user_dialogs[user_id])
                 if self.retries == self.max_retries:
                     return f'⚠️ OpenAI: Превышены лимиты ⚠️\n{str(e)}'
 
             except openai.error.InvalidRequestError as e:
                 self.retries += 1
+                print(self.user_dialogs[user_id])
                 if self.retries == self.max_retries:
                     return f'⚠️ OpenAI: кривой запрос ⚠️\n{str(e)}'
 
             except Exception as e:
                 self.retries += 1
+                print(self.user_dialogs[user_id])
                 if self.retries == self.max_retries:
                     return f'⚠️ Ошибочка вышла ⚠️\n{str(e)}', e
 
