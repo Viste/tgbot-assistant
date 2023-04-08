@@ -152,17 +152,17 @@ class OpenAI:
             except openai.error.RateLimitError as e:
                 self.retries += 1
                 if self.retries == self.max_retries:
-                    return Exception(f'⚠️ OpenAI: Превышены лимиты ⚠️\n{str(e)}', e)
+                    return f'⚠️ OpenAI: Превышены лимиты ⚠️\n{str(e)}'
 
             except openai.error.InvalidRequestError as e:
                 self.retries += 1
                 if self.retries == self.max_retries:
-                    return Exception(f'⚠️ OpenAI: кривой запрос ⚠️\n{str(e)}', e)
+                    return f'⚠️ OpenAI: кривой запрос ⚠️\n{str(e)}'
 
             except Exception as e:
                 self.retries += 1
                 if self.retries == self.max_retries:
-                    return Exception(f'⚠️ Ошибочка вышла ⚠️\n{str(e)}', e)
+                    return f'⚠️ Ошибочка вышла ⚠️\n{str(e)}', e
 
     def __add_to_history(self, user_id, role, content):
         self.user_dialogs[user_id].append({"role": role, "content": content})
