@@ -29,6 +29,7 @@ async def ask(message: types.Message, state: FSMContext) -> None:
 
         # Generate response
         replay_text, total_tokens = await openai.get_response(query=trimmed, user_id=uid)
+        print(replay_text, total_tokens)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             try:
@@ -36,7 +37,7 @@ async def ask(message: types.Message, state: FSMContext) -> None:
                     await message.reply(chunk, parse_mode=None)
             except Exception as err:
                 try:
-                    await message.reply(err, parse_mode=None)
+                    await message.reply(chunk + err, parse_mode=None)
                 except Exception as error:
                     logging.info('error: %s', error)
                     await message.reply(error, parse_mode=None)
@@ -62,9 +63,9 @@ async def process_ask(message: types.Message) -> None:
                 if index == 0:
                     await message.reply(chunk, parse_mode=None)
                     logging.info("%s", message)
-            except Exception:
+            except Exception as err:
                 try:
-                    await message.reply(chunk, parse_mode=None)
+                    await message.reply(chunk + err, parse_mode=None)
                 except Exception as error:
                     logging.info('error: %s', error)
                     await message.reply(error, parse_mode=None)
