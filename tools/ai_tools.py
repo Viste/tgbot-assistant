@@ -100,8 +100,6 @@ class OpenAI:
         }"""
 
     async def get_response(self, user_id: int, query: str) -> tuple[str, str]:
-        user_id = user_id
-        query = query
         response = await self.__worker(user_id, query)
         answer = ''
 
@@ -128,8 +126,6 @@ class OpenAI:
     async def __worker(self, user_id, query):
         while self.retries < self.max_retries:
             try:
-                user_id = user_id
-                query = query
                 if user_id not in self.user_dialogs:
                     self.__reset_chat_history(user_id)
 
