@@ -100,33 +100,42 @@ class OpenAI:
         }"""
 
     async def get_response(self, user_id: int, query: str) -> tuple[str, str]:
-        response = await self.__worker(user_id, query)
-        answer = ''
-        check_response = isinstance(response, str)
-        logging.info("Printing response: %s, and check_response result: %s", response, check_response)
+        while self.retries < self.max_retries:
+            try:
+                user_id = user_id
+                query = query
+                response = await self.__worker(user_id, query)
+                answer = ''
+                check_response = isinstance(response, str)
+                logging.info("Printing response: %s, and check_response result: %s", response, check_response)
 
-        if check_response is True:
-            logging.info("returning the response with error without add to history")
-            return response, 0
-        elif len(response.choices) > 1 and self.n_choices > 1:
-            for index, choice in enumerate(response.choices):
-                content = choice['message']['content'].strip()
-                if index == 0:
-                    self.__add_to_history(user_id, role="assistant", content=content)
-                answer += f'{index + 1}\u20e3\n'
-                answer += content
-                answer += '\n\n'
-        else:
-            answer = response.choices[0]['message']['content'].strip()
-            self.__add_to_history(user_id, role="assistant", content=answer)
+                if check_response is True:
+                    logging.info("returning the response with error without add to history")
+                    return response, 0
+                elif response.choices and len(response.choices) > 1 and self.n_choices > 1:
+                    for index, choice in enumerate(response.choices):
+                        content = choice['message']['content'].strip()
+                        if index == 0:
+                            self.__add_to_history(user_id, role="assistant", content=content)
+                        answer += f'{index + 1}\u20e3\n'
+                        answer += content
+                        answer += '\n\n'
+                else:
+                    answer = response.choices[0]['message']['content'].strip()
+                    self.__add_to_history(user_id, role="assistant", content=answer)
 
-        if self.show_tokens:
-            answer += "\n\n---\n" \
-                      f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
-                      f" ({str(response.usage['prompt_tokens'])} prompt," \
-                      f" {str(response.usage['completion_tokens'])} completion)"
+                if self.show_tokens:
+                    answer += "\n\n---\n" \
+                              f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
+                              f" ({str(response.usage['prompt_tokens'])} prompt," \
+                              f" {str(response.usage['completion_tokens'])} completion)"
 
-        return answer, response.usage['total_tokens']
+                return answer, response.usage['total_tokens']
+            except Exception as err:
+                self.retries += 1
+                print(err)
+                if self.retries == self.max_retries:
+                    return await self.__worker(user_id, query)
 
     async def __worker(self, user_id, query):
         while self.retries < self.max_retries:
