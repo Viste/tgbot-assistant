@@ -106,7 +106,7 @@ class OpenAI:
         logging.info("Printing response: %s", response)
         if check_response is True:
             logging.info("returning the response with error without add to history")
-            return response
+            return response, 0
 
         if len(response.choices) > 1 and self.n_choices > 1:
             for index, choice in enumerate(response.choices):
