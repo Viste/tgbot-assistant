@@ -13,9 +13,8 @@ router = Router()
 
 openai = OpenAI()
 
-
-@router.message(F.text.startswith("@cyberpaperbot"), F.chat.id.in_(config.allowed_groups), F.chat.type.in_({'group', 'supergroup'}))
 @flags.chat_action("typing")
+@router.message(F.text.startswith("@cyberpaperbot"), F.chat.id.in_(config.allowed_groups), F.chat.type.in_({'group', 'supergroup'}))
 async def ask(message: types.Message, state: FSMContext) -> None:
     await state.set_state(Text.get)
     uid = message.from_user.id
@@ -43,9 +42,8 @@ async def ask(message: types.Message, state: FSMContext) -> None:
                     await message.reply(error, parse_mode=None)
 
 
-@router.message(Text.get, F.reply_to_message.from_user.is_bot)
-@router.message(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups))
 @flags.chat_action("typing")
+@router.message(Text.get, F.reply_to_message.from_user.is_bot, F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups))
 async def process_ask(message: types.Message) -> None:
     uid = message.from_user.id
     if uid in config.banned_user_ids:
