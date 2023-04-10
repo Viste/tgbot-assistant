@@ -102,7 +102,11 @@ class OpenAI:
     async def get_response(self, user_id: int, query: str) -> tuple[str, str]:
         response = await self.__worker(user_id, query)
         answer = ''
-        print(response)
+        check_response = isinstance(response, str)
+        logging.info("Printing response: %s", response)
+        if check_response is True:
+            logging.info("returning the response with error without add to history")
+            return response
 
         if len(response.choices) > 1 and self.n_choices > 1:
             for index, choice in enumerate(response.choices):
