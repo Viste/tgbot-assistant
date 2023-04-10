@@ -117,11 +117,11 @@ class OpenAI:
 
         if self.show_tokens:
             answer += "\n\n---\n" \
-                        f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
-                          f" ({str(response.usage['prompt_tokens'])} prompt," \
-                          f" {str(response.usage['completion_tokens'])} completion)"
+                      f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
+                      f" ({str(response.usage['prompt_tokens'])} prompt," \
+                      f" {str(response.usage['completion_tokens'])} completion)"
 
-            return answer, response.usage['total_tokens']
+        return answer, response.usage['total_tokens']
 
     async def __worker(self, user_id, query):
         while self.retries < self.max_retries:
