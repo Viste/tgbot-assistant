@@ -128,7 +128,7 @@ class OpenAI:
               },
               "interaction_between_labels": "collaborative and mutually beneficial",
               "collaboration_examples": ["joint releases", "events organization", "sharing knowledge and resources"],
-              "upcoming_events": [
+              "events": [
                 {
                   "event_name": "Neuropunk Festival 2023",
                   "location": "Moscow, Russia",
