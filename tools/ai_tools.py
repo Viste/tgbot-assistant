@@ -105,7 +105,10 @@ class OpenAI:
         check_response = isinstance(response, str)
         logging.info("Printing response: %s, and check_response result: %s", response, check_response)
 
-        if len(response.choices) > 1 and self.n_choices > 1:
+        if check_response is True:
+            logging.info("returning the response with error without add to history")
+            return response, 0
+        elif len(response.choices) > 1 and self.n_choices > 1:
             for index, choice in enumerate(response.choices):
                 content = choice['message']['content'].strip()
                 if index == 0:
@@ -113,9 +116,6 @@ class OpenAI:
                 answer += f'{index + 1}\u20e3\n'
                 answer += content
                 answer += '\n\n'
-        elif check_response is True:
-            logging.info("returning the response with error without add to history")
-            return response, 0
         else:
             answer = response.choices[0]['message']['content'].strip()
             self.__add_to_history(user_id, role="assistant", content=answer)
