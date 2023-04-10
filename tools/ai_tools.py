@@ -104,50 +104,22 @@ class OpenAI:
         query = query
         response = await self.__worker(user_id, query)
         answer = ''
-        check_response = isinstance(response, str)
-        logging.info("Printing response: %s, and check_response result: %s", response, check_response)
 
-        if check_response is True:
-            logging.info("returning the response with error without add to history")
-            return response, 0
-        elif check_response is False:
-            response = await self.__worker(user_id, query)
-            if len(response.choices) > 1 and self.n_choices > 1:
-                for index, choice in enumerate(response.choices):
-                    content = choice['message']['content'].strip()
-                    if index == 0:
-                        self.__add_to_history(user_id, role="assistant", content=content)
-                    answer += f'{index + 1}\u20e3\n'
-                    answer += content
-                    answer += '\n\n'
-            else:
-                answer = response.choices[0]['message']['content'].strip()
-                self.__add_to_history(user_id, role="assistant", content=answer)
-
-            if self.show_tokens:
-                answer += "\n\n---\n" \
-                          f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
-                          f" ({str(response.usage['prompt_tokens'])} prompt," \
-                          f" {str(response.usage['completion_tokens'])} completion)"
-
-            return answer, response.usage['total_tokens']
+        if len(response.choices) > 1 and self.n_choices > 1:
+            for index, choice in enumerate(response.choices):
+                content = choice['message']['content'].strip()
+                if index == 0:
+                    self.__add_to_history(user_id, role="assistant", content=content)
+                answer += f'{index + 1}\u20e3\n'
+                answer += content
+                answer += '\n\n'
         else:
-            response = await self.__worker(user_id, query)
-            if len(response.choices) > 1 and self.n_choices > 1:
-                for index, choice in enumerate(response.choices):
-                    content = choice['message']['content'].strip()
-                    if index == 0:
-                        self.__add_to_history(user_id, role="assistant", content=content)
-                    answer += f'{index + 1}\u20e3\n'
-                    answer += content
-                    answer += '\n\n'
-            else:
-                answer = response.choices[0]['message']['content'].strip()
-                self.__add_to_history(user_id, role="assistant", content=answer)
+            answer = response.choices[0]['message']['content'].strip()
+            self.__add_to_history(user_id, role="assistant", content=answer)
 
-            if self.show_tokens:
-                answer += "\n\n---\n" \
-                          f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
+        if self.show_tokens:
+            answer += "\n\n---\n" \
+                        f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
                           f" ({str(response.usage['prompt_tokens'])} prompt," \
                           f" {str(response.usage['completion_tokens'])} completion)"
 
