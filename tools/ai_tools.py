@@ -100,6 +100,8 @@ class OpenAI:
         }"""
 
     async def get_response(self, user_id: int, query: str) -> tuple[str, str]:
+        user_id = user_id
+        query = query
         response = await self.__worker(user_id, query)
         answer = ''
         check_response = isinstance(response, str)
