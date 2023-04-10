@@ -13,7 +13,7 @@ openai.api_key = config.api_key
 logger = logging.getLogger("__name__")
 
 args = {
-    "temperature": 1,
+    "temperature": 0.4,
     "max_tokens": 768,
     "top_p": 1,
     "frequency_penalty": 0,
