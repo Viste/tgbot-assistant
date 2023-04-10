@@ -59,22 +59,19 @@ async def process_ask(message: types.Message) -> None:
 
         # Generate response
         replay_text, total_tokens = await openai.get_response(uid, trimmed)
-        if replay_text is not None and total_tokens is not None:
-            chunks = split_into_chunks(replay_text)
-            for index, chunk in enumerate(chunks):
+
+        chunks = split_into_chunks(replay_text)
+        for index, chunk in enumerate(chunks):
+            try:
+                if index == 0:
+                    await message.reply(chunk, parse_mode=None)
+            except Exception as err:
                 try:
-                    if index == 0:
-                        await message.reply(chunk, parse_mode=None)
-                except Exception as err:
-                    try:
-                        logging.info('From try in for index chunks: %s', err)
-                        await message.reply(chunk + err, parse_mode=None)
-                    except Exception as error:
-                        logging.info('Last exception from Core: %s', error)
-                        await message.reply(error, parse_mode=None)
-            else:
-                text = "⚠️Ошибочка вышла ⚠️"
-                await message.reply(text, parse_mode=None)
+                    logging.info('From try in for index chunks: %s', err)
+                    await message.reply(chunk + err, parse_mode=None)
+                except Exception as error:
+                    logging.info('Last exception from Core: %s', error)
+                    await message.reply(error, parse_mode=None)
 
 
 @router.message(Command(commands="help"), F.chat.id.in_(config.allowed_groups), F.chat.type.in_({'group', 'supergroup'}))
