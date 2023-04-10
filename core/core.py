@@ -43,7 +43,8 @@ async def ask(message: types.Message, state: FSMContext) -> None:
                     await message.reply(error, parse_mode=None)
 
 
-@router.message(Text.get, F.reply_to_message.from_user.is_bot, F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups))
+@router.message(Text.get, F.reply_to_message.from_user.is_bot)
+@router.message(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups))
 @flags.chat_action("typing")
 async def process_ask(message: types.Message) -> None:
     uid = message.from_user.id
@@ -56,7 +57,6 @@ async def process_ask(message: types.Message) -> None:
 
         # Generate response
         replay_text, total_tokens = await openai.get_response(uid, trimmed)
-
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             try:
