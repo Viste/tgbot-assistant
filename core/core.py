@@ -13,6 +13,7 @@ router = Router()
 
 openai = OpenAI()
 
+
 @flags.chat_action("typing")
 @router.message(F.text.startswith("@cyberpaperbot"), F.chat.id.in_(config.allowed_groups), F.chat.type.in_({'group', 'supergroup'}))
 async def ask(message: types.Message, state: FSMContext) -> None:
@@ -23,10 +24,11 @@ async def ask(message: types.Message, state: FSMContext) -> None:
         await message.reply(text, parse_mode=None)
     else:
         logging.info("%s", message)
+        chat_id = message.chat.id
         trimmed = trim_name(message.text)
 
         # Generate response
-        replay_text, total_tokens = await openai.get_response(uid, trimmed)
+        replay_text, total_tokens = await openai.get_response(uid, trimmed, chat_id)
 
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
@@ -51,10 +53,11 @@ async def process_ask(message: types.Message) -> None:
         await message.reply(text, parse_mode=None)
     else:
         logging.info("%s", message)
+        chat_id = message.chat.id
         trimmed = trim_name(message.text)
 
         # Generate response
-        replay_text, total_tokens = await openai.get_response(uid, trimmed)
+        replay_text, total_tokens = await openai.get_response(uid, trimmed, chat_id)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             try:

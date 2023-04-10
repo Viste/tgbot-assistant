@@ -153,7 +153,7 @@ class OpenAI:
           }
         }"""
 
-    async def get_response(self, user_id: int, query: str) -> tuple[str, str]:
+    async def get_response(self, user_id: int, query: str, chat_id: int) -> tuple[str, str]:
         response = await self.__worker(user_id, query)
         answer = ''
 
@@ -169,7 +169,7 @@ class OpenAI:
             answer = response.choices[0]['message']['content'].strip()
             self.__add_to_history(user_id, role="assistant", content=answer)
 
-        if self.show_tokens:
+        if self.show_tokens or chat_id == -1001700103389:
             answer += "\n\n---\n" \
                       f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
                       f" ({str(response.usage['prompt_tokens'])} prompt," \
