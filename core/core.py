@@ -2,7 +2,6 @@ import logging
 
 from aiogram import types, F, Router, flags
 from aiogram.filters.command import Command
-from aiogram.enums import ChatAction
 from aiogram.fsm.context import FSMContext
 
 from tools.ai_tools import OpenAI
@@ -29,17 +28,22 @@ async def ask(message: types.Message, state: FSMContext) -> None:
 
         # Generate response
         replay_text, total_tokens = await openai.get_response(uid, trimmed)
-        chunks = split_into_chunks(replay_text)
-        for index, chunk in enumerate(chunks):
-            try:
-                if index == 0:
-                    await message.reply(chunk, parse_mode=None)
-            except Exception as err:
+        if replay_text is not None and total_tokens is not None:
+            chunks = split_into_chunks(replay_text)
+            for index, chunk in enumerate(chunks):
                 try:
-                    await message.reply(chunk + err, parse_mode=None)
-                except Exception as error:
-                    logging.info('error: %s', error)
-                    await message.reply(error, parse_mode=None)
+                    if index == 0:
+                        await message.reply(chunk, parse_mode=None)
+                except Exception as err:
+                    try:
+                        logging.info('From try in for index chunks: %s', err)
+                        await message.reply(chunk + err, parse_mode=None)
+                    except Exception as error:
+                        logging.info('Last exception from Core: %s', error)
+                        await message.reply(error, parse_mode=None)
+            else:
+                text = "⚠️Ошибочка вышла ⚠️"
+                await message.reply(text, parse_mode=None)
 
 
 @router.message(Text.get, F.reply_to_message.from_user.is_bot, F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups))
@@ -55,18 +59,22 @@ async def process_ask(message: types.Message) -> None:
 
         # Generate response
         replay_text, total_tokens = await openai.get_response(uid, trimmed)
-        chunks = split_into_chunks(replay_text)
-        for index, chunk in enumerate(chunks):
-            try:
-                if index == 0:
-                    await message.reply(chunk, parse_mode=None)
-                    logging.info("%s", message)
-            except Exception as err:
+        if replay_text is not None and total_tokens is not None:
+            chunks = split_into_chunks(replay_text)
+            for index, chunk in enumerate(chunks):
                 try:
-                    await message.reply(chunk + err, parse_mode=None)
-                except Exception as error:
-                    logging.info('error: %s', error)
-                    await message.reply(error, parse_mode=None)
+                    if index == 0:
+                        await message.reply(chunk, parse_mode=None)
+                except Exception as err:
+                    try:
+                        logging.info('From try in for index chunks: %s', err)
+                        await message.reply(chunk + err, parse_mode=None)
+                    except Exception as error:
+                        logging.info('Last exception from Core: %s', error)
+                        await message.reply(error, parse_mode=None)
+            else:
+                text = "⚠️Ошибочка вышла ⚠️"
+                await message.reply(text, parse_mode=None)
 
 
 @router.message(Command(commands="help"), F.chat.id.in_(config.allowed_groups), F.chat.type.in_({'group', 'supergroup'}))

@@ -26,10 +26,10 @@ class OpenAI:
     def __init__(self):
         super().__init__()
         self.model = "gpt-3.5-turbo"
-        self.max_retries = 5
+        self.max_retries = 10
         self.max_tokens = 4096
         self.config_tokens = 768
-        self.max_history_size = 10
+        self.max_history_size = 11
         self.n_choices = 1
         self.retries = 0
         self.show_tokens = False
@@ -131,10 +131,33 @@ class OpenAI:
                           f" {str(response.usage['completion_tokens'])} completion)"
 
             return answer, response.usage['total_tokens']
+        else:
+            response = await self.__worker(user_id, query)
+            if len(response.choices) > 1 and self.n_choices > 1:
+                for index, choice in enumerate(response.choices):
+                    content = choice['message']['content'].strip()
+                    if index == 0:
+                        self.__add_to_history(user_id, role="assistant", content=content)
+                    answer += f'{index + 1}\u20e3\n'
+                    answer += content
+                    answer += '\n\n'
+            else:
+                answer = response.choices[0]['message']['content'].strip()
+                self.__add_to_history(user_id, role="assistant", content=answer)
+
+            if self.show_tokens:
+                answer += "\n\n---\n" \
+                          f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
+                          f" ({str(response.usage['prompt_tokens'])} prompt," \
+                          f" {str(response.usage['completion_tokens'])} completion)"
+
+            return answer, response.usage['total_tokens']
 
     async def __worker(self, user_id, query):
         while self.retries < self.max_retries:
             try:
+                user_id = user_id
+                query = query
                 if user_id not in self.user_dialogs:
                     self.__reset_chat_history(user_id)
 
@@ -152,30 +175,31 @@ class OpenAI:
                         self.__reset_chat_history(user_id)
                         self.__add_to_history(user_id, role="assistant", content=summary)
                         self.__add_to_history(user_id, role="user", content=query)
-                        print(self.user_dialogs[user_id])
+                        logging.info("Dialog From summary: %s", self.user_dialogs[user_id])
                     except Exception as e:
                         logging.info(f'Error while summarising chat history: {str(e)}. Popping elements instead...')
                         self.user_dialogs[user_id] = self.user_dialogs[user_id][-self.max_history_size:]
+                        logging.info("Dialog From summary exception: %s", self.user_dialogs[user_id])
 
                 return await openai.ChatCompletion.acreate(model=self.model, messages=self.user_dialogs[user_id], **args)
 
             except openai.error.RateLimitError as e:
                 self.retries += 1
-                print(self.user_dialogs[user_id])
+                logging.info("Dialog From Ratelim: %s", self.user_dialogs[user_id])
                 if self.retries == self.max_retries:
-                    return f'⚠️ OpenAI: Превышены лимиты ⚠️\n{str(e)}'
+                    return f'⚠️OpenAI: Превышены лимиты ⚠️\n{str(e)}'
 
-            except openai.error.InvalidRequestError as e:
+            except openai.error.InvalidRequestError as er:
                 self.retries += 1
-                print(self.user_dialogs[user_id])
+                logging.info("Dialog From bad req: %s", self.user_dialogs[user_id])
                 if self.retries == self.max_retries:
-                    return f'⚠️ OpenAI: кривой запрос ⚠️\n{str(e)}'
+                    return f'⚠️OpenAI: кривой запрос ⚠️\n{str(er)}'
 
-            except Exception as e:
+            except Exception as err:
                 self.retries += 1
-                print(self.user_dialogs[user_id])
+                logging.info("Dialog From custom exception: %s", self.user_dialogs[user_id])
                 if self.retries == self.max_retries:
-                    return f'⚠️ Ошибочка вышла ⚠️\n{str(e)}', e
+                    return f'⚠️Ошибочка вышла ⚠️\n{str(err)}', err
 
     def __add_to_history(self, user_id, role, content):
         self.user_dialogs[user_id].append({"role": role, "content": content})
