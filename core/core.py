@@ -28,8 +28,8 @@ async def ask(message: types.Message, state: FSMContext) -> None:
         trimmed = trim_name(message.text)
 
         # Generate response
+        print(await openai.get_response(query=trimmed, user_id=uid))
         replay_text, total_tokens = await openai.get_response(query=trimmed, user_id=uid)
-        print(replay_text, total_tokens)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             try:
@@ -55,8 +55,8 @@ async def process_ask(message: types.Message) -> None:
         trimmed = trim_name(message.text)
 
         # Generate response
+        print(await openai.get_response(query=trimmed, user_id=uid))
         replay_text, total_tokens = await openai.get_response(query=trimmed, user_id=uid)
-        print(replay_text, total_tokens)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             try:
