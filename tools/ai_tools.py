@@ -169,7 +169,7 @@ class OpenAI:
             answer = response.choices[0]['message']['content'].strip()
             self.__add_to_history(user_id, role="assistant", content=answer)
 
-        if self.show_tokens or chat_id == -1001700103389:
+        if self.show_tokens or chat_id == -1001582049557:
             answer += "\n\n---\n" \
                       f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
                       f" ({str(response.usage['prompt_tokens'])} prompt," \
