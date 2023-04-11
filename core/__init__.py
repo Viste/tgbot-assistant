@@ -10,7 +10,7 @@ logger = logging.getLogger("__name__")
 
 
 def setup_routers() -> Router:
-    from . import core
+    from . import core, demoget, admin
 
     router = Router()
 
@@ -27,5 +27,7 @@ def setup_routers() -> Router:
         await message.answer("Контекст обнулен.", reply_markup=ReplyKeyboardRemove())
 
     router.include_router(core.router)
+    router.include_router(demoget.router)
+    router.include_router(admin.router)
 
     return router
