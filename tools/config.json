@@ -1,7 +1,7 @@
 {
   "token": "6150244029:AAH5f6v6-UxNVmX72bluQxGweWw8_KDcYDc",
   "api_key": "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",
-  "channel": "",
+  "channel": "-1001849227232",
   "admins": [
     58800377,
     910007939,
@@ -15,7 +15,9 @@
   ],
   "allowed_groups": [
     -1001647523732,
-    -1001700103389
+    -1001700103389,
+    -1001849227232,
+    -1001582049557
   ],
   "redis": {
     "host": "localhost",

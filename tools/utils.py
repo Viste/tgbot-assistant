@@ -2,6 +2,7 @@ import json
 import os
 import re
 import mutagen
+from datetime import datetime
 
 
 class JSONObject:
@@ -12,6 +13,7 @@ class JSONObject:
 cfg_file = open(os.path.join(os.path.dirname(__file__), 'config.json'), 'r', encoding='utf8')
 config = json.loads(cfg_file.read(), object_hook=JSONObject)
 pattern = re.compile("^(?!ID\s+?|iD\s+?|Айди\s+?|АЙДИ\s+?|аЙДИ\s+?|айДи\s+?|АЙди\s+?|Id\s+?|id\s+?)([\w\W\s]+?\s+?)-\s+?([\w\W\s]+?)\.mp3$")
+email_patt = re.compile("^\w+?@\w+?\.\w{2,12$")
 
 
 def trim_name(text: str) -> str:
@@ -38,3 +40,9 @@ def check_bit_rate(file):
         return True
     else:
         return False
+
+
+def get_dt(value):
+    dt_obj = datetime.strptime(value, "%d.%m.%Y %H.%M")
+    formatted_value = dt_obj.strftime("%d.%m.%Y %H.%M")
+    return formatted_value

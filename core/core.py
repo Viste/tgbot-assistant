@@ -10,12 +10,12 @@ from tools.utils import config, trim_name, split_into_chunks
 
 logger = logging.getLogger("__name__")
 router = Router()
-
+router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups))
 openai = OpenAI()
 
 
 @flags.chat_action("typing")
-@router.message(F.text.startswith("@cyberpaperbot"), F.chat.id.in_(config.allowed_groups), F.chat.type.in_({'group', 'supergroup'}))
+@router.message(F.text.startswith("@cyberpaperbot"))
 async def ask(message: types.Message, state: FSMContext) -> None:
     await state.set_state(Text.get)
     uid = message.from_user.id
@@ -45,7 +45,7 @@ async def ask(message: types.Message, state: FSMContext) -> None:
 
 
 @flags.chat_action("typing")
-@router.message(Text.get, F.reply_to_message.from_user.is_bot, F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups))
+@router.message(Text.get, F.reply_to_message.from_user.is_bot)
 async def process_ask(message: types.Message) -> None:
     uid = message.from_user.id
     if uid in config.banned_user_ids:
@@ -72,7 +72,7 @@ async def process_ask(message: types.Message) -> None:
                     await message.reply(error, parse_mode=None)
 
 
-@router.message(Command(commands="help"), F.chat.id.in_(config.allowed_groups), F.chat.type.in_({'group', 'supergroup'}))
+@router.message(Command(commands="help"))
 async def info(message: types.Message):
     uid = message.from_user.id
     if uid in config.banned_user_ids:
@@ -86,10 +86,3 @@ async def info(message: types.Message):
                "\n" \
                "Автор: @vistee"
         await message.reply(text, parse_mode=None)
-
-
-@router.message(F.chat.type.in_({'private'}), F.from_user.id.in_(config.admins), Command(commands="money"))
-@flags.chat_action("typing")
-async def usage(message: types.Message):
-    text = openai.get_money()
-    await message.reply(text, parse_mode=None)

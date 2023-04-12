@@ -1,24 +1,46 @@
 import logging
 import os
 
-from aiogram import types, F, Router
+from aiogram import types, F, Router, flags
 from aiogram.filters.command import Command
+from aiogram.fsm.context import FSMContext
 from main import paper
-from tools.utils import config, check, pattern, check_bit_rate
+from tools.states import Demo
+from tools.utils import config, check, pattern, check_bit_rate, email_patt
+from middlewares.workdays import WorkdaysMessageMiddleware
+
 
 logger = logging.getLogger("__name__")
 router = Router()
+router.message.filter(F.chat.type.in_({'private'}))
+router.message.middleware(WorkdaysMessageMiddleware())
 channel = config.channel
 
 
-@router.message(Command(commands="start", ignore_case=True), F.chat.type == "private")
-async def start(message: types.Message):
+@router.message(Command(commands="start", ignore_case=True))
+async def start_cmd(message: types.Message, state: FSMContext):
     first_name = message.chat.first_name
-    await message.reply(f"Привет {first_name}!\n Я принимаю демки на эфиры Нейропанк академии")
+    await message.reply(f"Привет {first_name}!\n Я принимаю демки на эфиры Нейропанк академии\n"
+                        f"Для начала напиши мне свой email, чтобы я предоставил тебе доступ к стриму")
+    await state.set_state(Demo.start)
 
 
-@router.message(F.content_type.in_({'audio'}), F.chat.type == "private")
-async def get_and_send(message: types.Message):
+@router.message(Demo.start)
+async def start_cmd(message: types.Message, state: FSMContext):
+    email = message.text
+    first_name = message.from_user.first_name
+    if check(email, email_patt):
+        await state.update_data(email=str(message.text))
+        await message.reply(f"{first_name}, записал твой Email!\n Самое время прислать демку!\n"
+                            """Пожалуйста, убедись что отправляешь 320 mp3 длиной не менее 2 минут, с полностью прописанными тегами и названием файла в виде "Автор - Трек".\n""")
+        await state.set_state(Demo.get)
+    else:
+        await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
+
+
+@router.message(Demo.get, F.content_type.in_({'audio'}))
+@flags.chat_action("typing")
+async def get_and_send_from_state(message: types.Message, state: FSMContext):
     uid = message.from_user.id
     if uid in config.banned_user_ids:
         text = "не хочу с тобой разговаривать"
@@ -30,6 +52,8 @@ async def get_and_send(message: types.Message):
         artist = message.audio.performer
         title = message.audio.title
         file_name = message.audio.file_name
+        data = await state.get_data()
+        email = data['email']
 
         logging.info('Full message info: %s', message)
         logging.info('username: %s, duration: %s, artist: %s , title: %s, file_name: %s', message.chat.username,
@@ -56,6 +80,7 @@ async def get_and_send(message: types.Message):
         else:
             text = f"Пришел трек.\n" \
                    f"Отправил: @{username}\n" \
+                   f"Почта: {email}" \
                    f"Длина файла: {duration} секунды\n" \
                    f"title: {title}\n" \
                    f"Artist: {artist}"
@@ -63,8 +88,10 @@ async def get_and_send(message: types.Message):
             await message.reply("Спасибо за демку! Если захочешь прислать еще один, просто отправь его мне и помни про требования к треку.\n"
                                 "320 mp3 длиной не менее 2 минут, с полностью прописанными тегами и названием файла в виде 'Автор - Трек'")
             os.remove(f"{str(uid)}.mp3")
+            await state.clear()
 
 
-@router.message(F.content_type.in_({'text', 'photo'}), F.chat.type == "private")
+@router.message(F.content_type.in_({'text', 'photo'}))
+@flags.chat_action("typing")
 async def chat(message: types.Message):
     await message.reply("Пришли трек в соответствии с условиями, а пообщаться можно тут https://t.me/pprfnkch")
