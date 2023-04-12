@@ -23,6 +23,15 @@ async def online_cmd(message: types.Message, command: CommandObject):
     await message.reply(text)
 
 
+@router.message(Command(commands="offline", ignore_case=True))
+@flags.chat_action("typing")
+async def offline_cmd(message: types.Message):
+    first_name = message.chat.first_name
+    end_date.clear()
+    text = f"Личность подтверждена! Уважаемый, {first_name}, включаю прием дэмок"
+    await message.reply(text)
+
+
 @router.message(Command(commands="help"))
 @flags.chat_action("typing")
 async def info(message: types.Message):

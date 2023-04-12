@@ -9,7 +9,7 @@ from core.admin import end_date
 def _is_working() -> bool:
     now = datetime.now()
     close_date = end_date[0]
-    if now > close_date:
+    if now > close_date or close_date is None:
         return True
     else:
         return False
