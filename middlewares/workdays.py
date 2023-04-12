@@ -2,13 +2,13 @@ from datetime import datetime
 from typing import Callable, Dict, Any, Awaitable
 
 from aiogram import BaseMiddleware
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message
 from core.admin import end_date
 
 
 def _is_working() -> bool:
     now = datetime.now()
-    close_date = end_date[0]
+    close_date = end_date
     if now > close_date or close_date is None:
         return True
     else:
