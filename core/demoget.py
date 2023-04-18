@@ -4,11 +4,11 @@ import os
 from aiogram import types, F, Router, flags
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
+
 from main import paper
+from middlewares.workdays import WorkdaysMessageMiddleware
 from tools.states import Demo
 from tools.utils import config, check, pattern, check_bit_rate, email_patt
-from middlewares.workdays import WorkdaysMessageMiddleware
-
 
 logger = logging.getLogger("__name__")
 router = Router()
@@ -89,9 +89,3 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext):
                                 "320 mp3 длиной не менее 2 минут, с полностью прописанными тегами и названием файла в виде 'Автор - Трек'")
             os.remove(f"{str(uid)}.mp3")
             await state.clear()
-
-
-@router.message(F.content_type.in_({'text', 'photo'}))
-@flags.chat_action("typing")
-async def chat(message: types.Message):
-    await message.reply("Пришли трек в соответствии с условиями, а пообщаться можно тут https://t.me/pprfnkch")
