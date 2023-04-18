@@ -1,10 +1,10 @@
 import logging
 
-
 from aiogram import types, Router, F, flags
 from aiogram.filters.command import Command, CommandObject
-from tools.utils import config, get_dt
+
 from tools.ai_tools import OpenAI
+from tools.utils import config, get_dt
 
 logger = logging.getLogger("__name__")
 openai = OpenAI()
@@ -41,7 +41,7 @@ async def info(message: types.Message):
         await message.reply(text, parse_mode=None)
     else:
         text = "Для запуска приема демок напиши /online и укажи дату окончания приема демок\n" \
-               "Например: /start 22.04.2023 23:59" \
+               "Например: /start 22.04.2023 23.59" \
                "\n" \
                "Автор: @vistee"
         await message.reply(text, parse_mode=None)
