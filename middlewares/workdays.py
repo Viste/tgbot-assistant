@@ -9,10 +9,15 @@ from core.admin import end_date
 def _is_working() -> bool:
     now = datetime.now()
     close_date = end_date[0]
-    if now > close_date or close_date is None:
+    if close_date is None:
         return True
+    elif isinstance(close_date, datetime):
+        if now > close_date:
+            return True
+        else:
+            return False
     else:
-        return False
+        raise TypeError("end_date must be a datetime.datetime object or None")
 
 
 class WorkdaysMessageMiddleware(BaseMiddleware):
