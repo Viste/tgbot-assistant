@@ -10,6 +10,23 @@ from core.admin import end_date
 logger = logging.getLogger("__name__")
 
 
+def _is_working() -> bool:
+    now = datetime.now()
+    close_date = end_date[0]
+    if len(end_date[0]) == 1:
+        if close_date is None:
+            return True
+        elif isinstance(close_date, datetime):
+            if now > close_date:
+                return True
+            else:
+                return False
+        else:
+            raise TypeError("end_date must be a datetime.datetime object or None")
+    else:
+        return False
+
+
 class WorkdaysMessageMiddleware(BaseMiddleware):
     async def __call__(
             self,
@@ -17,15 +34,7 @@ class WorkdaysMessageMiddleware(BaseMiddleware):
             event: Message,
             data: Dict[str, Any]
     ) -> Any:
-        # If end_date is empty, treat it as if work is ongoing
-        if not end_date:
-            logging.info('not end_date')
+        # Если не выключен и по датам все ок продолжаем
+        if not _is_working():
             return await handler(event, data)
-        # Otherwise, check the end date
-        close_date = end_date[0]
-        if close_date is None or isinstance(close_date, datetime) and datetime.now() > close_date:
-            logging.info('end_date')
-            return await handler(event, data)
-
-        # If the end date is in the future, stop processing
-        return None
+        # В противном случае просто вернётся None и обработка прекратится
