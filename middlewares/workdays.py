@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Callable, Dict, Any, Awaitable
+from typing import Callable, Dict, Any, Awaitable, Optional
 
 from aiogram import BaseMiddleware
 from aiogram.types import Message
@@ -8,7 +8,7 @@ from core.admin import end_date
 
 def _is_working() -> bool:
     now = datetime.now()
-    close_date = end_date
+    close_date = end_date[0]
     if now > close_date or close_date is None:
         return True
     else:
