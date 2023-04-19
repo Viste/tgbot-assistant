@@ -165,9 +165,6 @@ class OpenAI:
                 answer += f'{index + 1}\u20e3\n'
                 answer += content
                 answer += '\n\n'
-        elif response.error:
-            answer = response.error
-            return answer, response.session_id
         else:
             answer = response.choices[0]['message']['content'].strip()
             self.__add_to_history(user_id, role="assistant", content=answer)
