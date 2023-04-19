@@ -15,12 +15,11 @@ logger = logging.getLogger("__name__")
 session = AsyncSession()
 
 
-async def _is_working() -> bool:
+def _is_working() -> bool:
     now = datetime.now()
-    result = await session.execute(select(Calendar).order_by(desc(Calendar.end_time)).limit(1))
-    close_date = result.scalar_one()
+    close_date = session.execute(select(Calendar).order_by(desc(Calendar.end_time)).limit(1))
 
-    if close_date.end_time is None or now > close_date.end_time:
+    if close_date is None or now > close_date:
         return True
     else:
         return False
