@@ -32,6 +32,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
         try:
             result = await session.execute(select(Calendar).order_by(desc(Calendar.end_time)).limit(1))
             close_date = result.scalar_one()
+            await session.commit()
         except NoResultFound:
             close_date = None
         if close_date is not None:
