@@ -42,6 +42,8 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
                 await state.set_state(Demo.start)
             else:
                 await message.answer(f"Привет {first_name}!\n Сейчас не время присылать демки, попробуй позже")
+        else:
+            await message.answer(f"Привет {first_name}!\n Сейчас не время присылать демки, попробуй позже")
 
 
 @router.message(Demo.start)
