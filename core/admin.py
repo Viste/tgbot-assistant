@@ -2,6 +2,7 @@ import logging
 
 from aiogram import types, Router, F, flags
 from aiogram.filters.command import Command, CommandObject
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import Calendar
@@ -30,8 +31,7 @@ async def online_cmd(message: types.Message, command: CommandObject, session: As
 @flags.chat_action("typing")
 async def offline_cmd(message: types.Message, session: AsyncSession):
     first_name = message.chat.first_name
-    await session.query(Calendar).delete()
-    await session.commit()
+    await session.execute(delete(Calendar))
     text = f"Личность подтверждена! Уважаемый, {first_name}, включаю прием дэмок"
     await message.reply(text)
 
