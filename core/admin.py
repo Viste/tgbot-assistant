@@ -64,7 +64,7 @@ async def usage(message: types.Message):
 @router.message(Command(commands="emails"))
 @flags.chat_action("typing")
 async def mails_get(message: types.Message, session: AsyncSession):
-    result = await session.execute(select([StreamEmails.email]))
+    result = await session.execute(select([StreamEmails.c.email]))
     emails = result.fetchall()
     if emails:
         email_list = [email[0] for email in emails]
