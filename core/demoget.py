@@ -9,7 +9,7 @@ from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.exc import NoResultFound
 
-from database.models import Calendar
+from database.models import Calendar, StreamEmails
 from main import paper
 from tools.states import Demo
 from tools.utils import config, check, pattern, check_bit_rate, email_patt
@@ -47,11 +47,13 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
 
 
 @router.message(Demo.start)
-async def start_cmd(message: types.Message, state: FSMContext):
+async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession):
     email = message.text
     first_name = message.from_user.first_name
     if check(email, email_patt):
         await state.update_data(email=str(message.text))
+        await session.execute(StreamEmails.insert().values(email=str(message.text), stream_id=1))
+        await session.commit()
         await message.reply(f"{first_name}, записал твой Email! Самое время прислать демку!\n"
                             """Пожалуйста, убедись что отправляешь 320 mp3 длиной не менее 2 минут, с полностью прописанными тегами и названием файла в виде "Автор - Трек".\n""")
         await state.set_state(Demo.get)

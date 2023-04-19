@@ -2,10 +2,10 @@ import logging
 
 from aiogram import types, Router, F, flags
 from aiogram.filters.command import Command, CommandObject
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.models import Calendar
+from database.models import Calendar, StreamEmails
 from tools.ai_tools import OpenAI
 from tools.utils import config, get_dt
 
@@ -33,6 +33,7 @@ async def online_cmd(message: types.Message, command: CommandObject, session: As
 async def offline_cmd(message: types.Message, session: AsyncSession):
     first_name = message.chat.first_name
     await session.execute(delete(Calendar))
+    await session.execute(delete(StreamEmails))
     await session.commit()
     text = f"Личность подтверждена! Уважаемый, {first_name}, включаю прием дэмок"
     await message.reply(text)
@@ -58,3 +59,16 @@ async def info(message: types.Message):
 async def usage(message: types.Message):
     text = openai.get_money()
     await message.reply(text, parse_mode=None)
+
+
+@router.message(Command(commands="emails"))
+@flags.chat_action("typing")
+async def mails_get(message: types.Message, session: AsyncSession):
+    result = await session.execute(select([StreamEmails.email]))
+    emails = result.fetchall()
+    if emails:
+        email_list = [email[0] for email in emails]
+        all_emails_str = ", ".join(email_list)
+        await message.reply(all_emails_str, parse_mode=None)
+    else:
+        await message.reply("Нет записей", parse_mode=None)
