@@ -11,7 +11,7 @@ from database.models import Calendar
 
 logger = logging.getLogger("__name__")
 
-session: AsyncSession
+session = AsyncSession()
 
 
 def _is_working() -> bool:
