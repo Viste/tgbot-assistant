@@ -24,7 +24,7 @@ async def online_cmd(message: types.Message, command: CommandObject, session: As
     async with session.begin():
         session.add(new_date)
         await session.commit()
-    text = f"Личность подтверждена! Уважаемый, {first_name}, включаю прием дэмок, время окончания прием демок {dt}"
+    text = f"Личность подтверждена! Уважаемый, {first_name}, включаю прием дэмок.\nВремя окончания приема демок {dt}"
     await message.reply(text)
 
 
@@ -47,7 +47,7 @@ async def info(message: types.Message):
         await message.reply(text, parse_mode=None)
     else:
         text = "Для запуска приема демок напиши /online и укажи дату окончания приема демок\n" \
-               "Например: /start 22.04.2023 23.59" \
+               "Например: /online 22.04.2023 23:59" \
                "\n" \
                "Автор: @vistee"
         await message.reply(text, parse_mode=None)

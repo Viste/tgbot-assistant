@@ -73,7 +73,7 @@ async def process_ask(message: types.Message) -> None:
 
 
 @router.message(Command(commands="help"))
-async def info(message: types.Message):
+async def info_user(message: types.Message):
     uid = message.from_user.id
     if uid in config.banned_user_ids:
         text = "не хочу с тобой разговаривать"
@@ -83,6 +83,7 @@ async def info(message: types.Message):
                "Хочешь со мной поговорить? Обратись ко мне через никнейм: @cyberpaperbot <твой вопрос> \n" \
                "Нужно полностью описать свою проблему и рассказать о своем опыте. не баловаться.\n" \
                "Мы внимательно наблюдаем за вами и тестируем «Кибер Папера» в режиме 24 на 7, поэтому используйте его грамотно. Мы за это платим.\n" \
+               "Чтобы прислать мне демку для эфира Neuropunk Академии, напиши мне в ЛС /start" \
                "\n" \
                "Автор: @vistee"
         await message.reply(text, parse_mode=None)
