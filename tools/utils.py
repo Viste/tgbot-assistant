@@ -45,5 +45,5 @@ def check_bit_rate(file):
 
 def get_dt(value):
     dt_obj = datetime.strptime(value, "%d.%m.%Y %H:%M")
-    formatted_value = dt_obj.strftime("%d.%m.%Y %H:%M")
+    formatted_value = dt_obj.strftime("%Y-%m-%d %H:%M:%S")
     return formatted_value
