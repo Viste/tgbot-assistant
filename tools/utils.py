@@ -1,8 +1,9 @@
 import json
 import os
 import re
-import mutagen
 from datetime import datetime
+
+import mutagen
 
 
 class JSONObject:
@@ -43,6 +44,6 @@ def check_bit_rate(file):
 
 
 def get_dt(value):
-    dt_obj = datetime.strptime(value, "%d.%m.%Y %H.%M")
-    formatted_value = dt_obj.strftime("%d.%m.%Y %H.%M")
+    dt_obj = datetime.strptime(value, "%d.%m.%Y %H:%M")
+    formatted_value = dt_obj.strftime("%d.%m.%Y %H:%M")
     return formatted_value
