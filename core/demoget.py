@@ -52,7 +52,7 @@ async def start_cmd(message: types.Message, state: FSMContext):
     first_name = message.from_user.first_name
     if check(email, email_patt):
         await state.update_data(email=str(message.text))
-        await message.reply(f"{first_name}, записал твой Email!\n Самое время прислать демку!\n"
+        await message.reply(f"{first_name}, записал твой Email! Самое время прислать демку!\n"
                             """Пожалуйста, убедись что отправляешь 320 mp3 длиной не менее 2 минут, с полностью прописанными тегами и названием файла в виде "Автор - Трек".\n""")
         await state.set_state(Demo.get)
     else:
@@ -93,7 +93,7 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext):
         elif artist is None:
             await message.reply("Тег artist в треке не заполнен, не могу его принять.\nПожалуйста исправь и отправь еще раз.")
         elif check(file_name, pattern) is False:
-            await message.reply("Название не соответствует требованиям, возможно ты использовал ID в имени артиста, или не указал дефис между автором и названием трека, "
+            await message.reply("Название не соответствует требованиям, возможно ты не указал дефис между автором и названием трека, "
                                 "не могу его принять.\nПожалуйста исправь и отправь еще раз.")
         elif check_bit_rate(f"{str(uid)}.mp3") is False:
             await message.reply('Битрейт mp3 файла менее 320.')
