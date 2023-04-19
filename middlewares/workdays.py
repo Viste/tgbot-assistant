@@ -30,6 +30,6 @@ class WorkdaysMessageMiddleware(BaseMiddleware):
         except NoResultFound:
             close_date = None
         # Если не выключен и по датам все ок продолжаем
-        if close_date.end_time is not None or now < close_date.end_time:
+        if close_date is None or close_date.end_time is not None or now < close_date.end_time:
             return await handler(event, data)
         # В противном случае просто вернётся None и обработка прекратится
