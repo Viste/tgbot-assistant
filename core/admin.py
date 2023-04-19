@@ -21,8 +21,9 @@ async def online_cmd(message: types.Message, command: CommandObject, session: As
     first_name = message.chat.first_name
     dt = get_dt(command.args)
     new_date = Calendar(end_time=dt)
-    session.add(new_date)
-    await session.commit()
+    async with session.begin():
+        session.add(new_date)
+        await session.commit()
     text = f"Личность подтверждена! Уважаемый, {first_name}, включаю прием дэмок, время окончания прием демок {dt}"
     await message.reply(text)
 
