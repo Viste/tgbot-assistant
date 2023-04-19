@@ -14,11 +14,11 @@ from tools.utils import config
 
 redis_client = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db, decode_responses=True)
 paper = Bot(token=config.token, parse_mode="HTML")
+engine = create_async_engine(url=config.db_url, echo=True)
 
 
 async def main():
-    engine = create_async_engine(url=config.db_url, echo=True)
-    sessionmaker = async_sessionmaker(engine, expire_on_commit=False)
+    session_maker = async_sessionmaker(engine, expire_on_commit=False)
 
     logging.basicConfig(
         level=logging.INFO,
@@ -29,7 +29,7 @@ async def main():
     storage = RedisStorage(redis=redis_client)
     worker = Dispatcher(storage=storage, fsm_strategy=FSMStrategy.GLOBAL_USER)
     router = setup_routers()
-    worker.update.middleware(DbSessionMiddleware(session_pool=sessionmaker))
+    worker.update.middleware(DbSessionMiddleware(session_pool=session_maker))
     worker.include_router(router)
     useful_updates = worker.resolve_used_update_types()
     logging.info("Starting bot")
