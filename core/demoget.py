@@ -101,7 +101,7 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext):
         else:
             text = f"Пришел трек.\n" \
                    f"Отправил: @{username}\n" \
-                   f"Почта: {email}" \
+                   f"Почта: {email}\n" \
                    f"Длина файла: {duration} секунды\n" \
                    f"title: {title}\n" \
                    f"Artist: {artist}"
