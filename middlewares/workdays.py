@@ -4,25 +4,22 @@ from typing import Callable, Dict, Any, Awaitable
 
 from aiogram import BaseMiddleware
 from aiogram.types import Message
+from sqlalchemy import desc
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.admin import end_date
+from database.models import Calendar
 
 logger = logging.getLogger("__name__")
+
+session: AsyncSession
 
 
 def _is_working() -> bool:
     now = datetime.now()
-    close_date = end_date[0]
-    if len(end_date[0]) == 1:
-        if close_date is None:
-            return True
-        elif isinstance(close_date, datetime):
-            if now > close_date:
-                return True
-            else:
-                return False
-        else:
-            raise TypeError("end_date must be a datetime.datetime object or None")
+    close_date = session.query(Calendar).order_by(desc(Calendar.end_time)).first()
+
+    if close_date is None or now > close_date:
+        return True
     else:
         return False
 

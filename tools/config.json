@@ -25,5 +25,6 @@
     "password": null,
     "db": 1,
     "conversation": 2
-  }
+  },
+  "db_url": "mariadb+aiomysql://cyber:password@127.0.0.1/cyber"
 }
