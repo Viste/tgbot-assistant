@@ -14,6 +14,7 @@ class Calendar(Base):
 class StreamEmails(Base):
     __tablename__ = "stream_emails"
 
-    stream_id = Column(Integer, nullable=False, primary_key=True, index=True, autoincrement=False, unique=False)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    stream_id = Column(Integer, nullable=False, autoincrement=False, unique=False)
     email = Column(String(255), nullable=False)
     mariadb_engine = "InnoDB"
