@@ -33,6 +33,7 @@ async def online_cmd(message: types.Message, command: CommandObject, session: As
 async def offline_cmd(message: types.Message, session: AsyncSession):
     first_name = message.chat.first_name
     await session.execute(delete(Calendar))
+    await session.commit()
     text = f"Личность подтверждена! Уважаемый, {first_name}, включаю прием дэмок"
     await message.reply(text)
 
