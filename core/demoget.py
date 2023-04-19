@@ -1,28 +1,46 @@
 import logging
 import os
+from datetime import datetime
 
 from aiogram import types, F, Router, flags
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
+from sqlalchemy import desc, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.exc import NoResultFound
 
+from database.models import Calendar
 from main import paper
-from middlewares.workdays import WorkdaysMessageMiddleware
 from tools.states import Demo
 from tools.utils import config, check, pattern, check_bit_rate, email_patt
 
 logger = logging.getLogger("__name__")
 router = Router()
 router.message.filter(F.chat.type.in_({'private'}))
-router.message.middleware(WorkdaysMessageMiddleware())
 channel = config.channel
 
 
 @router.message(Command(commands="start", ignore_case=True))
-async def start_cmd(message: types.Message, state: FSMContext):
-    first_name = message.chat.first_name
-    await message.reply(f"Привет {first_name}!\n Я принимаю демки на эфиры Нейропанк академии\n"
-                        f"Для начала напиши мне свой email, чтобы я предоставил тебе доступ к стриму")
-    await state.set_state(Demo.start)
+async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession):
+    uid = message.from_user.id
+    if uid in config.banned_user_ids:
+        text = "не хочу с тобой разговаривать"
+        await message.reply(text, parse_mode=None)
+    else:
+        first_name = message.chat.first_name
+        now = datetime.now()
+        try:
+            result = await session.execute(select(Calendar).order_by(desc(Calendar.end_time)).limit(1))
+            close_date = result.scalar_one()
+        except NoResultFound:
+            close_date = None
+        if close_date is not None:
+            if close_date.end_time is not None or now < close_date.end_time:
+                await message.answer(f"Привет {first_name}!\n Я принимаю демки на эфиры Нейропанк академии\n"
+                                     f"Для начала напиши мне свой email, чтобы я предоставил тебе доступ к стриму")
+                await state.set_state(Demo.start)
+            else:
+                await message.answer(f"Привет {first_name}!\n Сейчас не время присылать демки, попробуй позже")
 
 
 @router.message(Demo.start)
