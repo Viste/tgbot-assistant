@@ -14,7 +14,7 @@ class JSONObject:
 cfg_file = open(os.path.join(os.path.dirname(__file__), 'config.json'), 'r', encoding='utf8')
 config = json.loads(cfg_file.read(), object_hook=JSONObject)
 pattern = re.compile("^([\w\W\s]+?\s+?)-\s+?([\w\W\s]+?)\.mp3$")
-email_patt = re.compile("^\w+?@\w+?\.\w{2,12}$")
+email_patt = re.compile("^(\w+?|\w+?\.\w+?|\w+?\.\w+?\.\w+?)@\w+?\.\w{2,12}$")
 
 
 def trim_name(text: str) -> str:
