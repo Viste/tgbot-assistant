@@ -15,7 +15,7 @@ logger = logging.getLogger("__name__")
 session = AsyncSession()
 
 
-def _is_working() -> bool:
+async def _is_working() -> bool:
     now = datetime.now()
     result = await session.execute(select(Calendar).order_by(desc(Calendar.end_time)).limit(1))
     close_date = result.scalar_one()
