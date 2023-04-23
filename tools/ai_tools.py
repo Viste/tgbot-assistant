@@ -155,7 +155,7 @@ class OpenAI:
           }
         }"""
 
-    async def get_resp(self, query: str, chat_id: int):
+    async def get_resp(self, query: str, chat_id: int) -> tuple[str, str]:
         response = await self._query_gpt(user_id, query)
         answer = ''
 
