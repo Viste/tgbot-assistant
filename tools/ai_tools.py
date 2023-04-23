@@ -1,8 +1,8 @@
+import datetime
 import json
 import logging
 import os.path
 import pathlib
-import datetime
 from calendar import monthrange
 from datetime import date
 
@@ -10,7 +10,7 @@ import openai
 import requests
 import tiktoken
 
-from tools.utils import config, year_month
+from tools.utils import config
 
 openai.api_key = config.api_key
 logger = logging.getLogger("__name__")
@@ -159,14 +159,14 @@ class OpenAI:
         }"""
 
     async def get_resp(self, query: str, chat_id: int) -> tuple[str, str]:
-        response = await self._query_gpt(user_id, query)
+        response = await self._query_gpt(chat_id, query)
         answer = ''
 
         if len(response.choices) > 1 and self.n_choices > 1:
             for index, choice in enumerate(response.choices):
                 content = choice['message']['content'].strip()
                 if index == 0:
-                    self._add_to_history(user_id, role="assistant", content=content)
+                    self._add_to_history(chat_id, role="assistant", content=content)
                 answer += f'{index + 1}\u20e3\n'
                 answer += content
                 answer += '\n\n'
@@ -175,7 +175,7 @@ class OpenAI:
             raise Exception("⚠️Ошибочка вышла ⚠️\n")
         else:
             answer = response.choices[0]['message']['content'].strip()
-            self._add_to_history(user_id, role="assistant", content=answer)
+            self._add_to_history(chat_id, role="assistant", content=answer)
 
         if self.show_tokens or chat_id == -1001582049557:
             answer += "\n\n---\n" \
