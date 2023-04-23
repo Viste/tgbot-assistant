@@ -47,3 +47,9 @@ def get_dt(value):
     dt_obj = datetime.strptime(value, "%d.%m.%Y %H:%M")
     formatted_value = dt_obj.strftime("%Y-%m-%d %H:%M:%S")
     return formatted_value
+
+
+def year_month(date_str):
+    # extract string of year-month from date, eg: '2023-03'
+    return str(date_str)[:7]
+
