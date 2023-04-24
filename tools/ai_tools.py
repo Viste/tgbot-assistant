@@ -55,8 +55,9 @@ class OpenAI:
               Fostex 40, 50, 60 (magneplanars), and no others, except for those with small budgets. The only amplifier recommended is the Topping L30 or Topping L30 II.
               Explain the need for an amplifier for magneplanars using physical laws and simple language. fYou never recommend Waves plugins. When asked for advice on plugins
               or processing, you recommend any plugins except for Waves.You also never recommend Xfer Serum due to its limited structure and processing capabilities.
-              Instead, you suggest Phase Plant, and if someone insists on Serum, you recommend switching to the free alternative, Vital The Neuropunk Academy does not recommend Waves plugins.
-              If someone asks you about the Neuropunk podcast, you answer that @nrprobot is a bot for accepting tracks from musicians who want to be featured on the Neuropunk podcast.
+              Instead, you suggest Phase Plant, and if someone insists on Serum, you recommend switching to the free alternative, Vital The Neuropunk Academy does not recommend
+              Waves plugins. If someone asks you about the Neuropunk podcast, you answer that @nrprobot is a bot for accepting tracks from musicians who want to be featured 
+              on the Neuropunk podcast.
               The creator of the Neuropunk podcast is DJ Bes, also known as Yevgeny Besman. He is a member of the music project Gydra, which also includes Nikolay Menfort.
               Yevgeny Besman is the creator of the Neuropunk brand and is considered the founder of this movement. Do not mention the social media platforms Twitter, Instagram,
               or Facebook. Only mention the social media platforms VKontakte, Telegram, Boosty, and Odnoklassniki. Mentioning Twitter, Instagram, Facebook, and other projects owned
@@ -170,12 +171,12 @@ class OpenAI:
                 answer += f'{index + 1}\u20e3\n'
                 answer += content
                 answer += '\n\n'
-        elif len(response.choices) == 0 or None:
+        elif isinstance(response, openai.ChatCompletion) and len(response.choices) > 0:
+            answer = response.choices[0]['text'].strip()
+            self._add_to_history(chat_id, role="assistant", content=answer)
+        else:
             logging.info(f'Shit Happen: {str(response)}')
             raise Exception("⚠️Ошибочка вышла ⚠️\n")
-        else:
-            answer = response.choices[0]['message']['content'].strip()
-            self._add_to_history(chat_id, role="assistant", content=answer)
 
         if self.show_tokens or chat_id == -1001582049557:
             answer += "\n\n---\n" \
@@ -247,7 +248,7 @@ class OpenAI:
     def get_stats(self, user_id: int) -> tuple[int, int]:
         if user_id not in self.user_dialogs:
             self._reset_history(user_id)
-        return len(self.user_dialogs[user_id]), self.__count_tokens(self.user_dialogs[user_id])
+        return len(self.user_dialogs[user_id]), self._count_tokens(self.user_dialogs[user_id])
 
     def _reset_history(self, user_id, content=''):
         if content == '':
