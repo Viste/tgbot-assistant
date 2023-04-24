@@ -163,28 +163,31 @@ class OpenAI:
         response = await self._query_gpt(chat_id, query)
         answer = ''
 
-        if isinstance(response, openai.ChatCompletion) and len(response.choices) > 1 and self.n_choices > 1:
-            for index, choice in enumerate(response.choices):
-                content = choice['message']['content'].strip()
-                if index == 0:
-                    self._add_to_history(chat_id, role="assistant", content=content)
-                answer += f'{index + 1}\u20e3\n'
-                answer += content
-                answer += '\n\n'
-        elif isinstance(response, openai.ChatCompletion) and len(response.choices) >= 0:
-            answer = response.choices[0]['message']['content'].strip()
-            self._add_to_history(chat_id, role="assistant", content=answer)
-        else:
-            logging.info(f'Shit Happen: {str(response)}')
-            raise Exception("⚠️Ошибочка вышла ⚠️\n")
+        if isinstance(response, openai.ChatCompletion):
+            total_tokens = response.usage['total_tokens']
+            if len(response.choices) > 1 and self.n_choices > 1:
+                for index, choice in enumerate(response.choices):
+                    content = choice['message']['content'].strip()
+                    if index == 0:
+                        self._add_to_history(chat_id, role="assistant", content=content)
+                    answer += f'{index + 1}\u20e3\n'
+                    answer += content
+                    answer += '\n\n'
+            elif len(response.choices) >= 0:
+                answer = response.choices[0]['message']['content'].strip()
+                self._add_to_history(chat_id, role="assistant", content=answer)
+            else:
+                logging.info(f'Shit Happen: {str(response)}')
+                answer = "⚠️Ошибочка вышла ⚠️\n"
+                total_tokens = 0
 
-        if self.show_tokens or chat_id == -1001582049557:
-            answer += "\n\n---\n" \
-                      f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
-                      f" ({str(response.usage['prompt_tokens'])} prompt," \
-                      f" {str(response.usage['completion_tokens'])} completion)"
+            if self.show_tokens or chat_id == -1001582049557:
+                answer += "\n\n---\n" \
+                          f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
+                          f" ({str(response.usage['prompt_tokens'])} prompt," \
+                          f" {str(response.usage['completion_tokens'])} completion)"
 
-        return answer, response.usage['total_tokens']
+            return answer, total_tokens
 
     async def _query_gpt(self, user_id, query):
         while self.retries < self.max_retries:
