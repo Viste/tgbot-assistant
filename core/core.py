@@ -1,3 +1,4 @@
+import html
 import logging
 
 from aiogram import types, F, Router, flags
@@ -25,10 +26,11 @@ async def ask(message: types.Message, state: FSMContext) -> None:
     else:
         logging.info("%s", message)
         chat_id = message.chat.id
-        text = message.text.strip('@cyberpaperbot ')
+        text = html.escape(message.text)
+        escaped_text = text.strip('@cyberpaperbot ')
 
         # Generate response
-        replay_text, total_tokens = await openai.get_resp(text, chat_id)
+        replay_text, total_tokens = await openai.get_resp(escaped_text, chat_id)
 
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
@@ -54,10 +56,11 @@ async def process_ask(message: types.Message) -> None:
     else:
         logging.info("%s", message)
         chat_id = message.chat.id
-        text = message.text.strip('@cyberpaperbot ')
+        text = html.escape(message.text)
+        escaped_text = text.strip('@cyberpaperbot ')
 
         # Generate response
-        replay_text, total_tokens = await openai.get_resp(text, chat_id)
+        replay_text, total_tokens = await openai.get_resp(escaped_text, chat_id)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             try:
