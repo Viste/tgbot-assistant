@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 
 from tools.ai_tools import OpenAI
 from tools.states import Text
-from tools.utils import config, trim_name, split_into_chunks
+from tools.utils import config, split_into_chunks
 
 logger = logging.getLogger("__name__")
 router = Router()
@@ -25,10 +25,10 @@ async def ask(message: types.Message, state: FSMContext) -> None:
     else:
         logging.info("%s", message)
         chat_id = message.chat.id
-        trimmed = trim_name(message.text)
+        text = message.text.strip('@cyberpaperbot ')
 
         # Generate response
-        replay_text, total_tokens = await openai.get_resp(trimmed, chat_id)
+        replay_text, total_tokens = await openai.get_resp(text, chat_id)
 
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
@@ -54,10 +54,10 @@ async def process_ask(message: types.Message) -> None:
     else:
         logging.info("%s", message)
         chat_id = message.chat.id
-        trimmed = trim_name(message.text)
+        text = message.text.strip('@cyberpaperbot ')
 
         # Generate response
-        replay_text, total_tokens = await openai.get_resp(trimmed, chat_id)
+        replay_text, total_tokens = await openai.get_resp(text, chat_id)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             try:
