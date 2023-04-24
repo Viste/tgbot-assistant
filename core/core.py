@@ -25,12 +25,11 @@ async def ask(message: types.Message, state: FSMContext) -> None:
         await message.reply(text, parse_mode=None)
     else:
         logging.info("%s", message)
-        chat_id = message.chat.id
         text = html.escape(message.text)
         escaped_text = text.strip('@cyberpaperbot ')
 
         # Generate response
-        replay_text, total_tokens = await openai.get_resp(escaped_text, chat_id)
+        replay_text, total_tokens = await openai.get_resp(escaped_text, uid)
 
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
@@ -55,12 +54,11 @@ async def process_ask(message: types.Message) -> None:
         await message.reply(text, parse_mode=None)
     else:
         logging.info("%s", message)
-        chat_id = message.chat.id
         text = html.escape(message.text)
         escaped_text = text.strip('@cyberpaperbot ')
 
         # Generate response
-        replay_text, total_tokens = await openai.get_resp(escaped_text, chat_id)
+        replay_text, total_tokens = await openai.get_resp(escaped_text, uid)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             try:
