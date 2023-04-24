@@ -163,7 +163,7 @@ class OpenAI:
         response = await self._query_gpt(chat_id, query)
         answer = ''
 
-        if len(response.choices) > 1 and self.n_choices > 1:
+        if isinstance(response, openai.ChatCompletion) and len(response.choices) > 1 and self.n_choices > 1:
             for index, choice in enumerate(response.choices):
                 content = choice['message']['content'].strip()
                 if index == 0:
@@ -172,7 +172,7 @@ class OpenAI:
                 answer += content
                 answer += '\n\n'
         elif isinstance(response, openai.ChatCompletion) and len(response.choices) > 0:
-            answer = response.choices[0]['text'].strip()
+            answer = response.choices[0]['message']['content'].strip()
             self._add_to_history(chat_id, role="assistant", content=answer)
         else:
             logging.info(f'Shit Happen: {str(response)}')
