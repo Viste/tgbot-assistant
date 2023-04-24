@@ -171,7 +171,7 @@ class OpenAI:
                 answer += f'{index + 1}\u20e3\n'
                 answer += content
                 answer += '\n\n'
-        elif isinstance(response, openai.ChatCompletion) and len(response.choices) == 1:
+        elif isinstance(response, openai.ChatCompletion) and len(response.choices) >= 0:
             answer = response.choices[0]['message']['content'].strip()
             self._add_to_history(chat_id, role="assistant", content=answer)
         else:
