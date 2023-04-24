@@ -17,12 +17,6 @@ pattern = re.compile("^([\w\W\s]+?\s+?)-\s+?([\w\W\s]+?)\.mp3$")
 email_patt = re.compile("^(\w+?|\w+?\.\w+?|\w+?\.\w+?\.\w+?)@\w+?\.\w{2,12}$")
 
 
-def trim_name(text: str) -> str:
-    if text.startswith("@cyberpaperbot"):
-        text = text.strip("@cyberpaperbot")
-    return text.strip("\n")
-
-
 def split_into_chunks(text: str, chunk_size: int = 4096) -> list[str]:
     return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
 
