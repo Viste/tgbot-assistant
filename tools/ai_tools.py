@@ -163,7 +163,7 @@ class OpenAI:
         response = await self._query_gpt(chat_id, query)
         answer = ''
 
-        if openai.ChatCompletion.objects:
+        if isinstance(response, openai.ChatCompletion):
             if response.choices and len(response.choices) > 1 and self.n_choices > 1:
                 for index, choice in enumerate(response.choices):
                     content = choice['message']['content'].strip()
@@ -186,9 +186,9 @@ class OpenAI:
                           f" ({str(response.usage['prompt_tokens'])} prompt," \
                           f" {str(response.usage['completion_tokens'])} completion)"
         else:
-            logging.info(f'Shit Happen: {str(response)}')
-            answer = "⚠️Ошибочка вышла ⚠️\n"
-            total_tokens = 0
+            answer = response.choices[0]['message']['content'].strip()
+            self._add_to_history(chat_id, role="assistant", content=answer)
+            total_tokens = response.usage['total_tokens'] if response.usage else 0
 
         return answer, total_tokens
 
