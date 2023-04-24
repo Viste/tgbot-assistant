@@ -52,4 +52,3 @@ def get_dt(value):
 def year_month(date_str):
     # extract string of year-month from date, eg: '2023-03'
     return str(date_str)[:7]
-
