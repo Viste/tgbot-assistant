@@ -188,6 +188,11 @@ class OpenAI:
                           f" {str(response.usage['completion_tokens'])} completion)"
 
             return answer, total_tokens
+        else:
+            logging.info(f'Shit Happen: {str(response)}')
+            answer = "⚠️Ошибочка вышла ⚠️\n"
+            total_tokens = 0
+            return answer, total_tokens
 
     async def _query_gpt(self, user_id, query):
         while self.retries < self.max_retries:

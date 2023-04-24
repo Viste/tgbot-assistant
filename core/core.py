@@ -30,23 +30,18 @@ async def ask(message: types.Message, state: FSMContext) -> None:
         # Generate response
         replay_text, total_tokens = await openai.get_resp(trimmed, chat_id)
 
-        if replay_text:
-            chunks = split_into_chunks(replay_text)
-            for index, chunk in enumerate(chunks):
+        chunks = split_into_chunks(replay_text)
+        for index, chunk in enumerate(chunks):
+            try:
+                if index == 0:
+                    await message.reply(chunk, parse_mode=None)
+            except Exception as err:
                 try:
-                    if index == 0:
-                        await message.reply(chunk, parse_mode=None)
-                except Exception as err:
-                    try:
-                        logging.info('From try in for index chunks: %s', err)
-                        await message.reply(chunk + err, parse_mode=None)
-                    except Exception as error:
-                        logging.info('Last exception from Core: %s', error)
-                        await message.reply(error, parse_mode=None)
-
-        if openai.show_tokens or chat_id == -1001582049557:
-            tokens_text = f"💰 Использовано Токенов: {total_tokens}"
-            await message.reply(tokens_text, parse_mode=None)
+                    logging.info('From try in for index chunks: %s', err)
+                    await message.reply(chunk + err, parse_mode=None)
+                except Exception as error:
+                    logging.info('Last exception from Core: %s', error)
+                    await message.reply(error, parse_mode=None)
 
 
 @flags.chat_action("typing")
@@ -63,23 +58,18 @@ async def process_ask(message: types.Message) -> None:
 
         # Generate response
         replay_text, total_tokens = await openai.get_resp(trimmed, chat_id)
-        if replay_text:
-            chunks = split_into_chunks(replay_text)
-            for index, chunk in enumerate(chunks):
+        chunks = split_into_chunks(replay_text)
+        for index, chunk in enumerate(chunks):
+            try:
+                if index == 0:
+                    await message.reply(chunk, parse_mode=None)
+            except Exception as err:
                 try:
-                    if index == 0:
-                        await message.reply(chunk, parse_mode=None)
-                except Exception as err:
-                    try:
-                        logging.info('From try in for index chunks: %s', err)
-                        await message.reply(chunk + err, parse_mode=None)
-                    except Exception as error:
-                        logging.info('Last exception from Core: %s', error)
-                        await message.reply(error, parse_mode=None)
-
-        if openai.show_tokens or chat_id == -1001582049557:
-            tokens_text = f"💰 Использовано Токенов: {total_tokens}"
-            await message.reply(tokens_text, parse_mode=None)
+                    logging.info('From try in for index chunks: %s', err)
+                    await message.reply(chunk + err, parse_mode=None)
+                except Exception as error:
+                    logging.info('Last exception from Core: %s', error)
+                    await message.reply(error, parse_mode=None)
 
 
 @router.message(Command(commands="help"))
