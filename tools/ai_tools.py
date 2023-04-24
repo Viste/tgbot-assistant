@@ -163,7 +163,7 @@ class OpenAI:
         response = await self._query_gpt(chat_id, query)
         answer = ''
 
-        if openai.ChatCompletion.__instancecheck__(response):
+        if openai.ChatCompletion.objects:
             if response.choices and len(response.choices) > 1 and self.n_choices > 1:
                 for index, choice in enumerate(response.choices):
                     content = choice['message']['content'].strip()
