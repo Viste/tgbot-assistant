@@ -1,4 +1,3 @@
-import datetime
 import json
 import logging
 import os.path
@@ -38,7 +37,6 @@ class OpenAI:
         self.max_conversation_age_minutes = 180
         self.show_tokens = False
         self.user_dialogs: dict[int: list] = {}
-        self.last_updated: dict[int: datetime] = {}  # {user_id: last_update_timestamp}
         self.content = """
         {
           "persona": {
@@ -195,10 +193,8 @@ class OpenAI:
     async def _query_gpt(self, user_id, query):
         while self.retries < self.max_retries:
             try:
-                if user_id not in self.user_dialogs or self._has_expired(user_id):
+                if user_id not in self.user_dialogs:
                     self._reset_history(user_id)
-
-                self.last_updated[user_id] = datetime.datetime.now()
 
                 self._add_to_history(user_id, role="user", content=query)
 
@@ -239,14 +235,6 @@ class OpenAI:
                 logging.info("Dialog From custom exception: %s", self.user_dialogs[user_id])
                 if self.retries == self.max_retries:
                     return f'⚠️Ошибочка вышла ⚠️\n{str(err)}', err
-
-    def _has_expired(self, chat_id) -> bool:
-        if chat_id not in self.last_updated:
-            return False
-        last_updated = self.last_updated[chat_id]
-        now = datetime.datetime.now()
-        max_age_minutes = self.max_conversation_age_minutes
-        return last_updated < now - datetime.timedelta(minutes=max_age_minutes)
 
     def _add_to_history(self, user_id, role, content):
         self.user_dialogs[user_id].append({"role": role, "content": content})
