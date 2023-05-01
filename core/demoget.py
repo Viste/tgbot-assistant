@@ -21,6 +21,7 @@ channel = config.channel
 
 
 @router.message(Command(commands="start", ignore_case=True))
+@flags.chat_action("typing")
 async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession):
     uid = message.from_user.id
     if uid in config.banned_user_ids:
@@ -47,6 +48,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
 
 
 @router.message(Demo.start)
+@flags.chat_action("typing")
 async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession):
     email = message.text
     first_name = message.from_user.first_name

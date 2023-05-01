@@ -9,3 +9,7 @@ class Text(StatesGroup):
 class Demo(StatesGroup):
     start = State()
     get = State()
+
+
+class Mail(StatesGroup):
+    start = State()
