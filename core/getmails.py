@@ -34,7 +34,7 @@ async def course_cmd(message: types.Message, state: FSMContext, session: AsyncSe
             close_date = None
         if close_date is not None:
             if close_date.end_time is not None or now < close_date.end_time:
-                await message.answer(f"Привет {first_name}!\nЯ собираю email адреса для курса Нейропанк академии\n"
+                await message.answer(f"Привет {first_name}!\nЯ собираю email адреса для платных курсов Нейропанк академии\n"
                                      f"Для начала напиши мне свой email, чтобы я предоставил тебе доступ к стриму")
                 await state.set_state(Mail.start)
             else:
