@@ -27,7 +27,7 @@ async def main():
     )
 
     storage = RedisStorage(redis=redis_client)
-    worker = Dispatcher(storage=storage, fsm_strategy=FSMStrategy.GLOBAL_USER)
+    worker = Dispatcher(storage=storage, fsm_strategy=FSMStrategy.USER_IN_CHAT)
     router = setup_routers()
     worker.update.middleware(DbSessionMiddleware(session_pool=session_maker))
     worker.include_router(router)
