@@ -1,3 +1,4 @@
+import asyncio
 import html
 import logging
 
@@ -28,21 +29,31 @@ async def ask(message: types.Message, state: FSMContext) -> None:
         text = html.escape(message.text)
         escaped_text = text.strip('@cyberpaperbot ')
 
-        # Generate response
-        replay_text, total_tokens = await openai.get_resp(escaped_text, uid)
-
-        chunks = split_into_chunks(replay_text)
-        for index, chunk in enumerate(chunks):
+        retry_count = 3
+        success = False
+        while retry_count > 0 and not success:
             try:
-                if index == 0:
-                    await message.reply(chunk, parse_mode=None)
-            except Exception as err:
-                try:
-                    logging.info('From try in for index chunks: %s', err)
-                    await message.reply(chunk + err, parse_mode=None)
-                except Exception as error:
-                    logging.info('Last exception from Core: %s', error)
-                    await message.reply(error, parse_mode=None)
+                replay_text, total_tokens = await openai.get_resp(escaped_text, uid)
+                chunks = split_into_chunks(replay_text)
+                success = True
+                for index, chunk in enumerate(chunks):
+                    try:
+                        if index == 0:
+                            await message.reply(chunk, parse_mode=None)
+                    except Exception as err:
+                        try:
+                            logging.info('From try in for index chunks: %s', err)
+                            await message.reply(chunk + err, parse_mode=None)
+                        except Exception as error:
+                            logging.info('Last exception from Core: %s', error)
+                            await message.reply(error, parse_mode=None)
+            except AttributeError:
+                retry_count -= 1
+                if retry_count > 0:
+                    await asyncio.sleep(1)
+                else:
+                    replay_text = "Извините, я не смог сгенерировать ответ. Пожалуйста, попробуйте еще раз позже."
+                    await message.reply(replay_text, parse_mode=None)
 
 
 @flags.chat_action("typing")

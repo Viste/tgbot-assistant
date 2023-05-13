@@ -161,7 +161,7 @@ class OpenAI:
         response = await self._query_gpt(chat_id, query)
         answer = ''
 
-        if isinstance(response, openai.ChatCompletion):
+        if response and isinstance(response, openai.ChatCompletion):
             if response.choices and len(response.choices) > 1 and self.n_choices > 1:
                 for index, choice in enumerate(response.choices):
                     content = choice['message']['content'].strip()
@@ -183,10 +183,13 @@ class OpenAI:
                           f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
                           f" ({str(response.usage['prompt_tokens'])} prompt," \
                           f" {str(response.usage['completion_tokens'])} completion)"
-        else:
+        elif response:
             answer = response.choices[0]['message']['content'].strip()
             self._add_to_history(chat_id, role="assistant", content=answer)
             total_tokens = response.usage['total_tokens'] if response.usage else 0
+        else:
+            answer = "Извините, я не смог сгенерировать ответ. Пожалуйста, попробуйте еще раз позже."
+            total_tokens = 0
 
         return answer, total_tokens
 
