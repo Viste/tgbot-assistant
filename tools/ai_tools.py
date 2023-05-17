@@ -15,7 +15,7 @@ openai.api_key = config.api_key
 logger = logging.getLogger("__name__")
 
 args = {
-    "temperature": 0.4,
+    "temperature": 0,
     "max_tokens": 768,
     "top_p": 1,
     "frequency_penalty": 0,
@@ -260,7 +260,7 @@ class OpenAI:
         response = await openai.ChatCompletion.acreate(
             model=self.model,
             messages=messages,
-            temperature=0.2
+            temperature=0.1
         )
         return response.choices[0]['message']['content']
 

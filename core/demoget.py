@@ -20,7 +20,7 @@ router.message.filter(F.chat.type.in_({'private'}))
 channel = config.channel
 
 
-@router.message(Command(commands="start", ignore_case=True))
+@router.message(Command(commands="demo", ignore_case=True))
 @flags.chat_action("typing")
 async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession):
     uid = message.from_user.id

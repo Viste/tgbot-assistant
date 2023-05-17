@@ -1,4 +1,3 @@
-import asyncio
 import html
 import logging
 
@@ -29,31 +28,19 @@ async def ask(message: types.Message, state: FSMContext) -> None:
         text = html.escape(message.text)
         escaped_text = text.strip('@cyberpaperbot ')
 
-        retry_count = 3
-        success = False
-        while retry_count > 0 and not success:
+        replay_text, total_tokens = await openai.get_resp(escaped_text, uid)
+        chunks = split_into_chunks(replay_text)
+        for index, chunk in enumerate(chunks):
             try:
-                replay_text, total_tokens = await openai.get_resp(escaped_text, uid)
-                chunks = split_into_chunks(replay_text)
-                success = True
-                for index, chunk in enumerate(chunks):
-                    try:
-                        if index == 0:
-                            await message.reply(chunk, parse_mode=None)
-                    except Exception as err:
-                        try:
-                            logging.info('From try in for index chunks: %s', err)
-                            await message.reply(chunk + err, parse_mode=None)
-                        except Exception as error:
-                            logging.info('Last exception from Core: %s', error)
-                            await message.reply(error, parse_mode=None)
-            except AttributeError:
-                retry_count -= 1
-                if retry_count > 0:
-                    await asyncio.sleep(1)
-                else:
-                    replay_text = "Извините, я не смог сгенерировать ответ. Пожалуйста, попробуйте еще раз позже."
-                    await message.reply(replay_text, parse_mode=None)
+                if index == 0:
+                    await message.reply(chunk, parse_mode=None)
+            except Exception as err:
+                try:
+                    logging.info('From try in for index chunks: %s', err)
+                    await message.reply(chunk + err, parse_mode=None)
+                except Exception as error:
+                    logging.info('Last exception from Core: %s', error)
+                    await message.reply(error, parse_mode=None)
 
 
 @flags.chat_action("typing")
@@ -95,7 +82,7 @@ async def info_user(message: types.Message):
                "Хочешь со мной поговорить? Обратись ко мне через никнейм: @cyberpaperbot <твой вопрос> \n" \
                "Нужно полностью описать свою проблему и рассказать о своем опыте. не баловаться.\n" \
                "Мы внимательно наблюдаем за вами и тестируем «Кибер Папера» в режиме 24 на 7, поэтому используйте его грамотно. Мы за это платим.\n" \
-               "Чтобы прислать мне демку для эфира Neuropunk Академии, напиши мне в ЛС /start\n" \
+               "Чтобы прислать мне демку для эфира Neuropunk Академии, напиши мне в ЛС /demo\n" \
                "Чтобы прислать свой email для участия в курсе набери /course\n" \
                "\n" \
                "Автор: @vistee"
