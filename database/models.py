@@ -16,5 +16,5 @@ class StreamEmails(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     stream_id = Column(Integer, nullable=False, autoincrement=False, unique=False)
-    email = Column(String(255), nullable=False)
+    email = Column(String(255), nullable=False, unique=True)
     mariadb_engine = "InnoDB"

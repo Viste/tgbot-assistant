@@ -49,12 +49,16 @@ async def course_cmd(message: types.Message, state: FSMContext, session: AsyncSe
     first_name = message.from_user.first_name
     if check(email, email_patt):
         await state.update_data(email=str(message.text))
-        new_email = StreamEmails(email=str(message.text), stream_id=1)
-        async with session.begin():
-            session.add(new_email)
-            await session.commit()
-        await message.reply(f"{first_name}, записал твой Email! Спасибо!\n"
-                            f"Перед началом стрима на почту придет ссылка на трансляцию")
+        try:
+            existing_email = await session.run_sync(lambda: session.query(StreamEmails).filter(StreamEmails.email == email).one())
+            await message.reply(f"{first_name}, этот Email уже был добавлен ранее!")
+        except NoResultFound:
+            new_email = StreamEmails(email=str(message.text), stream_id=1)
+            async with session.begin():
+                session.add(new_email)
+                await session.commit()
+            await message.reply(f"{first_name}, записал твой Email! Спасибо!\n"
+                                f"Перед началом стрима на почту придет ссылка на трансляцию")
         await state.clear()
     else:
         await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
