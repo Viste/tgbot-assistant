@@ -7,7 +7,7 @@ import tiktoken
 
 from tools.utils import config
 
-openai.api_key = config.api_key
+openai.api_key = config.api_kry_listen
 logger = logging.getLogger("__name__")
 
 args = {
