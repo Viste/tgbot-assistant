@@ -173,7 +173,7 @@ class OpenAIListener:
             answer = response.choices[0]['message']['content'].strip()
 
         total_tokens = response.usage['total_tokens'] if response.usage else 0
-        if response.usage:
+        if response.usage and self.show_tokens:
             answer += "\n\n---\n" \
                       f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
                       f" ({str(response.usage['prompt_tokens'])} prompt," \
