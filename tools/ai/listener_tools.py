@@ -136,7 +136,7 @@ class OpenAIListener:
     async def _query_gpt_listen(self, query):
         while self.retries < self.max_retries:
             try:
-                return await openai.ChatCompletion.acreate(model=self.model, messages=query, **args)
+                return await openai.ChatCompletion.acreate(model=self.model, messages=[{"role": "user", "content": query}], **args)
 
             except openai.error.RateLimitError as e:
                 self.retries += 10
