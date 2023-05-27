@@ -34,6 +34,6 @@ def setup_routers() -> Router:
     router.include_router(demoget.router)
     router.include_router(getmails.router)
     router.include_router(admin.router)
-    router.include_router(listener)
+    router.include_router(listener.router)
 
     return router

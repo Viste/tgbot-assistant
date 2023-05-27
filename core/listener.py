@@ -17,7 +17,7 @@ audio = Audio()
 
 
 @flags.chat_action("typing")
-@router.message(F.from_user.id.in_({config.test_users}), F.content_type.in_({'audio'}))
+@router.message(F.from_user.id.in_(config.test_users), F.content_type.in_({'audio'}))
 async def handle_audio(message: types.Message):
     uid = message.from_user.id
     if uid in config.banned_user_ids:
