@@ -6,7 +6,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import Calendar, StreamEmails
-from tools.ai_tools import OpenAI
+from tools.ai.ai_tools import OpenAI
 from tools.utils import config, get_dt
 
 logger = logging.getLogger("__name__")

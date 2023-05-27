@@ -5,7 +5,7 @@ from aiogram import types, F, Router, flags
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 
-from tools.ai_tools import OpenAI
+from tools.ai.ai_tools import OpenAI
 from tools.states import Text
 from tools.utils import config, split_into_chunks
 
