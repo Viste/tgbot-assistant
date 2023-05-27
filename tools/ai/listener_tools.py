@@ -142,16 +142,6 @@ class OpenAIListener:
 
                 self._add_to_listen_history(user_id, role="user", content=query)
 
-                token_count = self._count_listen_tokens(self.listen_dialogs[user_id])
-                exceeded_max_tokens = token_count + self.config_tokens > self.max_tokens
-                exceeded_max_history_size = len(self.listen_dialogs[user_id]) > self.max_history_size
-
-                if exceeded_max_tokens or exceeded_max_history_size:
-                    logging.info(f'Chat history for chat ID {user_id} is too long. Clearing...')
-                    self._reset_listen_history(user_id)
-                    self._add_to_listen_history(user_id, role="user", content=query)
-                    logging.info("Dialog From summary: %s", self.listen_dialogs[user_id])
-
                 return await openai.ChatCompletion.acreate(model=self.model, messages=self.listen_dialogs[user_id], **args)
 
             except openai.error.RateLimitError as e:
@@ -227,18 +217,6 @@ class OpenAIListener:
                     num_tokens += tokens_per_name
         num_tokens += 3
         return num_tokens
-
-    async def _summarise(self, conversation) -> str:
-        messages = [
-            {"role": "assistant", "content": "Summarize this conversation in 700 characters or less"},
-            {"role": "user", "content": str(conversation)}
-        ]
-        response = await openai.ChatCompletion.acreate(
-            model=self.model,
-            messages=messages,
-            temperature=0.1
-        )
-        return response.choices[0]['message']['content']
 
     def _reset_listen_history(self, user_id, content=''):
         if content == '':
