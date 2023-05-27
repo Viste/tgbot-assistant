@@ -12,7 +12,7 @@ logger = logging.getLogger("__name__")
 
 args = {
     "temperature": 0.15,
-    "max_tokens": 200,
+    "max_tokens": 300,
     "top_p": 1,
     "frequency_penalty": 0,
     "presence_penalty": 0.8,
@@ -126,8 +126,6 @@ class OpenAIListener:
         self.model = "gpt-4"
         self.max_retries = 10
         self.max_tokens = 8192
-        self.config_tokens = 400
-        self.max_history_size = 15
         self.n_choices = 1
         self.retries = 0
         self.show_tokens = False
