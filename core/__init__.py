@@ -5,11 +5,9 @@ from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ReplyKeyboardRemove, Message
 
-from tools.ai.ai_tools import OpenAI
 from tools.utils import config
 
 logger = logging.getLogger("__name__")
-openai = OpenAI()
 
 
 def setup_routers() -> Router:
@@ -27,7 +25,6 @@ def setup_routers() -> Router:
 
         logging.info("Cancelling state %r", current_state)
         await state.clear()
-        await openai.reset_history(message.from_user.id)
         await message.answer("Контекст обнулен.", reply_markup=ReplyKeyboardRemove())
 
     router.include_router(core.router)
