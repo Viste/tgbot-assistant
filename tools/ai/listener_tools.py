@@ -12,7 +12,7 @@ logger = logging.getLogger("__name__")
 
 args = {
     "temperature": 0.2,
-    "max_tokens": 512,
+    "max_tokens": 256,
     "top_p": 1,
     "frequency_penalty": 0,
     "presence_penalty": 0.8,
@@ -126,7 +126,7 @@ class OpenAIListener:
         self.model = "gpt-4"
         self.max_retries = 10
         self.max_tokens = 8192
-        self.config_tokens = 512
+        self.config_tokens = 256
         self.max_history_size = 15
         self.n_choices = 1
         self.retries = 0
@@ -136,7 +136,8 @@ class OpenAIListener:
     async def _query_gpt_listen(self, query):
         while self.retries < self.max_retries:
             try:
-                return await openai.ChatCompletion.acreate(model=self.model, messages=[{"role": "user", "content": query}], **args)
+                return await openai.ChatCompletion.acreate(model=self.model, messages=[{"role": "system", "content": self.listen_content}, {"role": "user", "content": query}],
+                                                           **args)
 
             except openai.error.RateLimitError as e:
                 self.retries += 10
