@@ -351,18 +351,10 @@ class OpenAIListener:
                 exceeded_max_history_size = len(self.listen_dialogs[user_id]) > self.max_history_size
 
                 if exceeded_max_tokens or exceeded_max_history_size:
-                    logging.info(f'Chat history for chat ID {user_id} is too long. Summarising...')
-                    try:
-                        summary = await self._summarise(self.listen_dialogs[user_id][:-1])
-                        logging.info(f'Summary: {summary}')
-                        self._reset_listen_history(user_id)
-                        self._add_to_listen_history(user_id, role="assistant", content=summary)
-                        self._add_to_listen_history(user_id, role="user", content=query)
-                        logging.info("Dialog From summary: %s", self.listen_dialogs[user_id])
-                    except Exception as e:
-                        logging.info(f'Error while summarising chat history: {str(e)}. Popping elements instead...')
-                        self.listen_dialogs[user_id] = self.listen_dialogs[user_id][-self.max_history_size:]
-                        logging.info("Dialog From summary exception: %s", self.listen_dialogs[user_id])
+                    logging.info(f'Chat history for chat ID {user_id} is too long. Clearing...')
+                    self._reset_listen_history(user_id)
+                    self._add_to_listen_history(user_id, role="user", content=query)
+                    logging.info("Dialog From summary: %s", self.listen_dialogs[user_id])
 
                 return await openai.ChatCompletion.acreate(model=self.model, messages=self.listen_dialogs[user_id], **args)
 
