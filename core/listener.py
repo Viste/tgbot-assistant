@@ -30,7 +30,7 @@ async def handle_audio(message: types.Message):
 
         result = await audio.process_audio_file(file_path)
         os.remove(file_path)
-        replay_text, total_tokens = await openai.get_resp_listen(result, uid)
+        replay_text, total_tokens = await openai.get_resp_listen(result)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             try:
