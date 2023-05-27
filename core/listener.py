@@ -15,7 +15,7 @@ openai = OpenAIListener()
 audio = Audio()
 
 
-@flags.chat_action("typing", interval=5, initial_sleep=2)
+@flags.chat_action("typing", interval=5)
 @router.message(F.from_user.id.in_(config.test_users), F.content_type.in_({'audio'}))
 async def handle_audio(message: types.Message):
     uid = message.from_user.id
