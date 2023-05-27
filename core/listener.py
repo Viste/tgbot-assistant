@@ -23,7 +23,7 @@ async def handle_audio(message: types.Message):
         text = "не хочу с тобой разговаривать"
         await message.reply(text, parse_mode=None)
     else:
-        file_path = "tmp/{str(uid)}.mp3"
+        file_path = f"tmp/{str(uid)}.mp3"
         file_info = await paper.get_file(message.audio.file_id)
         file_data = file_info.file_path
         await paper.download_file(file_data, file_path)
