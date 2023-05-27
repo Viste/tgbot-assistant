@@ -126,7 +126,7 @@ class OpenAIListener:
         self.model = "gpt-4-0314"
         self.max_retries = 10
         self.max_tokens = 8192
-        self.config_tokens = 256
+        self.config_tokens = 232
         self.max_history_size = 15
         self.n_choices = 1
         self.retries = 0
