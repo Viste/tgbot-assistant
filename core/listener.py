@@ -1,7 +1,6 @@
 import logging
 import os
 
-import aiofiles
 from aiogram import types, F, Router, flags
 
 from main import paper
@@ -24,10 +23,10 @@ async def handle_audio(message: types.Message):
         text = "не хочу с тобой разговаривать"
         await message.reply(text, parse_mode=None)
     else:
-        audio_file = await paper.download_file_by_id(message.audio.file_id)
-        file_path = f"tmp/{message.audio.file_id}.mp3"
-        async with aiofiles.open(file_path, "wb") as f:
-            await f.write(await audio_file.read())
+        file_path = "tmp/{str(uid)}.mp3"
+        file_info = await paper.get_file(message.audio.file_id)
+        file_data = file_info.file_path
+        await paper.download_file(file_data, file_path)
 
         result = await audio.process_audio_file(file_path)
         os.remove(file_path)
