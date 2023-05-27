@@ -11,8 +11,8 @@ openai.api_key = config.api_key_listen
 logger = logging.getLogger("__name__")
 
 args = {
-    "temperature": 0.014,
-    "max_tokens": 128,
+    "temperature": 0.14,
+    "max_tokens": 212,
     "top_p": 1,
     "frequency_penalty": 0,
     "presence_penalty": 0.8,
@@ -126,7 +126,7 @@ class OpenAIListener:
         self.model = "gpt-4"
         self.max_retries = 10
         self.max_tokens = 8192
-        self.config_tokens = 128
+        self.config_tokens = 212
         self.max_history_size = 15
         self.n_choices = 1
         self.retries = 0
