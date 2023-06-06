@@ -99,12 +99,14 @@ class Audio:
         dissonance_values = compress_data(dissonance_values)
         lufs_compressed = compress_data(lufs_values)
         loudness_range_compressed = compress_data(loudness_range)
+        beats_compressed = compress_data(beats)
 
         # Store the results in a string
         result = f"Results for file: {file_path} "
         result += f"Track duration: {track_duration_str} "
         result += f"Pitch: {pitch}, Confidence: {pitch_confidence} "
-        result += f"Tempo: {bpm}, Beats: {beats} "
+        result += f"Tempo: {bpm}"
+        result += f"Compressed Beats: {beats_compressed}"
         result += f"MFCCs: {mfccs} "
         result += f"Chroma: {chroma_values} "
         result += f"Loudness: {loudness} "
