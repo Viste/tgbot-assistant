@@ -10,7 +10,7 @@ from tools.utils import config, split_into_chunks
 logger = logging.getLogger("__name__")
 
 router = Router()
-router.message.filter(F.chat.type.in_({'group', 'supergroup'}))
+router.message.filter(F.chat.type.in_({'group', 'supergroup', 'private'}))
 openai = OpenAIListener()
 audio = Audio()
 
