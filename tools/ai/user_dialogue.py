@@ -3,6 +3,8 @@ from datetime import date
 
 import openai
 import tiktoken
+from sqlalchemy import func
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
 from tools.utils import config
@@ -12,7 +14,7 @@ logger = logging.getLogger("__name__")
 
 args = {
     "temperature": 0,
-    "max_tokens": 768,
+    "max_tokens": 1024,
     "top_p": 1,
     "frequency_penalty": 0,
     "presence_penalty": 0.8,
@@ -25,10 +27,10 @@ class OpenAI:
 
     def __init__(self):
         super().__init__()
-        self.model = "gpt-3.5-turbo"
+        self.model = "gpt-4"
         self.max_retries = 10
-        self.max_tokens = 4096
-        self.config_tokens = 768
+        self.max_tokens = 8196
+        self.config_tokens = 1024
         self.max_history_size = 11
         self.n_choices = 1
         self.retries = 0
@@ -57,7 +59,7 @@ class OpenAI:
             self._add_to_history(chat_id, role="assistant", content=answer)
 
         total_tokens = response.usage['total_tokens'] if response.usage else 0
-        if response.usage and (self.show_tokens or chat_id == -1001582049557):
+        if response.usage and self.show_tokens:
             answer += "\n\n---\n" \
                       f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
                       f" ({str(response.usage['prompt_tokens'])} prompt," \
@@ -168,11 +170,12 @@ class UsageObserver:
             self.session.add(user)
             self.session.commit()
 
-    async def add_chat_tokens(self, tokens, tokens_price=0.002):
-        token_cost = round(tokens * tokens_price / 1000, 6)
-        today = date.today()
+    async def add_chat_tokens(self, tokens, message_type):
+        if message_type not in ['user', 'assistant']:
+            return
 
         user = await self.session.get(User, self.user_id)
+        token_cost = round(tokens * user.price_per_token / 1000, 6)
         user.current_tokens += tokens
         user.balance_amount += token_cost
 
@@ -222,7 +225,10 @@ class UsageObserver:
 
         return {"cost_today": cost_day or 0.0, "cost_month": cost_month or 0.0, "cost_all_time": cost_all_time or 0.0}
 
-    def initialize_all_time_cost(self, tokens_price=0.002):
-        user = self.session.query(User).filter(User.telegram_id == self.user_id).first()
-        user.balance_amount = 0
-        self.session.commit()
+    async def initialize_all_time_cost(self):
+        user = await self.session.get(User, self.user_id)
+        total_tokens = user.current_tokens
+        token_cost = round(total_tokens * user.price_per_token / 1000, 6)
+
+        all_time_cost = token_cost
+        return all_time_cost
