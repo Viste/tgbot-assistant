@@ -10,13 +10,13 @@ from tools.utils import config, split_into_chunks
 logger = logging.getLogger("__name__")
 
 router = Router()
-router.message.filter(F.audio)
+router.message.filter(F.chat.type.in_({'group', 'supergroup', 'private'}))
 openai = OpenAIListener()
 audio = Audio()
 
 
 @flags.chat_action(action="typing", interval=5, initial_sleep=2)
-@router.message(F.from_user.id.in_(config.test_users))
+@router.message(F.from_user.id.in_(config.test_users), F.audio)
 async def handle_audio(message: types.Message):
     uid = message.from_user.id
     if uid in config.banned_user_ids:

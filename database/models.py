@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, TIMESTAMP, String
+from sqlalchemy import Column, Integer, TIMESTAMP, String, Float
 
 from database.base import Base
 
@@ -17,4 +17,16 @@ class StreamEmails(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     stream_id = Column(Integer, nullable=False, autoincrement=False, unique=False)
     email = Column(String(255), nullable=False, unique=True)
+    mariadb_engine = "InnoDB"
+
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True, unique=True)
+    telegram_id = Column(Integer, nullable=False, unique=True)
+    telegram_username = Column(String(255), nullable=True, unique=True)
+    balance_amount = Column(Float, nullable=False, default=0)
+    max_tokens = Column(Integer, nullable=False, default=0)
+    current_tokens = Column(Integer, nullable=False, default=0)
     mariadb_engine = "InnoDB"

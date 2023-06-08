@@ -1,14 +1,14 @@
 import json
 import logging
-import os.path
-import pathlib
 from calendar import monthrange
 from datetime import date
 
 import openai
 import requests
 import tiktoken
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from database.models import User
 from tools.utils import config
 
 openai.api_key = config.api_key
@@ -181,124 +181,38 @@ class OpenAI:
         return usage_month
 
 
-# TODO move from json to database images for nastya not used here
 class UsageObserver:
-    def __init__(self, user_id, user_name, logs_dir="usage_logs"):
+    def __init__(self, user_id: int, session: AsyncSession):
         self.user_id = user_id
-        self.logs_dir = logs_dir
-        # path to usage file of given user
-        self.user_file = f"{logs_dir}/{user_id}.json"
+        self.session = session
 
-        if os.path.isfile(self.user_file):
-            with open(self.user_file, "r") as file:
-                self.usage = json.load(file)
-        else:
-            # ensure directory exists
-            pathlib.Path(logs_dir).mkdir(exist_ok=True)
-            # create new dictionary for this user
-            self.usage = {
-                "user_name": user_name,
-                "current_cost": {"day": 0.0, "month": 0.0, "all_time": 0.0, "last_update": str(date.today())},
-                "usage_history": {"chat_tokens": {}, "transcription_seconds": {}, "number_images": {}}
-            }
+        user = self.session.query(User).filter(User.telegram_id == user_id).first()
+        if user is None:
+            user = User(telegram_id=user_id)
+            self.session.add(user)
+            self.session.commit()
 
     def add_chat_tokens(self, tokens, tokens_price=0.002):
-        today = date.today()
+        user = self.session.query(User).filter(User.telegram_id == self.user_id).first()
         token_cost = round(tokens * tokens_price / 1000, 6)
-        self.add_current_costs(token_cost)
-
-        if str(today) in self.usage["usage_history"]["chat_tokens"]:
-            self.usage["usage_history"]["chat_tokens"][str(today)] += tokens
-        else:
-            self.usage["usage_history"]["chat_tokens"][str(today)] = tokens
-
-        with open(self.user_file, "w") as outfile:
-            json.dump(self.usage, outfile)
+        user.balance_amount += token_cost
+        user.current_tokens += tokens
+        self.session.commit()
 
     def get_current_token_usage(self):
-        today = date.today()
-        if str(today) in self.usage["usage_history"]["chat_tokens"]:
-            usage_day = self.usage["usage_history"]["chat_tokens"][str(today)]
-        else:
-            usage_day = 0
-        month = str(today)[:7]  # year-month as string
-        usage_month = 0
-        for today, tokens in self.usage["usage_history"]["chat_tokens"].items():
-            if today.startswith(month):
-                usage_month += tokens
-        return usage_day, usage_month
-
-    # image usage functions:
-
-    def add_image_request(self, image_size, image_prices="0.016,0.018,0.02"):
-        sizes = ["1024x1024"]
-        requested_size = sizes.index(image_size)
-        image_cost = image_prices[requested_size]
-        today = date.today()
-        self.add_current_costs(image_cost)
-
-        # update usage_history
-        if str(today) in self.usage["usage_history"]["number_images"]:
-            self.usage["usage_history"]["number_images"][str(today)][requested_size] += 1
-        else:
-            self.usage["usage_history"]["number_images"][str(today)] = [0, 0, 0]
-            self.usage["usage_history"]["number_images"][str(today)][requested_size] += 1
-
-        with open(self.user_file, "w") as outfile:
-            json.dump(self.usage, outfile)
-
-    def get_current_image_count(self):
-        today = date.today()
-        if str(today) in self.usage["usage_history"]["number_images"]:
-            usage_day = sum(self.usage["usage_history"]["number_images"][str(today)])
-        else:
-            usage_day = 0
-        month = str(today)[:7]  # year-month as string
-        usage_month = 0
-        for today, images in self.usage["usage_history"]["number_images"].items():
-            if today.startswith(month):
-                usage_month += sum(images)
-        return usage_day, usage_month
+        user = self.session.query(User).filter(User.telegram_id == self.user_id).first()
+        return user.current_tokens
 
     def add_current_costs(self, request_cost):
-        today = date.today()
-        last_update = date.fromisoformat(self.usage["current_cost"]["last_update"])
-
-        self.usage["current_cost"]["all_time"] = \
-            self.usage["current_cost"].get("all_time", self.initialize_all_time_cost()) + request_cost
-        if today == last_update:
-            self.usage["current_cost"]["day"] += request_cost
-            self.usage["current_cost"]["month"] += request_cost
-        else:
-            if today.month == last_update.month:
-                self.usage["current_cost"]["month"] += request_cost
-            else:
-                self.usage["current_cost"]["month"] = request_cost
-            self.usage["current_cost"]["day"] = request_cost
-            self.usage["current_cost"]["last_update"] = str(today)
+        user = self.session.query(User).filter(User.telegram_id == self.user_id).first()
+        user.balance_amount += request_cost
+        self.session.commit()
 
     def get_current_cost(self):
-        today = date.today()
-        last_update = date.fromisoformat(self.usage["current_cost"]["last_update"])
-        if today == last_update:
-            cost_day = self.usage["current_cost"]["day"]
-            cost_month = self.usage["current_cost"]["month"]
-        else:
-            cost_day = 0.0
-            if today.month == last_update.month:
-                cost_month = self.usage["current_cost"]["month"]
-            else:
-                cost_month = 0.0
-        cost_all_time = self.usage["current_cost"].get("all_time", self.initialize_all_time_cost())
-        return {"cost_today": cost_day, "cost_month": cost_month, "cost_all_time": cost_all_time}
+        user = self.session.query(User).filter(User.telegram_id == self.user_id).first()
+        return user.balance_amount
 
-    def initialize_all_time_cost(self, tokens_price=0.002, image_prices="0.016,0.018,0.02"):
-        total_tokens = sum(self.usage['usage_history']['chat_tokens'].values())
-        token_cost = round(total_tokens * tokens_price / 1000, 6)
-
-        total_images = [sum(values) for values in zip(*self.usage['usage_history']['number_images'].values())]
-        image_prices_list = [float(x) for x in image_prices.split(',')]
-        image_cost = sum([count * price for count, price in zip(total_images, image_prices_list)])
-
-        all_time_cost = token_cost + image_cost
-        return all_time_cost
+    def initialize_all_time_cost(self, tokens_price=0.002):
+        user = self.session.query(User).filter(User.telegram_id == self.user_id).first()
+        user.balance_amount = 0
+        self.session.commit()
