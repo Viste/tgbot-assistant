@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, TIMESTAMP, String, Float
+from datetime import datetime
+
+from sqlalchemy import Column, Integer, TIMESTAMP, String, Float, DateTime
 
 from database.base import Base
 
@@ -29,4 +31,6 @@ class User(Base):
     balance_amount = Column(Float, nullable=False, default=0)
     max_tokens = Column(Integer, nullable=False, default=0)
     current_tokens = Column(Integer, nullable=False, default=0)
+    price_per_token = Column(Float, nullable=False, default=0.002)
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     mariadb_engine = "InnoDB"
