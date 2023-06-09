@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import User
 from tools.utils import config
 
-openai.api_key = config.api_key
+openai.api_key = config.subs_api_key
 logger = logging.getLogger("__name__")
 
 args = {
