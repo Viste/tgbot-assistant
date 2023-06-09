@@ -118,6 +118,8 @@ class OpenAIDialogue:
         print(user_id)
         print(role)
         print(content)
+        if user_id not in self.user_dialogs:
+            self.reset_history(user_id)
         self.user_dialogs[user_id].append({"role": role, "content": content})
 
     def get_stats(self, user_id: int) -> tuple[int, int]:
