@@ -4,6 +4,7 @@ from datetime import datetime
 
 from aiogram import types, F, Router, flags
 from aiogram.fsm.context import FSMContext
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
@@ -18,7 +19,8 @@ openai = OpenAIDialogue()
 
 
 async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
-    user = await session.query(User).filter(User.telegram_id == user_id).one_or_none()
+    result = await session.execute(select(User).filter(User.telegram_id == user_id))
+    user = result.scalars().one_or_none()
 
     if not user:
         return False

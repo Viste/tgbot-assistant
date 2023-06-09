@@ -3,7 +3,7 @@ from datetime import date
 
 import openai
 import tiktoken
-from sqlalchemy import func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
@@ -200,7 +200,9 @@ class UsageObserver:
     async def add_current_costs(self, request_cost):
         today = date.today()
 
-        user = await self.session.query(User).filter(User.telegram_id == self.user_id).one_or_none()
+        result = await self.session.execute(select(User).filter(User.telegram_id == self.user_id))
+        user = result.scalars().one_or_none()
+
         if user:
             user.balance_amount -= request_cost
             user.updated_at = today
