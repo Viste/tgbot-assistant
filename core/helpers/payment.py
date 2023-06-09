@@ -33,12 +33,14 @@ async def got_payment_ru(message: types.Message, state: FSMContext, session: Asy
 
     logging.info('Info about message %s', message)
     now = datetime.utcnow()
-    User(session).subscription_start = now
-    User(session).subscription_end = now + timedelta(days=30)
-    User(session).subscription_status = 'active'
-    User(session).telegram_id = message.from_user.id
-    User(session).telegram_username = message.from_user.username
-    User(session).balance_amount = 350
+    userid = message.from_user.id
+    user = await session.get(User, userid)
+    user.subscription_start = now
+    user.subscription_end = now + timedelta(days=30)
+    user.subscription_status = 'active'
+    user.telegram_id = message.from_user.id
+    user.telegram_username = message.from_user.username
+    user.balance_amount = 350
 
     await session.commit()
     await message.reply("Успех! Подписка оформлена")
