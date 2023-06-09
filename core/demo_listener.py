@@ -15,7 +15,7 @@ router = Router()
 router.message.filter(F.chat.type.in_({'group', 'supergroup', 'private'}))
 openai = OpenAIListener()
 audio = Audio()
-users = await get_all_telegram_ids(session)
+users = get_all_telegram_ids(session)
 print(users)
 
 

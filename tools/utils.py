@@ -48,7 +48,7 @@ def get_dt(value):
     return formatted_value
 
 
-async def get_all_telegram_ids(session: AsyncSession) -> List[int]:
+def get_all_telegram_ids(session: AsyncSession) -> List[int]:
     result = await session.execute(select(User.telegram_id))
     telegram_ids = [row[0] for row in result.fetchall()]
     print(telegram_ids)
