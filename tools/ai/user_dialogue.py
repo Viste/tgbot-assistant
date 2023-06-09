@@ -115,9 +115,6 @@ class OpenAIDialogue:
                     return f'⚠️Ошибочка вышла ⚠️\n{str(err)}', err
 
     def add_to_history(self, user_id, role, content):
-        print(user_id)
-        print(role)
-        print(content)
         if user_id not in self.user_dialogs:
             self.reset_history(user_id)
         self.user_dialogs[user_id].append({"role": role, "content": content})
@@ -174,12 +171,15 @@ class UsageObserver:
         if message_type not in ['user', 'assistant']:
             return
 
-        user = await self.session.get(User, self.user_id)
-        token_cost = round(tokens * user.price_per_token / 1000, 6)
-        user.current_tokens += tokens
+        result = await self.session.execute(select(User).filter(User.telegram_id == self.user_id))
+        user = result.scalars().one_or_none()
 
-        await self.session.commit()
-        await self.add_current_costs(token_cost)
+        if user:
+            token_cost = round(tokens * user.price_per_token / 1000, 6)
+            user.current_tokens += tokens
+
+            await self.session.commit()
+            await self.add_current_costs(token_cost)
 
     async def get_current_token_usage(self):
         today = date.today()
