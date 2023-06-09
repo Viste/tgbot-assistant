@@ -1,14 +1,50 @@
 import logging
+from datetime import datetime, timedelta
 
-from aiogram import types, Router
+from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
+from aiogram.types import LabeledPrice
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from database.models import User
 from main import paper
 from tools.states import Payment
 from tools.utils import config
 
 logger = logging.getLogger("__name__")
 router = Router()
+
+price = [LabeledPrice(label='demo_room', amount=35000)]
+
+
+@router.message(Payment.process, F.content_type.in_({'text'}), F.chat.type == "private")
+async def pay_sub(message: types.Message, state: FSMContext):
+    userid = message.from_user.id
+    await state.update_data(donate_text=str(message.text))
+    await paper.send_invoice(userid, title='Отправить донат в шоу Нейрогон', description='Оплатить',
+                             provider_token=config.payment_token, currency='RUB', photo_url='https://i.pinimg.com/originals/73/a1/ec/73a1ecc7f59840a47537c012bc23d685.png',
+                             photo_height=512, photo_width=512, photo_size=512, is_flexible=False, need_name=True,
+                             prices=price, start_parameter='create_invoice_donate', payload='payload:donate')
+
+
+@router.message(F.successful_payment)
+async def got_payment_ru(message: types.Message, state: FSMContext, session: AsyncSession):
+    current_state = await state.get_state()
+    logging.info("Current state: %r ", current_state)
+
+    logging.info('Info about message %s', message)
+    now = datetime.utcnow()
+    User(session).subscription_start = now
+    User(session).subscription_end = now + timedelta(days=30)
+    User(session).subscription_status = 'active'
+
+    await session.commit()
+    await message.reply("Успех! Подписка оформлена")
+
+    if current_state is None:
+        return
+    logging.info("Cancelling state %r", current_state)
+    await state.clear()
 
 
 @router.pre_checkout_query(lambda query: True)
@@ -25,4 +61,4 @@ async def process_pay_sub(pre_checkout_query: types.PreCheckoutQuery, state: FSM
                                                                    f"Кто: {pre_checkout_query.order_info.name}")
 
         logging.info("Current state %r, chat_id = %s", current_state, data)
-        await state.set_state(Payment.get)
+        await state.set_state(Payment.process)

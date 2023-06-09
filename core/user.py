@@ -47,7 +47,7 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
 
         logging.info("%s", message)
         text = html.escape(message.text)
-        escaped_text = text.strip('@cyberpaperbot ')
+        escaped_text = text.strip('Папер! ')
 
         replay_text, total_tokens = await openai.get_resp(escaped_text, uid, session)
         chunks = split_into_chunks(replay_text)

@@ -17,8 +17,7 @@ class Demo(StatesGroup):
 
 
 class Payment(StatesGroup):
-    start = State()
-    get = State()
+    process = State()
 
 
 class Mail(StatesGroup):
