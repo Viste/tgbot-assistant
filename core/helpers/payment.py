@@ -20,6 +20,8 @@ price = [LabeledPrice(label='demo_room', amount=35000)]
 @router.message(Payment.process, F.content_type.in_({'text'}), F.chat.type == "private")
 async def pay_sub(message: types.Message, state: FSMContext):
     userid = message.from_user.id
+    current_state = await state.get_state()
+    logging.info("Current state: %r ", current_state)
     await paper.send_invoice(userid, title='Приобретение подписки на сервис "Кибер Папер"', description='Приобрести Подписку',
                              provider_token=config.payment_token, currency='RUB', photo_url='https://i.pinimg.com/originals/73/a1/ec/73a1ecc7f59840a47537c012bc23d685.png',
                              photo_height=512, photo_width=512, photo_size=512, is_flexible=False, need_name=True,
