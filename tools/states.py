@@ -17,6 +17,7 @@ class Demo(StatesGroup):
 
 
 class Payment(StatesGroup):
+    start = State()
     process = State()
 
 

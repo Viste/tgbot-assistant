@@ -18,13 +18,12 @@ price = [LabeledPrice(label='demo_room', amount=35000)]
 
 
 @router.message(Payment.process, F.content_type.in_({'text'}), F.chat.type == "private")
-async def pay_sub(message: types.Message, state: FSMContext):
+async def pay_sub(message: types.Message):
     userid = message.from_user.id
-    await state.update_data(donate_text=str(message.text))
-    await paper.send_invoice(userid, title='Отправить донат в шоу Нейрогон', description='Оплатить',
+    await paper.send_invoice(userid, title='Приобретение подписки на сервис "Кибер Папер"', description='Приобрести Подписку',
                              provider_token=config.payment_token, currency='RUB', photo_url='https://i.pinimg.com/originals/73/a1/ec/73a1ecc7f59840a47537c012bc23d685.png',
                              photo_height=512, photo_width=512, photo_size=512, is_flexible=False, need_name=True,
-                             prices=price, start_parameter='create_invoice_donate', payload='payload:donate')
+                             prices=price, start_parameter='create_invoice_subscribe', payload='payload:subscribe')
 
 
 @router.message(F.successful_payment)
@@ -37,6 +36,9 @@ async def got_payment_ru(message: types.Message, state: FSMContext, session: Asy
     User(session).subscription_start = now
     User(session).subscription_end = now + timedelta(days=30)
     User(session).subscription_status = 'active'
+    User(session).telegram_id = message.from_user.id
+    User(session).telegram_username = message.from_user.username
+    User(session).balance_amount = 350
 
     await session.commit()
     await message.reply("Успех! Подписка оформлена")

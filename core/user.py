@@ -34,7 +34,6 @@ async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
 @flags.chat_action(action="typing", interval=5, initial_sleep=2)
 @router.message(F.text.startswith("Папер!"))
 async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession) -> None:
-    await state.set_state(Dialogue.get)
     uid = message.from_user.id
     await state.update_data(chatid=message.chat.id)
     if uid in config.banned_user_ids:
@@ -54,7 +53,8 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
         logging.info("%s", message)
         text = html.escape(message.text)
         escaped_text = text.strip('Папер! ')
-
+        
+        await state.set_state(Dialogue.get)
         replay_text, total_tokens = await openai.get_resp(escaped_text, uid, session)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
@@ -80,10 +80,9 @@ async def process_dialogue(message: types.Message, session: AsyncSession) -> Non
     else:
         logging.info("%s", message)
         text = html.escape(message.text)
-        escaped_text = text.strip('@cyberpaperbot ')
 
         # Generate response
-        replay_text, total_tokens = await openai.get_resp(escaped_text, uid, session)
+        replay_text, total_tokens = await openai.get_resp(text, uid, session)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             try:

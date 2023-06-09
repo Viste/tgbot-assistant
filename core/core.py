@@ -53,10 +53,9 @@ async def process_ask(message: types.Message) -> None:
     else:
         logging.info("%s", message)
         text = html.escape(message.text)
-        escaped_text = text.strip('@cyberpaperbot ')
 
         # Generate response
-        replay_text, total_tokens = await openai.get_resp(escaped_text, uid)
+        replay_text, total_tokens = await openai.get_resp(text, uid)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             try:
