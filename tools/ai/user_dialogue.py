@@ -172,9 +172,9 @@ class UsageObserver:
         user = await self.session.get(User, self.user_id)
         token_cost = round(tokens * user.price_per_token / 1000, 6)
         user.current_tokens += tokens
-        user.balance_amount += token_cost
 
         await self.session.commit()
+        await self.add_current_costs(token_cost)
 
     async def get_current_token_usage(self):
         today = date.today()
@@ -196,7 +196,7 @@ class UsageObserver:
         today = date.today()
 
         user = await self.session.get(User, self.user_id)
-        user.balance_amount += request_cost
+        user.balance_amount -= request_cost
         user.updated_at = today
 
         await self.session.commit()
