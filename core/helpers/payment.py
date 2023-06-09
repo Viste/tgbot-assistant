@@ -18,7 +18,7 @@ price = [LabeledPrice(label='demo_room', amount=35000)]
 
 
 @router.message(Payment.process, F.content_type.in_({'text'}), F.chat.type == "private")
-async def pay_sub(message: types.Message):
+async def pay_sub(message: types.Message, state: FSMContext):
     userid = message.from_user.id
     await paper.send_invoice(userid, title='Приобретение подписки на сервис "Кибер Папер"', description='Приобрести Подписку',
                              provider_token=config.payment_token, currency='RUB', photo_url='https://i.pinimg.com/originals/73/a1/ec/73a1ecc7f59840a47537c012bc23d685.png',
@@ -35,12 +35,30 @@ async def got_payment_ru(message: types.Message, state: FSMContext, session: Asy
     now = datetime.utcnow()
     userid = message.from_user.id
     user = await session.get(User, userid)
-    user.subscription_start = now
-    user.subscription_end = now + timedelta(days=30)
-    user.subscription_status = 'active'
-    user.telegram_id = message.from_user.id
-    user.telegram_username = message.from_user.username
-    user.balance_amount = 350
+
+    if user is None:
+        # Create a new user and add it to the database
+        user = User(
+            id=userid,
+            telegram_id=message.from_user.id,
+            telegram_username=message.from_user.username,
+            balance_amount=350,
+            max_tokens=0,
+            current_tokens=0,
+            subscription_start=now,
+            subscription_end=now + timedelta(days=30),
+            subscription_status='active',
+            updated_at=now
+        )
+        session.add(user)
+        await session.commit()
+    else:
+        user.subscription_start = now
+        user.subscription_end = now + timedelta(days=30)
+        user.subscription_status = 'active'
+        user.telegram_id = message.from_user.id
+        user.telegram_username = message.from_user.username
+        user.balance_amount = 350
 
     await session.commit()
     await message.reply("Успех! Подписка оформлена")
