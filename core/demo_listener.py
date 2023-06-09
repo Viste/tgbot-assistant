@@ -2,31 +2,40 @@ import logging
 import os
 
 from aiogram import types, F, Router, flags
+from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.user import has_active_subscription
 from main import paper
 from tools.ai.listener_tools import OpenAIListener, Audio
-from tools.utils import config, split_into_chunks, get_all_telegram_ids
+from tools.utils import config, split_into_chunks
 
 logger = logging.getLogger("__name__")
-session = AsyncSession
-
 router = Router()
-router.message.filter(F.chat.type.in_({'group', 'supergroup', 'private'}))
+router.message.filter(F.chat.type.in_({'private'}))
 openai = OpenAIListener()
 audio = Audio()
-users = get_all_telegram_ids(session)
-print(users)
 
 
 @flags.chat_action(action="typing", interval=5, initial_sleep=2)
-@router.message(F.from_user.id.in_(users), F.audio)
-async def handle_audio(message: types.Message):
+@router.message(F.audio)
+async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession):
     uid = message.from_user.id
+    await state.update_data(chatid=message.chat.id)
     if uid in config.banned_user_ids:
         text = "не хочу с тобой разговаривать"
         await message.reply(text, parse_mode=None)
     else:
+        if not await has_active_subscription(uid, session):
+            kb = [
+                [
+                    types.InlineKeyboardButton(text="Купить подписку", callback_data="buy_subscription")
+                ],
+            ]
+            keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+            await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.", reply_markup=keyboard)
+            return
+    
         file_path = f"tmp/{str(uid)}.mp3"
         file_info = await paper.get_file(message.audio.file_id)
         file_data = file_info.file_path

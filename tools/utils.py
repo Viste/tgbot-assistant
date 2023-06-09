@@ -6,7 +6,7 @@ from typing import List
 
 import mutagen
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
 
@@ -48,8 +48,8 @@ def get_dt(value):
     return formatted_value
 
 
-def get_all_telegram_ids(session: Session) -> List[int]:
-    result = session.execute(select(User.telegram_id))
+async def get_all_telegram_ids(session: AsyncSession) -> List[int]:
+    result = await session.execute(select(User.telegram_id))
     telegram_ids = [row[0] for row in result.fetchall()]
     print(telegram_ids)
     return telegram_ids
