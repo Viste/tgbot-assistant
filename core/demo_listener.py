@@ -15,10 +15,11 @@ router = Router()
 router.message.filter(F.chat.type.in_({'group', 'supergroup', 'private'}))
 openai = OpenAIListener()
 audio = Audio()
+users = get_all_telegram_ids(session)
 
 
 @flags.chat_action(action="typing", interval=5, initial_sleep=2)
-@router.message(F.from_user.id.in_(get_all_telegram_ids(session)), F.audio)
+@router.message(F.from_user.id.in_(users), F.audio)
 async def handle_audio(message: types.Message):
     uid = message.from_user.id
     if uid in config.banned_user_ids:
