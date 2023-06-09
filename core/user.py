@@ -19,10 +19,15 @@ openai = OpenAIDialogue()
 
 async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
     user = await session.get(User, user_id)
+
+    if not user:
+        return False
+
     if user.subscription_status == 'active' and user.subscription_start and user.subscription_end:
         now = datetime.utcnow()
         if user.subscription_start <= now <= user.subscription_end:
             return True
+
     return False
 
 
