@@ -115,6 +115,9 @@ class OpenAIDialogue:
                     return f'⚠️Ошибочка вышла ⚠️\n{str(err)}', err
 
     def add_to_history(self, user_id, role, content):
+        print(user_id)
+        print(role)
+        print(content)
         self.user_dialogs[user_id].append({"role": role, "content": content})
 
     def get_stats(self, user_id: int) -> tuple[int, int]:
