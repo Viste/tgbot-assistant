@@ -51,6 +51,7 @@ def get_dt(value):
 async def get_all_telegram_ids(session: AsyncSession) -> List[int]:
     result = await session.execute(select(User.telegram_id))
     telegram_ids = [row[0] for row in result.fetchall()]
+    print(telegram_ids)
     return telegram_ids
 
 

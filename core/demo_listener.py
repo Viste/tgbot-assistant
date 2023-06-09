@@ -16,6 +16,7 @@ router.message.filter(F.chat.type.in_({'group', 'supergroup', 'private'}))
 openai = OpenAIListener()
 audio = Audio()
 users = get_all_telegram_ids(session)
+print(users)
 
 
 @flags.chat_action(action="typing", interval=5, initial_sleep=2)
