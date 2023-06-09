@@ -8,13 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.user import has_active_subscription
 from main import paper
 from tools.ai.listener_tools import OpenAIListener, Audio
-from tools.ai.user_dialogue import OpenAIDialogue
 from tools.utils import config, split_into_chunks
 
 logger = logging.getLogger("__name__")
 router = Router()
 router.message.filter(F.chat.type.in_({'private'}))
-openai = OpenAIListener(OpenAIDialogue())
+openai = OpenAIListener()
 audio = Audio()
 
 
