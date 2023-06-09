@@ -12,7 +12,7 @@ logger = logging.getLogger("__name__")
 
 def setup_routers() -> Router:
     from . import core, demo_catcher, email_catcher, demo_listener, user
-    from core.helpers import admin
+    from core.helpers import admin, callbacks, payment
 
     router = Router()
 
@@ -28,11 +28,13 @@ def setup_routers() -> Router:
         await state.clear()
         await message.answer("Контекст обнулен.", reply_markup=ReplyKeyboardRemove())
 
-    router.include_router(core.router)
-    router.include_router(demoget.router)
-    router.include_router(getmails.router)
     router.include_router(admin.router)
-    router.include_router(listener.router)
+    router.include_router(core.router)
+    router.include_router(callbacks.router)
+    router.include_router(payment.router)
     router.include_router(user.router)
+    router.include_router(demo_catcher.router)
+    router.include_router(email_catcher.router)
+    router.include_router(demo_listener.router)
 
     return router
