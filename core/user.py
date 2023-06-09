@@ -18,7 +18,7 @@ openai = OpenAIDialogue()
 
 
 async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
-    user = await session.get(User, user_id)
+    user = await session.query(User).filter(User.telegram_id == user_id).one_or_none()
 
     if not user:
         return False
@@ -53,7 +53,7 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
         logging.info("%s", message)
         text = html.escape(message.text)
         escaped_text = text.strip('Папер! ')
-        
+
         await state.set_state(Dialogue.get)
         replay_text, total_tokens = await openai.get_resp(escaped_text, uid, session)
         chunks = split_into_chunks(replay_text)

@@ -200,11 +200,12 @@ class UsageObserver:
     async def add_current_costs(self, request_cost):
         today = date.today()
 
-        user = await self.session.get(User, self.user_id)
-        user.balance_amount -= request_cost
-        user.updated_at = today
+        user = await self.session.query(User).filter(User.telegram_id == self.user_id).one_or_none()
+        if user:
+            user.balance_amount -= request_cost
+            user.updated_at = today
 
-        await self.session.commit()
+            await self.session.commit()
 
     async def get_current_cost(self):
         today = date.today()
@@ -224,11 +225,3 @@ class UsageObserver:
         ).scalar()
 
         return {"cost_today": cost_day or 0.0, "cost_month": cost_month or 0.0, "cost_all_time": cost_all_time or 0.0}
-
-    async def initialize_all_time_cost(self):
-        user = await self.session.get(User, self.user_id)
-        total_tokens = user.current_tokens
-        token_cost = round(total_tokens * user.price_per_token / 1000, 6)
-
-        all_time_cost = token_cost
-        return all_time_cost
