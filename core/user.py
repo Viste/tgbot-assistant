@@ -36,6 +36,7 @@ async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
 async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession) -> None:
     await state.set_state(Dialogue.get)
     uid = message.from_user.id
+    await state.update_data(chatid=message.chat.id)
     if uid in config.banned_user_ids:
         text = "не хочу с тобой разговаривать"
         await message.reply(text, parse_mode=None)
