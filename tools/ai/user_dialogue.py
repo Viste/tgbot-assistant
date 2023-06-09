@@ -60,7 +60,7 @@ class OpenAIDialogue:
 
         total_tokens = response.usage['total_tokens'] if response.usage else 0
         if response.usage and self.show_tokens:
-            await usage_observer.add_chat_tokens(total_tokens, message_type='user')
+            await usage_observer.add_chat_tokens(str(response.usage['completion_tokens']), message_type='user')
             answer += "\n\n---\n" \
                       f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
                       f" ({str(response.usage['prompt_tokens'])} prompt," \
