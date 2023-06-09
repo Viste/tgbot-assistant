@@ -8,12 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.user import has_active_subscription
 from main import paper
 from tools.ai.listener_tools import OpenAIListener, Audio
+from tools.ai.user_dialogue import OpenAIDialogue
 from tools.utils import config, split_into_chunks
 
 logger = logging.getLogger("__name__")
 router = Router()
 router.message.filter(F.chat.type.in_({'private'}))
-openai = OpenAIListener()
+openai = OpenAIListener(OpenAIDialogue())
 audio = Audio()
 
 
@@ -35,7 +36,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
             await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.", reply_markup=keyboard)
             return
-    
+
         file_path = f"tmp/{str(uid)}.mp3"
         file_info = await paper.get_file(message.audio.file_id)
         file_data = file_info.file_path
