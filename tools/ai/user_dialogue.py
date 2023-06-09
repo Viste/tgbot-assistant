@@ -47,16 +47,16 @@ class OpenAIDialogue:
             for index, choice in enumerate(response.choices):
                 content = choice['message']['content'].strip()
                 if index == 0:
-                    self._add_to_history(chat_id, role="assistant", content=content)
+                    self.add_to_history(chat_id, role="assistant", content=content)
                 answer += f'{index + 1}\u20e3\n'
                 answer += content
                 answer += '\n\n'
         elif response.choices and len(response.choices) >= 0:
             answer = response.choices[0]['message']['content'].strip()
-            self._add_to_history(chat_id, role="assistant", content=answer)
+            self.add_to_history(chat_id, role="assistant", content=answer)
         else:
             answer = response.choices[0]['message']['content'].strip()
-            self._add_to_history(chat_id, role="assistant", content=answer)
+            self.add_to_history(chat_id, role="assistant", content=answer)
 
         total_tokens = response.usage['total_tokens'] if response.usage else 0
         if response.usage and self.show_tokens:
@@ -74,7 +74,7 @@ class OpenAIDialogue:
                 if user_id not in self.user_dialogs:
                     self.reset_history(user_id)
 
-                self._add_to_history(user_id, role="user", content=query)
+                self.add_to_history(user_id, role="user", content=query)
 
                 token_count = self._count_tokens(self.user_dialogs[user_id])
                 exceeded_max_tokens = token_count + self.config_tokens > self.max_tokens
@@ -86,8 +86,8 @@ class OpenAIDialogue:
                         summary = await self._summarise(self.user_dialogs[user_id][:-1])
                         logging.info(f'Summary: {summary}')
                         self.reset_history(user_id)
-                        self._add_to_history(user_id, role="assistant", content=summary)
-                        self._add_to_history(user_id, role="user", content=query)
+                        self.add_to_history(user_id, role="assistant", content=summary)
+                        self.add_to_history(user_id, role="user", content=query)
                         logging.info("Dialog From summary: %s", self.user_dialogs[user_id])
                     except Exception as e:
                         logging.info(f'Error while summarising chat history: {str(e)}. Popping elements instead...')
@@ -114,7 +114,7 @@ class OpenAIDialogue:
                 if self.retries == self.max_retries:
                     return f'⚠️Ошибочка вышла ⚠️\n{str(err)}', err
 
-    def _add_to_history(self, user_id, role, content):
+    def add_to_history(self, user_id, role, content):
         self.user_dialogs[user_id].append({"role": role, "content": content})
 
     def get_stats(self, user_id: int) -> tuple[int, int]:

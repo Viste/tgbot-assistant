@@ -2,8 +2,13 @@ import json
 import os
 import re
 from datetime import datetime
+from typing import List
 
 import mutagen
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from database.models import User
 
 
 class JSONObject:
@@ -41,6 +46,12 @@ def get_dt(value):
     dt_obj = datetime.strptime(value, "%d.%m.%Y %H:%M")
     formatted_value = dt_obj.strftime("%Y-%m-%d %H:%M:%S")
     return formatted_value
+
+
+async def get_all_telegram_ids(session: AsyncSession) -> List[int]:
+    result = await session.execute(select(User.telegram_id))
+    telegram_ids = [row[0] for row in result.fetchall()]
+    return telegram_ids
 
 
 def year_month(date_str):

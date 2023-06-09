@@ -2,12 +2,14 @@ import logging
 import os
 
 from aiogram import types, F, Router, flags
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from main import paper
 from tools.ai.listener_tools import OpenAIListener, Audio
-from tools.utils import config, split_into_chunks
+from tools.utils import config, split_into_chunks, get_all_telegram_ids
 
 logger = logging.getLogger("__name__")
+session = AsyncSession
 
 router = Router()
 router.message.filter(F.chat.type.in_({'group', 'supergroup', 'private'}))
@@ -16,7 +18,7 @@ audio = Audio()
 
 
 @flags.chat_action(action="typing", interval=5, initial_sleep=2)
-@router.message(F.from_user.id.in_(config.test_users), F.audio)
+@router.message(F.from_user.id.in_(get_all_telegram_ids(session)), F.audio)
 async def handle_audio(message: types.Message):
     uid = message.from_user.id
     if uid in config.banned_user_ids:
@@ -30,7 +32,7 @@ async def handle_audio(message: types.Message):
 
         result = await audio.process_audio_file(file_path)
         os.remove(file_path)
-        replay_text, total_tokens = await openai.get_resp_listen(str(result))
+        replay_text, total_tokens = await openai.get_resp_listen(uid, str(result))
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             try:
