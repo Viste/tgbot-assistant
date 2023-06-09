@@ -50,6 +50,7 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
             ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
             await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.", reply_markup=keyboard)
+            print(uid)
             return
 
         logging.info("%s", message)

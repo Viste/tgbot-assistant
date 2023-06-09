@@ -14,7 +14,7 @@ from tools.utils import config
 
 redis_client = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db, decode_responses=True)
 paper = Bot(token=config.token, parse_mode="HTML")
-engine = create_async_engine(url=config.db_url, echo=True, pool_size=50, max_overflow=30, pool_timeout=30, pool_recycle=3600)
+engine = create_async_engine(url=config.db_url, echo=True, pool_size=50, max_overflow=30, pool_timeout=30, pool_recycle=3600, expire_on_commit=False)
 
 
 async def main():
