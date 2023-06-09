@@ -33,4 +33,7 @@ class User(Base):
     current_tokens = Column(Integer, nullable=False, default=0)
     price_per_token = Column(Float, nullable=False, default=0.002)
     updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    subscription_start = Column(DateTime, nullable=True)
+    subscription_end = Column(DateTime, nullable=True)
+    subscription_status = Column(String(50), nullable=False, default='inactive')
     mariadb_engine = "InnoDB"

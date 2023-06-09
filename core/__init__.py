@@ -11,7 +11,8 @@ logger = logging.getLogger("__name__")
 
 
 def setup_routers() -> Router:
-    from . import core, demoget, admin, getmails, listener
+    from . import core, demo_catcher, email_catcher, demo_listener, user
+    from core.helpers import admin
 
     router = Router()
 
@@ -32,5 +33,6 @@ def setup_routers() -> Router:
     router.include_router(getmails.router)
     router.include_router(admin.router)
     router.include_router(listener.router)
+    router.include_router(user.router)
 
     return router

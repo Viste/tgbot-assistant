@@ -6,7 +6,17 @@ class Text(StatesGroup):
     result = State()
 
 
+class Dialogue(StatesGroup):
+    get = State()
+    result = State()
+
+
 class Demo(StatesGroup):
+    start = State()
+    get = State()
+
+
+class Payment(StatesGroup):
     start = State()
     get = State()
 
