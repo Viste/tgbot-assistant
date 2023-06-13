@@ -1,6 +1,5 @@
 from datetime import datetime
-
-from sqlalchemy import Column, Integer, TIMESTAMP, String, Float, DateTime
+from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime
 
 from database.base import Base
 
@@ -26,7 +25,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True, unique=True)
-    telegram_id = Column(Integer, nullable=False, unique=True)
+    telegram_id = Column(BigInteger, nullable=False, unique=True)
     telegram_username = Column(String(255), nullable=True, unique=True)
     balance_amount = Column(Float, nullable=False, default=0)
     max_tokens = Column(Integer, nullable=False, default=0)
