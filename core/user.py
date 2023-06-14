@@ -24,7 +24,7 @@ async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
 
     if subscription and subscription.subscription_status == 'active' and subscription.subscription_start and subscription.subscription_end:
         now = datetime.now()
-        if subscription.subscription_start <= now <= subscription.subscription_end
+        if subscription.subscription_start <= now <= subscription.subscription_end:
             return True
     return False
 
