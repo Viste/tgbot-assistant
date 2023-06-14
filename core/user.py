@@ -19,18 +19,25 @@ openai = OpenAIDialogue()
 
 
 async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
-    result = await session.execute(select(User).filter(User.telegram_id == user_id))
-    user = result.scalars().one_or_none()
-
-    if not user:
-        return False
-
-    if user.subscription_status == 'active' and user.subscription_start and user.subscription_end:
-        now = datetime.utcnow()
-        if user.subscription_start <= now <= user.subscription_end:
-            return True
-
+    result = await session.execute(select(User.subscription_status, User.subscription_start,
+                                          User.subscription_end).filter(User.telegram_id == user_id))
+    subscription = result.scalars().one_or_none()
+    if subscription and subscription.subscription_status == 'active' and subscription.subscription_start and subscription.subscription_end:
+        now = datetime.now()
+        return subscription.subscription_start <= now <= subscription.subscription_end
     return False
+
+
+async def reply_with_chunk_or_error(message: types.Message, chunk: str) -> None:
+    try:
+        await message.reply(chunk, parse_mode=None)
+    except Exception as err:
+        logging.info('From try in for index chunks: %s', err)
+        try:
+            await message.reply(chunk + str(err), parse_mode=None)
+        except Exception as error:
+            logging.info('Last exception from Core: %s', error)
+            await message.reply(str(error), parse_mode=None)
 
 
 @flags.chat_action(action="typing", interval=5, initial_sleep=2)
@@ -62,16 +69,8 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
         replay_text, total_tokens = await openai.get_resp(escaped_text, uid, session)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
-            try:
-                if index == 0:
-                    await message.reply(chunk, parse_mode=None)
-            except Exception as err:
-                try:
-                    logging.info('From try in for index chunks: %s', err)
-                    await message.reply(chunk + str(err), parse_mode=None)
-                except Exception as error:
-                    logging.info('Last exception from Core: %s', error)
-                    await message.reply(str(error), parse_mode=None)
+            if index == 0:
+                await reply_with_chunk_or_error(message, chunk)
 
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
@@ -89,13 +88,5 @@ async def process_dialogue(message: types.Message, session: AsyncSession) -> Non
         replay_text, total_tokens = await openai.get_resp(text, uid, session)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
-            try:
-                if index == 0:
-                    await message.reply(chunk, parse_mode=None)
-            except Exception as err:
-                try:
-                    logging.info('From try in for index chunks: %s', err)
-                    await message.reply(chunk + str(err), parse_mode=None)
-                except Exception as error:
-                    logging.info('Last exception from Core: %s', error)
-                    await message.reply(str(error), parse_mode=None)
+            if index == 0:
+                await reply_with_chunk_or_error(message, chunk)
