@@ -49,7 +49,8 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
                 ],
             ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-            await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.", reply_markup=keyboard)
+            await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.",
+                                 reply_markup=keyboard)
             print(uid)
             return
 
@@ -67,10 +68,10 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
             except Exception as err:
                 try:
                     logging.info('From try in for index chunks: %s', err)
-                    await message.reply(chunk + err, parse_mode=None)
+                    await message.reply(chunk + str(err), parse_mode=None)
                 except Exception as error:
                     logging.info('Last exception from Core: %s', error)
-                    await message.reply(error, parse_mode=None)
+                    await message.reply(str(error), parse_mode=None)
 
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
@@ -94,7 +95,7 @@ async def process_dialogue(message: types.Message, session: AsyncSession) -> Non
             except Exception as err:
                 try:
                     logging.info('From try in for index chunks: %s', err)
-                    await message.reply(chunk + err, parse_mode=None)
+                    await message.reply(chunk + str(err), parse_mode=None)
                 except Exception as error:
                     logging.info('Last exception from Core: %s', error)
-                    await message.reply(error, parse_mode=None)
+                    await message.reply(str(error), parse_mode=None)
