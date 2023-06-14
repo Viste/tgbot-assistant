@@ -29,7 +29,7 @@ async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
     return False
 
 
-async def reply_with_chunk_or_error(message: types.Message, chunk: str) -> None:
+def reply_with_chunk_or_error(message: types.Message, chunk: str) -> None:
     try:
         await message.reply(chunk, parse_mode=None)
     except Exception as err:
@@ -71,7 +71,7 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             if index == 0:
-                await reply_with_chunk_or_error(message, chunk)
+                reply_with_chunk_or_error(message, chunk)
 
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
@@ -90,4 +90,4 @@ async def process_dialogue(message: types.Message, session: AsyncSession) -> Non
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             if index == 0:
-                await reply_with_chunk_or_error(message, chunk)
+                reply_with_chunk_or_error(message, chunk)
