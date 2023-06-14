@@ -12,7 +12,7 @@ from tools.ai.user_dialogue import OpenAIDialogue
 from tools.states import Dialogue
 from tools.utils import config, split_into_chunks
 
-logger = logging.getLogger("__name__")
+logger = logging.getLogger(__name__)
 router = Router()
 router.message.filter(F.chat.type.in_({'private'}))
 openai = OpenAIDialogue()

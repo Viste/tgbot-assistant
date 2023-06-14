@@ -1,5 +1,6 @@
-import essentia.standard as es
 import logging
+
+import essentia.standard as es
 import numpy as np
 import openai
 import tiktoken
@@ -8,7 +9,7 @@ from tools.ai.user_dialogue import OpenAIDialogue
 from tools.utils import config
 
 openai.api_key = config.subs_api_key
-logger = logging.getLogger("__name__")
+logger = logging.getLogger(__name__)
 
 args = {
     "temperature": 0.15,

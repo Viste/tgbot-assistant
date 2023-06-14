@@ -10,7 +10,7 @@ from main import paper
 from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.utils import config, split_into_chunks
 
-logger = logging.getLogger("__name__")
+logger = logging.getLogger(__name__)
 router = Router()
 router.message.filter(F.chat.type.in_({'private'}))
 openai = OpenAIListener()
@@ -33,7 +33,8 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
                 ],
             ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-            await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.", reply_markup=keyboard)
+            await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.",
+                                 reply_markup=keyboard)
             return
 
         file_path = f"tmp/{str(uid)}.mp3"

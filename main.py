@@ -14,30 +14,37 @@ from tools.utils import config
 
 redis_client = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db, decode_responses=True)
 paper = Bot(token=config.token, parse_mode="HTML")
-engine = create_async_engine(url=config.db_url, echo=True, echo_pool=False, pool_size=50, max_overflow=30, pool_timeout=30, pool_recycle=3600)
+
+engine = create_async_engine(url=config.db_url, echo=True, echo_pool=False, pool_size=50, max_overflow=30,
+                             pool_timeout=30, pool_recycle=3600)
+session_maker = async_sessionmaker(engine, expire_on_commit=False)
+db_middleware = DbSessionMiddleware(session_pool=session_maker)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+    stream=sys.stdout,
+)
+
+logger = logging.getLogger(__name__)
 
 
 async def main():
-    session_maker = async_sessionmaker(engine, expire_on_commit=False)
-
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-        stream=sys.stdout,
-    )
-
     storage = RedisStorage(redis=redis_client)
     worker = Dispatcher(storage=storage, fsm_strategy=FSMStrategy.USER_IN_CHAT)
     router = setup_routers()
-    worker.update.middleware(DbSessionMiddleware(session_pool=session_maker))
+    worker.update.middleware(db_middleware)
     worker.include_router(router)
-    useful_updates = worker.resolve_used_update_types()
-    logging.info("Starting bot")
-    await worker.start_polling(paper, allowed_updates=useful_updates, handle_signals=True)
+
+    if not hasattr(main, "useful_updates"):
+        main.useful_updates = worker.resolve_used_update_types()
+        logger.info("Starting bot")
+
+    await worker.start_polling(paper, allowed_updates=main.useful_updates, handle_signals=True)
 
 
 if __name__ == '__main__':
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
-        logging.error("Bot stopped!")
+        logger.error("Bot stopped!")

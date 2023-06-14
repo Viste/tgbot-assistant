@@ -12,7 +12,7 @@ from database.models import Calendar, StreamEmails
 from tools.states import Mail
 from tools.utils import config, check, email_patt
 
-logger = logging.getLogger("__name__")
+logger = logging.getLogger(__name__)
 router = Router()
 router.message.filter(F.chat.type.in_({'private'}))
 
@@ -34,8 +34,9 @@ async def course_cmd(message: types.Message, state: FSMContext, session: AsyncSe
             close_date = None
         if close_date is not None:
             if close_date.end_time is not None or now < close_date.end_time:
-                await message.answer(f"Привет {first_name}!\nЯ собираю email адреса для платных курсов Нейропанк академии\n"
-                                     f"Для начала напиши мне свой email, чтобы я предоставил тебе доступ к стриму")
+                await message.answer(
+                    f"Привет {first_name}!\nЯ собираю email адреса для платных курсов Нейропанк академии\n"
+                    f"Для начала напиши мне свой email, чтобы я предоставил тебе доступ к стриму")
                 await state.set_state(Mail.start)
             else:
                 await message.answer(f"Привет {first_name}!\nСейчас не время присылать email, попробуй позже")
@@ -50,7 +51,8 @@ async def course_cmd(message: types.Message, state: FSMContext, session: AsyncSe
     if check(email, email_patt):
         await state.update_data(email=str(message.text))
         try:
-            existing_email = await session.run_sync(lambda: session.query(StreamEmails).filter(StreamEmails.email == email).one())
+            existing_email = await session.run_sync(
+                lambda: session.query(StreamEmails).filter(StreamEmails.email == email).one())
             await message.reply(f"{first_name}, этот Email уже был добавлен ранее!")
         except NoResultFound:
             new_email = StreamEmails(email=str(message.text), stream_id=1)

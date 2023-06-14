@@ -11,7 +11,7 @@ from main import paper
 from tools.states import Payment
 from tools.utils import config
 
-logger = logging.getLogger("__name__")
+logger = logging.getLogger(__name__)
 router = Router()
 
 price = [LabeledPrice(label='demo_room', amount=35000)]

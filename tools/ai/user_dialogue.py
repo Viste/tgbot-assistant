@@ -10,7 +10,7 @@ from database.models import User
 from tools.utils import config
 
 openai.api_key = config.subs_api_key
-logger = logging.getLogger("__name__")
+logger = logging.getLogger(__name__)
 
 args = {
     "temperature": 0,
@@ -94,7 +94,8 @@ class OpenAIDialogue:
                         self.user_dialogs[user_id] = self.user_dialogs[user_id][-self.max_history_size:]
                         logging.info("Dialog From summary exception: %s", self.user_dialogs[user_id])
 
-                return await openai.ChatCompletion.acreate(model=self.model, messages=self.user_dialogs[user_id], **args)
+                return await openai.ChatCompletion.acreate(model=self.model, messages=self.user_dialogs[user_id],
+                                                           **args)
 
             except openai.error.RateLimitError as e:
                 self.retries += 1

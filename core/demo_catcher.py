@@ -14,7 +14,7 @@ from main import paper
 from tools.states import Demo
 from tools.utils import config, check, pattern, check_bit_rate, email_patt
 
-logger = logging.getLogger("__name__")
+logger = logging.getLogger(__name__)
 router = Router()
 router.message.filter(F.chat.type.in_({'private'}))
 channel = config.channel
@@ -91,16 +91,21 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext):
         await paper.download_file(file_data, f"{str(uid)}.mp3")
 
         if username is None:
-            await message.reply("Пожалуйста, заполни username в настройках телеграм.\nЭто нужно для последующей связи с тобой")
+            await message.reply(
+                "Пожалуйста, заполни username в настройках телеграм.\nЭто нужно для последующей связи с тобой")
         elif duration <= 119:
-            await message.reply("Длина присланного трека менее двух минут, не могу его принять.\nПожалуйста исправь и отправь еще раз.")
+            await message.reply(
+                "Длина присланного трека менее двух минут, не могу его принять.\nПожалуйста исправь и отправь еще раз.")
         elif title is None:
-            await message.reply("Тег title в треке не заполнен, не могу его принять.\nПожалуйста исправь и отправь еще раз.")
+            await message.reply(
+                "Тег title в треке не заполнен, не могу его принять.\nПожалуйста исправь и отправь еще раз.")
         elif artist is None:
-            await message.reply("Тег artist в треке не заполнен, не могу его принять.\nПожалуйста исправь и отправь еще раз.")
+            await message.reply(
+                "Тег artist в треке не заполнен, не могу его принять.\nПожалуйста исправь и отправь еще раз.")
         elif check(file_name, pattern) is False:
-            await message.reply("Название не соответствует требованиям, возможно ты не указал дефис между автором и названием трека, "
-                                "не могу его принять.\nПожалуйста исправь и отправь еще раз.")
+            await message.reply(
+                "Название не соответствует требованиям, возможно ты не указал дефис между автором и названием трека, "
+                "не могу его принять.\nПожалуйста исправь и отправь еще раз.")
         elif check_bit_rate(f"{str(uid)}.mp3") is False:
             await message.reply('Битрейт mp3 файла менее 320.')
             os.remove(f"{str(uid)}.mp3")
@@ -112,7 +117,8 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext):
                    f"title: {title}\n" \
                    f"Artist: {artist}"
             await paper.send_audio(config.channel, audio=track, caption=text)
-            await message.reply("Спасибо за демку! Если захочешь прислать еще один, просто отправь его мне и помни про требования к треку.\n"
-                                "320 mp3 длиной не менее 2 минут, с полностью прописанными тегами и названием файла в виде 'Автор - Трек'")
+            await message.reply(
+                "Спасибо за демку! Если захочешь прислать еще один, просто отправь его мне и помни про требования к треку.\n"
+                "320 mp3 длиной не менее 2 минут, с полностью прописанными тегами и названием файла в виде 'Автор - Трек'")
             os.remove(f"{str(uid)}.mp3")
             await state.clear()

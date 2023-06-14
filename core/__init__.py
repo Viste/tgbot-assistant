@@ -5,7 +5,7 @@ from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ReplyKeyboardRemove, Message
 
-logger = logging.getLogger("__name__")
+logger = logging.getLogger(__name__)
 
 
 def setup_routers() -> Router:
