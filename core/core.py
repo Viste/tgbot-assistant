@@ -15,18 +15,6 @@ router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(co
 openai = OpenAI()
 
 
-async def rep_with_chunk_or_error(message: types.Message, chunk: str) -> None:
-    try:
-        await message.reply(chunk, parse_mode=None)
-    except Exception as err:
-        logging.info('From try in for index chunks: %s', err)
-        try:
-            await message.reply(chunk + str(err), parse_mode=None)
-        except Exception as error:
-            logging.info('Last exception from Core: %s', error)
-            await message.reply(str(error), parse_mode=None)
-
-
 @flags.chat_action("typing")
 @router.message(F.text.startswith("@cyberpaperbot"))
 async def ask(message: types.Message, state: FSMContext) -> None:
@@ -43,8 +31,16 @@ async def ask(message: types.Message, state: FSMContext) -> None:
         replay_text, total_tokens = await openai.get_resp(escaped_text, uid)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
-            if index == 0:
-                await rep_with_chunk_or_error(message, chunk)
+            try:
+                if index == 0:
+                    await message.reply(chunk, parse_mode=None)
+            except Exception as err:
+                try:
+                    logging.info('From try in for index chunks: %s', err)
+                    await message.reply(chunk + str(err), parse_mode=None)
+                except Exception as error:
+                    logging.info('Last exception from Core: %s', error)
+                    await message.reply(str(error), parse_mode=None)
 
 
 @flags.chat_action("typing")
@@ -62,8 +58,16 @@ async def process_ask(message: types.Message) -> None:
         replay_text, total_tokens = await openai.get_resp(text, uid)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
-            if index == 0:
-                await rep_with_chunk_or_error(message, chunk)
+            try:
+                if index == 0:
+                    await message.reply(chunk, parse_mode=None)
+            except Exception as err:
+                try:
+                    logging.info('From try in for index chunks: %s', err)
+                    await message.reply(chunk + str(err), parse_mode=None)
+                except Exception as error:
+                    logging.info('Last exception from Core: %s', error)
+                    await message.reply(str(error), parse_mode=None)
 
 
 @router.message(Command(commands="help"))

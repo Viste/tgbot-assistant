@@ -29,18 +29,6 @@ async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
     return False
 
 
-def reply_with_chunk_or_error(message: types.Message, chunk: str) -> None:
-    try:
-        await message.reply(chunk, parse_mode=None)
-    except Exception as err:
-        logging.info('From try in for index chunks: %s', err)
-        try:
-            await message.reply(chunk + str(err), parse_mode=None)
-        except Exception as error:
-            logging.info('Last exception from Core: %s', error)
-            await message.reply(str(error), parse_mode=None)
-
-
 @flags.chat_action(action="typing", interval=5, initial_sleep=2)
 @router.message(F.text.startswith("Папер!"))
 async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession) -> None:
@@ -70,8 +58,16 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
         replay_text, total_tokens = await openai.get_resp(escaped_text, uid, session)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
-            if index == 0:
-                reply_with_chunk_or_error(message, chunk)
+            try:
+                if index == 0:
+                    await message.reply(chunk, parse_mode=None)
+            except Exception as err:
+                try:
+                    logging.info('From try in for index chunks: %s', err)
+                    await message.reply(chunk + str(err), parse_mode=None)
+                except Exception as error:
+                    logging.info('Last exception from Core: %s', error)
+                    await message.reply(str(error), parse_mode=None)
 
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
@@ -89,5 +85,13 @@ async def process_dialogue(message: types.Message, session: AsyncSession) -> Non
         replay_text, total_tokens = await openai.get_resp(text, uid, session)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
-            if index == 0:
-                reply_with_chunk_or_error(message, chunk)
+            try:
+                if index == 0:
+                    await message.reply(chunk, parse_mode=None)
+            except Exception as err:
+                try:
+                    logging.info('From try in for index chunks: %s', err)
+                    await message.reply(chunk + str(err), parse_mode=None)
+                except Exception as error:
+                    logging.info('Last exception from Core: %s', error)
+                    await message.reply(str(error), parse_mode=None)
