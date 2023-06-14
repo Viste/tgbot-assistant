@@ -35,12 +35,9 @@ async def main():
     router = setup_routers()
     worker.update.middleware(db_middleware)
     worker.include_router(router)
-
-    if not hasattr(main, "useful_updates"):
-        main.useful_updates = worker.resolve_used_update_types()
-        logger.info("Starting bot")
-
-    await worker.start_polling(paper, allowed_updates=main.useful_updates, handle_signals=True)
+    useful_updates = worker.resolve_used_update_types()
+    logging.info("Starting bot")
+    await worker.start_polling(paper, allowed_updates=useful_updates, handle_signals=True)
 
 
 if __name__ == '__main__':
