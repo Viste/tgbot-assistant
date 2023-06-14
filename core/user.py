@@ -22,6 +22,8 @@ async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
     result = await session.execute(select(User.subscription_status, User.subscription_start,
                                           User.subscription_end).filter(User.telegram_id == user_id))
     subscription = result.scalars().one_or_none()
+    print(result)
+    print(subscription)
     if subscription and subscription.subscription_status == 'active' and subscription.subscription_start and subscription.subscription_end:
         now = datetime.now()
         return subscription.subscription_start <= now <= subscription.subscription_end
