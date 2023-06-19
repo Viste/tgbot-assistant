@@ -10,7 +10,8 @@ from tools.ai.ai_tools import OpenAI
 from tools.utils import config, get_dt
 
 logger = logging.getLogger(__name__)
-openai = OpenAI()
+ses = AsyncSession
+openai = OpenAI(ses)
 router = Router()
 router.message.filter(F.chat.type.in_({'private'}), F.from_user.id.in_(config.admins))
 
