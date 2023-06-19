@@ -3,15 +3,13 @@ import logging
 from aiogram import types, Router, F, flags
 from aiogram.filters.command import Command, CommandObject
 from sqlalchemy import delete, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import Calendar, StreamEmails
 from tools.ai.ai_tools import OpenAI
 from tools.utils import config, get_dt
 
 logger = logging.getLogger(__name__)
-ses = AsyncSession
-openai = OpenAI(ses)
+openai = OpenAI()
 router = Router()
 router.message.filter(F.chat.type.in_({'private'}), F.from_user.id.in_(config.admins))
 

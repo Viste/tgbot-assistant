@@ -4,7 +4,6 @@ import logging
 from aiogram import types, F, Router, flags
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import send_reply, reply_if_banned
 from tools.ai.ai_tools import OpenAI
@@ -13,9 +12,8 @@ from tools.utils import config, split_into_chunks
 
 logger = logging.getLogger(__name__)
 router = Router()
-session = AsyncSession
 router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups))
-openai = OpenAI(session)
+openai = OpenAI()
 
 
 @flags.chat_action("typing")
