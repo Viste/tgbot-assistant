@@ -42,8 +42,7 @@ class OpenAI:
 
     async def get_dialogs(self, user_id: int) -> list:
         stmt = select(User).where(User.id == user_id)
-        async with self.session.begin():
-            result = await self.session.execute(stmt)
+        result = await self.session.execute(stmt)
         user = result.scalar_one_or_none()
         if user and user.history:
             return user.history
@@ -53,8 +52,7 @@ class OpenAI:
 
     async def add_to_history_db(self, user_id: int, role: str, content: str):
         stmt = select(User).where(User.id == user_id)
-        async with self.session.begin():
-            result = await self.session.execute(stmt)
+        result = await self.session.execute(stmt)
         user = result.scalar_one_or_none()
         if user:
             user.history.append({"role": role, "content": content})
@@ -62,8 +60,7 @@ class OpenAI:
 
     async def update_system_message(self, user_id: int, new_system_message: str):
         stmt = select(User).where(User.id == user_id)
-        async with self.session.begin():
-            result = await self.session.execute(stmt)
+        result = await self.session.execute(stmt)
         user = result.scalar_one_or_none()
         if user:
             user.system_message = new_system_message
@@ -72,8 +69,7 @@ class OpenAI:
 
     async def reset_history(self, user_id, content=''):
         stmt = select(User).where(User.id == user_id)
-        async with self.session.begin():
-            result = await self.session.execute(stmt)
+        result = await self.session.execute(stmt)
         user = result.scalar_one_or_none()
         if not user:
             user = User(id=user_id)
