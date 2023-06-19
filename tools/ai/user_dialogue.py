@@ -149,7 +149,7 @@ class OpenAIDialogue:
         except KeyError:
             encoding = tiktoken.get_encoding("gpt-4")
 
-        tokens_per_message = 4
+        tokens_per_message = 3
         tokens_per_name = -1
 
         num_tokens = 0

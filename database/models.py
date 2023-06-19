@@ -1,5 +1,6 @@
 from datetime import datetime
-from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime, Integer
+
+from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime, Integer, JSON
 
 from database.base import Base
 
@@ -35,4 +36,6 @@ class User(Base):
     subscription_start = Column(DateTime, nullable=True)
     subscription_end = Column(DateTime, nullable=True)
     subscription_status = Column(String(50), nullable=False, default='inactive')
+    history = Column(JSON, nullable=True, default=[])
+    system_message = Column(String(4096), nullable=True, default='')
     mariadb_engine = "InnoDB"
