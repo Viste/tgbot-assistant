@@ -69,7 +69,7 @@ class OpenAI:
             await self.reset_history(session, user_id, new_system_message)
 
     async def reset_history(self, session: AsyncSession, user_id, content=''):
-        stmt = select(User).where(User.id == user_id)
+        stmt = select(User).where(User.telegram_id == user_id)
         result = await session.execute(stmt)
         user = result.scalar_one_or_none()
         if not user:
