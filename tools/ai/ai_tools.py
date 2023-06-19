@@ -42,7 +42,8 @@ class OpenAI:
 
     async def get_dialogs(self, user_id: int) -> list:
         stmt = select(User).where(User.id == user_id)
-        result = await self.session.execute(stmt)
+        async with self.session.begin():
+            result = await self.session.execute(stmt)
         user = result.scalar_one_or_none()
         if user and user.history:
             return user.history
@@ -52,11 +53,41 @@ class OpenAI:
 
     async def add_to_history_db(self, user_id: int, role: str, content: str):
         stmt = select(User).where(User.id == user_id)
-        result = await self.session.execute(stmt)
+        async with self.session.begin():
+            result = await self.session.execute(stmt)
         user = result.scalar_one_or_none()
         if user:
             user.history.append({"role": role, "content": content})
             await self.session.commit()
+
+    async def update_system_message(self, user_id: int, new_system_message: str):
+        stmt = select(User).where(User.id == user_id)
+        async with self.session.begin():
+            result = await self.session.execute(stmt)
+        user = result.scalar_one_or_none()
+        if user:
+            user.system_message = new_system_message
+            await self.session.commit()
+            await self.reset_history(user_id, new_system_message)
+
+    async def reset_history(self, user_id, content=''):
+        stmt = select(User).where(User.id == user_id)
+        async with self.session.begin():
+            result = await self.session.execute(stmt)
+        user = result.scalar_one_or_none()
+        if not user:
+            user = User(id=user_id)
+            self.session.add(user)
+            await self.session.commit()
+
+        if content == '':
+            if user.system_message:
+                content = user.system_message
+            else:
+                content = self.content
+
+        user.history = [{"role": "system", "content": content}]
+        await self.session.commit()
 
     async def get_resp(self, query: str, chat_id: int) -> tuple[str, str]:
         dialogs = await self.get_dialogs(chat_id)
@@ -163,33 +194,6 @@ class OpenAI:
                     num_tokens += tokens_per_name
         num_tokens += 3
         return num_tokens
-
-    async def update_system_message(self, user_id: int, new_system_message: str):
-        stmt = select(User).where(User.id == user_id)
-        result = await self.session.execute(stmt)
-        user = result.scalar_one_or_none()
-        if user:
-            user.system_message = new_system_message
-            await self.session.commit()
-            await self.reset_history(user_id, new_system_message)
-
-    async def reset_history(self, user_id, content=''):
-        stmt = select(User).where(User.id == user_id)
-        result = await self.session.execute(stmt)
-        user = result.scalar_one_or_none()
-        if not user:
-            user = User(id=user_id)
-            self.session.add(user)
-            await self.session.commit()
-
-        if content == '':
-            if user.system_message:
-                content = user.system_message
-            else:
-                content = self.content
-
-        user.history = [{"role": "system", "content": content}]
-        await self.session.commit()
 
     @staticmethod
     def get_money():
