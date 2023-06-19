@@ -73,7 +73,7 @@ class OpenAI:
         result = await session.execute(stmt)
         user = result.scalar_one_or_none()
         if not user:
-            user = User(id=user_id)
+            user = User(telegram_id=user_id)
             session.add(user)
             await session.commit()
 
