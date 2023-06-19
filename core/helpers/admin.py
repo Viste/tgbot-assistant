@@ -3,6 +3,7 @@ import logging
 from aiogram import types, Router, F, flags
 from aiogram.filters.command import Command, CommandObject
 from sqlalchemy import delete, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import Calendar, StreamEmails
 from tools.ai.ai_tools import OpenAI
