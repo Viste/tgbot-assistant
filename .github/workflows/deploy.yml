@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Stop Cyber Paper bot
-        run: systemctl stop cyberpaper && kill -s 9 $(pidof /home/cyberpaper/bin/python)
+        run: systemctl stop cyberpaper
 
       - name: Pull Cyber Paper source
         run: cd /opt/cyberpaper && git pull
