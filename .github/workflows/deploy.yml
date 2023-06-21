@@ -11,8 +11,11 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Stop Cyber Paper
+      - name: Stop Cyber Paper bot
         run: systemctl stop cyberpaper && kill -s 9 $(pidof /home/cyberpaper/bin/python)
-      - name: Start cyberpaper
+
+      - name: Pull Cyber Paper source
+        run: cd /opt/cyberpaper && git pull
+
+      - name: Start Cyber Paper bot
         run: systemctl start cyberpaper
