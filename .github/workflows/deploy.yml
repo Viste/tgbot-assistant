@@ -6,31 +6,20 @@ on:
   pull_request:
     branches: [ 'master' ]
 
-env:
-  SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-
 jobs:
   build:
     runs-on: self-hosted
 
     steps:
-      - name: Setup SSH passphrase
-        env:
-          SSH_PASSPHRASE: ${{secrets.SSH_PASSPHRASE}}
-          SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
-        run: |
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          echo 'echo $SSH_PASSPHRASE' > ~/.ssh_askpass && chmod +x ~/.ssh_askpass
-          echo "$SSH_PRIVATE_KEY" | tr -d '\r' | DISPLAY=None SSH_ASKPASS=~/.ssh_askpass ssh-add - >/dev/null
-
-      - name: Print ssh-add identities
-        run: ssh-add -l
+      - uses: webfactory/ssh-agent@v0.4.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Stop Cyber Paper bot
         run: systemctl stop cyberpaper
 
       - name: Pull Cyber Paper source
-        run: whoami && cd /opt/cyberpaper && git pull
+        run: cd /opt/cyberpaper && rm tools/config.json && cp ../cyberpaper.json  tools/config.json && git pull
 
       - name: Start Cyber Paper bot
         run: systemctl start cyberpaper
