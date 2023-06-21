@@ -15,7 +15,7 @@ jobs:
         run: systemctl stop cyberpaper
 
       - name: Pull Cyber Paper source
-        run: cd /opt/cyberpaper && git pull
+        run: whoami && cd /opt/cyberpaper && git pull
 
       - name: Start Cyber Paper bot
         run: systemctl start cyberpaper
