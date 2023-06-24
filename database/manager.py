@@ -1,3 +1,4 @@
+import json
 import logging
 from typing import Optional
 
@@ -26,9 +27,7 @@ class UserManager:
         if user is None:
             await self.reset_history(user_id)
             user = await self.get_user(user_id)
-        history = user.history if user else []
-        if not history and user.system_message:
-            history = [{"role": "system", "content": user.system_message}]
+        history = [json.loads(item) for item in user.history] if user else []
         logging.info(f"get_dialogs: user_id={user_id}, history={history}")
         return history
 
@@ -37,7 +36,8 @@ class UserManager:
         result = await self.session.execute(stmt)
         user = result.scalar_one_or_none()
         if user:
-            user.history.append({"role": role, "content": content})
+            history_item = {"role": role, "content": content}
+            user.history.append(json.dumps(history_item, ensure_ascii=False))
             await self.session.commit()
             logging.info(
                 f"add_to_history_db: user_id={user_id}, role={role}, content={content}, history={user.history}")
@@ -47,8 +47,14 @@ class UserManager:
         result = await self.session.execute(stmt)
         user = result.scalar_one_or_none()
         if not user:
-            user = User(telegram_id=user_id, system_message=self.content)
+            user = User(telegram_id=user_id)
             self.session.add(user)
+        if content == '':
+            if user.system_message:
+                content = user.system_message
+            else:
+                content = self.content
+        user.history = [json.dumps({"role": "system", "content": content}, ensure_ascii=False)]
         await self.session.commit()
         logging.info(f"reset_history: user_id={user_id}, content={content}, history={user.history}")
 
