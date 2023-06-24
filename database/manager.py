@@ -22,6 +22,7 @@ class UserManager:
                 return user.history
             else:
                 await self.reset_history(user_id)
+                await self.session.commit()
 
     async def add_to_history_db(self, user_id: int, role: str, content: str):
         stmt = select(User).where(User.telegram_id == user_id)
@@ -47,13 +48,9 @@ class UserManager:
         if not user:
             user = User(telegram_id=user_id)
             self.session.add(user)
-            await self.session.commit()
-
         if content == '':
             if user.system_message:
                 content = user.system_message
             else:
                 content = self.content
-
         user.history = [{"role": "system", "content": content}]
-        await self.session.commit()
