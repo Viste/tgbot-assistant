@@ -21,12 +21,10 @@ class UserManager:
 
     async def get_dialogs(self, user_id: int) -> list:
         user = await self.get_user(user_id)
-        if user and user.history:
-            return user.history
-        else:
+        if user is None:
             await self.reset_history(user_id)
             user = await self.get_user(user_id)
-            return user.history if user else []
+        return user.history if user else []
 
     async def add_to_history_db(self, user_id: int, role: str, content: str):
         stmt = select(User).where(User.telegram_id == user_id)
