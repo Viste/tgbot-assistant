@@ -54,6 +54,8 @@ class OpenAI:
         elif response.choices and len(response.choices) >= 0:
             answer = response.choices[0]['message']['content'].strip()
             await user_manager(session).add_to_history_db(chat_id, role="assistant", content=answer)
+        elif response.choices is None:
+            answer = response.error
         else:
             answer = response.choices[0]['message']['content'].strip()
             await user_manager(session).add_to_history_db(chat_id, role="assistant", content=answer)
@@ -68,6 +70,7 @@ class OpenAI:
         return answer, total_tokens
 
     async def _query_gpt(self, user_id, query, dialogs, session: AsyncSession):
+        self.retries = 0
         while self.retries < self.max_retries:
             try:
                 if not dialogs:
@@ -100,19 +103,19 @@ class OpenAI:
                 self.retries += 1
                 logging.info("Dialog From Ratelim: %s", dialogs)
                 if self.retries == self.max_retries:
-                    return f'⚠️OpenAI: Превышены лимиты ⚠️\n{str(e)}'
+                    return {'choices': None, 'error': f'⚠️OpenAI: Превышены лимиты ⚠️\n{str(e)}'}
 
             except openai.error.InvalidRequestError as er:
                 self.retries += 1
                 logging.info("Dialog From bad req: %s", dialogs)
                 if self.retries == self.max_retries:
-                    return f'⚠️OpenAI: кривой запрос ⚠️\n{str(er)}'
+                    return {'choices': None, 'error': f'⚠️OpenAI: кривой запрос ⚠️\n{str(er)}'}
 
             except Exception as err:
                 self.retries += 1
                 logging.info("Dialog From custom exception: %s", dialogs)
                 if self.retries == self.max_retries:
-                    return f'⚠️Ошибочка вышла ⚠️\n{str(err)}', err
+                    return {'choices': None, 'error': f'⚠️Ошибочка вышла ⚠️\n{str(err)}'}
 
     async def get_stats(self, user_id: int, session: AsyncSession) -> tuple[int, int]:
         dialogs = await user_manager(session).get_dialogs(user_id)
