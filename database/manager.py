@@ -17,14 +17,18 @@ class UserManager:
     async def get_user(self, user_id: int) -> Optional[User]:
         stmt = select(User).where(User.telegram_id == user_id)
         result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
+        user = result.scalar_one_or_none()
+        logging.info(f"get_user: user_id={user_id}, user={user}")
+        return user
 
     async def get_dialogs(self, user_id: int) -> list:
         user = await self.get_user(user_id)
         if user is None:
             await self.reset_history(user_id)
             user = await self.get_user(user_id)
-        return user.history if user else []
+        history = user.history if user else []
+        logging.info(f"get_dialogs: user_id={user_id}, history={history}")
+        return history
 
     async def add_to_history_db(self, user_id: int, role: str, content: str):
         stmt = select(User).where(User.telegram_id == user_id)
