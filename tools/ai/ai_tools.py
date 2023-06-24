@@ -110,6 +110,8 @@ class OpenAI:
                 logging.info("Dialog From bad req: %s", dialogs)
                 if self.retries == self.max_retries:
                     return {'choices': None, 'error': f'⚠️OpenAI: кривой запрос ⚠️\n{str(er)}'}
+                else:
+                    return await self._query_gpt(user_id, query, dialogs, session)
 
             except Exception as err:
                 self.retries += 1

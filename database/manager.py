@@ -27,6 +27,8 @@ class UserManager:
             await self.reset_history(user_id)
             user = await self.get_user(user_id)
         history = user.history if user else []
+        if not history and user.system_message:
+            history = [{"role": "system", "content": user.system_message}]
         logging.info(f"get_dialogs: user_id={user_id}, history={history}")
         return history
 
@@ -47,13 +49,12 @@ class UserManager:
         if not user:
             user = User(telegram_id=user_id)
             self.session.add(user)
-            await self.session.commit()
         if content == '':
             if user.system_message:
                 content = user.system_message
             else:
                 content = self.content
-        user.history = [{"role": "system", "content": content}]
+        user.system_message = content
         await self.session.commit()
         logging.info(f"reset_history: user_id={user_id}, content={content}, history={user.history}")
 
