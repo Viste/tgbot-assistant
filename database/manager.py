@@ -37,6 +37,25 @@ class UserManager:
         if user:
             user.history.append({"role": role, "content": content})
             await self.session.commit()
+            logging.info(
+                f"add_to_history_db: user_id={user_id}, role={role}, content={content}, history={user.history}")
+
+    async def reset_history(self, user_id, content=''):
+        stmt = select(User).where(User.telegram_id == user_id)
+        result = await self.session.execute(stmt)
+        user = result.scalar_one_or_none()
+        if not user:
+            user = User(telegram_id=user_id)
+            self.session.add(user)
+            await self.session.commit()
+        if content == '':
+            if user.system_message:
+                content = user.system_message
+            else:
+                content = self.content
+        user.history = [{"role": "system", "content": content}]
+        await self.session.commit()
+        logging.info(f"reset_history: user_id={user_id}, content={content}, history={user.history}")
 
     async def update_system_message(self, user_id: int, new_system_message: str):
         stmt = select(User).where(User.id == user_id)
@@ -46,17 +65,3 @@ class UserManager:
             user.system_message = new_system_message
             await self.session.commit()
             await self.reset_history(user_id, new_system_message)
-
-    async def reset_history(self, user_id, content=''):
-        stmt = select(User).where(User.telegram_id == user_id)
-        result = await self.session.execute(stmt)
-        user = result.scalar_one_or_none()
-        if not user:
-            user = User(telegram_id=user_id)
-            self.session.add(user)
-        if content == '':
-            if user.system_message:
-                content = user.system_message
-            else:
-                content = self.content
-        user.history = [{"role": "system", "content": content}]
