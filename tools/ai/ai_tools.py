@@ -2,6 +2,7 @@ import json
 import logging
 from calendar import monthrange
 from datetime import date
+from typing import Tuple
 
 import openai
 import requests
@@ -38,7 +39,7 @@ class OpenAI:
         self.retries = 0
         self.show_tokens = False
 
-    async def get_resp(self, query: str, chat_id: int, session: AsyncSession) -> tuple[str, str]:
+    async def get_resp(self, query: str, chat_id: int, session: AsyncSession) -> Tuple[str, int]:
         user_manager_instance = user_manager(session)
         dialogs = await user_manager_instance.get_dialogs(chat_id)
         response = await self._query_gpt(chat_id, query, dialogs, session)
@@ -100,12 +101,6 @@ class OpenAI:
                 print(dialogs)
                 result = response
                 break
-
-            except openai.error.RateLimitError as e:
-                self.retries += 1
-                logging.info("Dialog From Ratelim: %s", dialogs)
-                if self.retries == self.max_retries:
-                    result = {'choices': None, 'error': f'⚠️OpenAI: Превышены лимиты ⚠️\n{str(e)}'}
 
             except (openai.error.RateLimitError, openai.error.InvalidRequestError, Exception) as e:
                 if isinstance(e, openai.error.RateLimitError):
