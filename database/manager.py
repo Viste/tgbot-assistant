@@ -15,7 +15,7 @@ class UserManager:
 
     async def get_dialogs(self, user_id: int) -> list:
         while True:
-            stmt = select(User).where(User.id == user_id)
+            stmt = select(User).where(User.telegram_id == user_id)
             result = await self.session.execute(stmt)
             user = result.scalar_one_or_none()
             if user and user.history:
