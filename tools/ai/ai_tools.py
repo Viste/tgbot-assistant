@@ -42,8 +42,7 @@ class OpenAI:
         dialogs = await user_manager(session).get_dialogs(chat_id)
         response = await self._query_gpt(chat_id, query, dialogs, session)
         answer = ''
-
-        if response.choices and len(response.choices) > 1 and self.n_choices > 1:
+        if response.choices and (len(response.choices) > 1 and self.n_choices > 1 or len(response.choices) >= 0):
             for index, choice in enumerate(response.choices):
                 content = choice['message']['content'].strip()
                 if index == 0:
@@ -51,9 +50,6 @@ class OpenAI:
                 answer += f'{index + 1}\u20e3\n'
                 answer += content
                 answer += '\n\n'
-        elif response.choices and len(response.choices) >= 0:
-            answer = response.choices[0]['message']['content'].strip()
-            await user_manager(session).add_to_history_db(chat_id, role="assistant", content=answer)
         elif response.choices is None:
             answer = response.error
         else:
@@ -71,13 +67,15 @@ class OpenAI:
 
     async def _query_gpt(self, user_id, query, dialogs, session: AsyncSession):
         self.retries = 0
+        result = None
+        user_manager_instance = user_manager(session)
         while self.retries < self.max_retries:
             try:
                 if not dialogs:
-                    await user_manager(session).reset_history(user_id)
+                    await user_manager_instance.reset_history(user_id)
                     dialogs = await user_manager(session).get_dialogs(user_id)
 
-                await user_manager(session).add_to_history_db(user_id, role="user", content=query)
+                await user_manager_instance.add_to_history_db(user_id, role="user", content=query)
 
                 token_count = self._count_tokens(dialogs)
                 exceeded_max_tokens = token_count + self.config_tokens > self.max_tokens
@@ -88,34 +86,38 @@ class OpenAI:
                     try:
                         summary = await self._summarise(dialogs[:-1])
                         logging.info(f'Summary: {summary}')
-                        await user_manager(session).reset_history(user_id)
-                        await user_manager(session).add_to_history_db(user_id, role="assistant", content=summary)
-                        await user_manager(session).add_to_history_db(user_id, role="user", content=query)
+                        await user_manager_instance.reset_history(user_id)
+                        await user_manager_instance.add_to_history_db(user_id, role="assistant", content=summary)
+                        await user_manager_instance.add_to_history_db(user_id, role="user", content=query)
                         logging.info("Dialog From summary: %s", dialogs)
                     except Exception as e:
                         logging.info(f'Error while summarising chat history: {str(e)}. Popping elements instead...')
                         dialogs = dialogs[-self.max_history_size:]
                         logging.info("Dialog From summary exception: %s", dialogs)
 
-                return await openai.ChatCompletion.acreate(model=self.model, messages=dialogs, **args)
+                response = await openai.ChatCompletion.acreate(model=self.model, messages=dialogs, **args)
+                result = response
+                break
 
             except openai.error.RateLimitError as e:
                 self.retries += 1
                 logging.info("Dialog From Ratelim: %s", dialogs)
                 if self.retries == self.max_retries:
-                    return {'choices': None, 'error': f'⚠️OpenAI: Превышены лимиты ⚠️\n{str(e)}'}
+                    result = {'choices': None, 'error': f'⚠️OpenAI: Превышены лимиты ⚠️\n{str(e)}'}
 
             except openai.error.InvalidRequestError as er:
                 self.retries += 1
                 logging.info("Dialog From bad req: %s", dialogs)
                 if self.retries == self.max_retries:
-                    return {'choices': None, 'error': f'⚠️OpenAI: кривой запрос ⚠️\n{str(er)}'}
+                    result = {'choices': None, 'error': f'⚠️OpenAI: кривой запрос ⚠️\n{str(er)}'}
 
             except Exception as err:
                 self.retries += 1
                 logging.info("Dialog From custom exception: %s", dialogs)
                 if self.retries == self.max_retries:
-                    return {'choices': None, 'error': f'⚠️Ошибочка вышла ⚠️\n{str(err)}'}
+                    result = {'choices': None, 'error': f'⚠️Ошибочка вышла ⚠️\n{str(err)}'}
+
+        return result
 
     async def get_stats(self, user_id: int, session: AsyncSession) -> tuple[int, int]:
         dialogs = await user_manager(session).get_dialogs(user_id)
@@ -137,14 +139,8 @@ class OpenAI:
         tokens_per_message = 4
         tokens_per_name = 1
 
-        num_tokens = 0
-        for message in dialogs:
-            num_tokens += tokens_per_message
-            for key, value in message.items():
-                num_tokens += len(encoding.encode(value))
-                if key == "name":
-                    num_tokens += tokens_per_name
-        num_tokens += 3
+        num_tokens = sum(tokens_per_message + sum(len(encoding.encode(value)) for key, value in message.items())
+                         + (tokens_per_name if "name" in message else 0) for message in dialogs) + 3
         return num_tokens
 
     @staticmethod
