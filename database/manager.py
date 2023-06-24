@@ -120,7 +120,7 @@ prohibited_platforms = Twitter, Instagram, Facebook, Meta-owned projects"""
         if user is None:
             await self.reset_history(user_id)
             user = await self.get_user(user_id)
-        history = [json.loads(item) for item in user.history] if user else []
+        history = json.loads(user.history) if user else []
         logging.info(f"get_dialogs: user_id={user_id}, history={history}")
         return history
 
@@ -130,7 +130,7 @@ prohibited_platforms = Twitter, Instagram, Facebook, Meta-owned projects"""
         user = result.scalar_one_or_none()
         if user:
             history_item = {"role": role, "content": content}
-            user.history.append(json.dumps(history_item, ensure_ascii=False))
+            user.history = json.dumps(user.history + [history_item], ensure_ascii=False)
             await self.session.commit()
             logging.info(
                 f"add_to_history_db: user_id={user_id}, role={role}, content={content}, history={user.history}")
@@ -147,7 +147,7 @@ prohibited_platforms = Twitter, Instagram, Facebook, Meta-owned projects"""
                 content = user.system_message
             else:
                 content = self.content
-        user.history = [json.dumps({"role": "system", "content": content}, ensure_ascii=False)]
+        user.history = json.dumps([{"role": "system", "content": content}], ensure_ascii=False)
         await self.session.commit()
         logging.info(f"reset_history: user_id={user_id}, content={content}, history={user.history}")
 
