@@ -47,14 +47,8 @@ class UserManager:
         result = await self.session.execute(stmt)
         user = result.scalar_one_or_none()
         if not user:
-            user = User(telegram_id=user_id)
+            user = User(telegram_id=user_id, system_message=self.content)
             self.session.add(user)
-        if content == '':
-            if user.system_message:
-                content = user.system_message
-            else:
-                content = self.content
-        user.system_message = content
         await self.session.commit()
         logging.info(f"reset_history: user_id={user_id}, content={content}, history={user.history}")
 
