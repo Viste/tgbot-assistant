@@ -126,8 +126,12 @@ class OpenAI:
             # Convert the history JSON string to a list
             history = json.loads(user.history)
             history.append({"role": role, "content": content})
-            # Convert the history list back to a JSON string before updating the database
-            await user_manager(session).update_user_history(user_id, json.dumps(history, ensure_ascii=False))
+            # Update the history in the database using a raw SQL statement
+            stmt = (
+                f"UPDATE users SET history = '{json.dumps(history, ensure_ascii=False)}' WHERE telegram_id = {user_id}"
+            )
+            await session.execute(stmt)
+            await session.commit()
 
     async def reset_history(self, user_id, session: AsyncSession, content=''):
         if content == '':
