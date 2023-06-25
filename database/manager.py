@@ -28,20 +28,12 @@ class UserManager:
         return new_user
 
     async def update_user_system_message(self, user_id: int, new_system_message: str) -> None:
-        stmt = (
-            update(User)
-                .where(User.telegram_id == user_id)
-                .values(system_message=new_system_message)
-        )
+        stmt = (update(User).where(User.telegram_id == user_id).values(system_message=new_system_message))
         await self.session.execute(stmt)
         await self.session.commit()
 
     async def update_user_history(self, user_id: int, new_history: list) -> None:
         new_history_json = json.dumps(new_history, ensure_ascii=False)
-        stmt = (
-            update(User)
-                .where(User.telegram_id == user_id)
-                .values(history=new_history_json)
-        )
+        stmt = (update(User).where(User.telegram_id == user_id).values(history=new_history_json))
         await self.session.execute(stmt)
         await self.session.commit()
