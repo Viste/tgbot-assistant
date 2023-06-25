@@ -123,9 +123,11 @@ class OpenAI:
     async def add_to_history(self, user_id, role, content, session: AsyncSession):
         user = await user_manager(session).get_user(user_id)
         if user is not None:
+            # Convert the history JSON string to a list
             history = json.loads(user.history)
             history.append({"role": role, "content": content})
-            await user_manager(session).update_user_history(user_id, history)
+            # Convert the history list back to a JSON string before updating the database
+            await user_manager(session).update_user_history(user_id, json.dumps(history, ensure_ascii=False))
 
     async def reset_history(self, user_id, session: AsyncSession, content=''):
         if content == '':
