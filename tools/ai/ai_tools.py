@@ -50,19 +50,19 @@ class OpenAI:
         response = await self._query_gpt(chat_id, query, session)
         answer = ''
 
-        if response.choices and len(response.choices) > 1 and self.n_choices > 1:
-            for index, choice in enumerate(response.choices):
+        if 'choices' in response and len(response['choices']) > 1 and self.n_choices > 1:
+            for index, choice in enumerate(response['choices']):
                 content = choice['message']['content'].strip()
                 if index == 0:
                     await self.add_to_history(chat_id, role="assistant", content=content, session=session)
                 answer += f'{index + 1}\u20e3\n'
                 answer += content
                 answer += '\n\n'
-        elif response.choices and len(response.choices) >= 0:
-            answer = response.choices[0]['message']['content'].strip()
+        elif 'choices' in response and len(response['choices']) >= 0:
+            answer = response['choices'][0]['message']['content'].strip()
             await self.add_to_history(chat_id, role="assistant", content=answer, session=session)
         else:
-            answer = response.choices[0]['message']['content'].strip()
+            answer = response['choices'][0]['message']['content'].strip()
             await self.add_to_history(chat_id, role="assistant", content=answer, session=session)
 
         total_tokens = response.usage['total_tokens'] if response.usage else 0
