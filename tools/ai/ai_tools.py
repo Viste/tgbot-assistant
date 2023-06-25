@@ -76,7 +76,7 @@ class OpenAI:
 
     async def _query_gpt(self, user_id, query, session: AsyncSession):
         user = await user_manager(session).get_user(user_id)
-        while self.retries < self.max_retries:
+        for _ in range(self.max_retries):
             try:
                 if user is None:
                     await self.reset_history(user_id, session)
@@ -101,30 +101,29 @@ class OpenAI:
                         user.history = user.history[-self.max_history_size:]
                         logging.info("Dialog From summary exception: %s", user.history)
 
-                return await openai.ChatCompletion.acreate(model=self.model, messages=user.history, **args)
+                response = await openai.ChatCompletion.acreate(model=self.model, messages=user.history, **args)
+                print(user.history)
+                result = response
+                logging.info('RESULT-RESPONSE QUERY GPT: ', result)
+                break
 
-            except openai.error.RateLimitError as e:
-                self.retries += 1
-                logging.info("Dialog From Ratelim: %s", user.history)
-                if self.retries == self.max_retries:
-                    return f'⚠️OpenAI: Превышены лимиты ⚠️\n{str(e)}'
+            except (openai.error.RateLimitError, openai.error.InvalidRequestError, Exception) as e:
+                if isinstance(e, openai.error.RateLimitError):
+                    error_msg = f'⚠️OpenAI: Превышены лимиты ⚠️\n{str(e)}'
+                elif isinstance(e, openai.error.InvalidRequestError):
+                    error_msg = f'⚠️OpenAI: кривой запрос ⚠️\n{str(e)}'
+                else:
+                    error_msg = f'⚠️Ошибочка вышла ⚠️\n{str(e)}'
+                result = {'choices': None, 'error': error_msg}
+            else:
+                break
 
-            except openai.error.InvalidRequestError as er:
-                self.retries += 1
-                logging.info("Dialog From bad req: %s", user.history)
-                if self.retries == self.max_retries:
-                    return f'⚠️OpenAI: кривой запрос ⚠️\n{str(er)}'
-
-            except Exception as err:
-                self.retries += 1
-                logging.info("Dialog From custom exception: %s", user.history)
-                if self.retries == self.max_retries:
-                    return f'⚠️Ошибочка вышла ⚠️\n{str(err)}', err
+        return result
 
     async def add_to_history(self, user_id, role, content, session: AsyncSession):
         user = await user_manager(session).get_user(user_id)
         if user is not None:
-            history = user.history
+            history = json.loads(user.history)
             history.append({"role": role, "content": content})
             await user_manager(session).update_user_history(user_id, history)
 
