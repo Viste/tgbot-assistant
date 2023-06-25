@@ -45,6 +45,8 @@ class OpenAI:
             user = await user_manager(session).create_user(telegram_id=chat_id, system_message=self.content)
         self.content = user.system_message
 
+        user.history = json.loads(user.history)
+
         response = await self._query_gpt(chat_id, query, session)
         answer = ''
 
