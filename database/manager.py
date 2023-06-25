@@ -1,8 +1,7 @@
-import json
 import logging
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
@@ -115,47 +114,26 @@ prohibited_platforms = Twitter, Instagram, Facebook, Meta-owned projects"""
         logging.info(f"get_user: user_id={user_id}, user={user}")
         return user
 
-    async def get_dialogs(self, user_id: int) -> list:
-        user = await self.get_user(user_id)
-        if user is None:
-            await self.reset_history(user_id)
-            user = await self.get_user(user_id)
-        history = json.loads(user.history) if user else []
-        logging.info(f"get_dialogs: user_id={user_id}, history={history}")
-        return history
-
-    async def add_to_history_db(self, user_id: int, role: str, content: str):
-        stmt = select(User).where(User.telegram_id == user_id)
-        result = await self.session.execute(stmt)
-        user = result.scalar_one_or_none()
-        if user:
-            history_item = {"role": role, "content": content}
-            user.history = json.dumps(user.history + [history_item], ensure_ascii=False)
-            await self.session.commit()
-            logging.info(
-                f"add_to_history_db: user_id={user_id}, role={role}, content={content}, history={user.history}")
-
-    async def reset_history(self, user_id, content=''):
-        stmt = select(User).where(User.telegram_id == user_id)
-        result = await self.session.execute(stmt)
-        user = result.scalar_one_or_none()
-        if not user:
-            user = User(telegram_id=user_id)
-            self.session.add(user)
-        if content == '':
-            if user.system_message:
-                content = user.system_message
-            else:
-                content = self.content
-        user.history = json.dumps([{"role": "system", "content": content}], ensure_ascii=False)
+    async def create_user(self, telegram_id: int, system_message: str) -> User:
+        new_user = User(telegram_id=telegram_id, system_message=system_message)
+        self.session.add(new_user)
         await self.session.commit()
-        logging.info(f"reset_history: user_id={user_id}, content={content}, history={user.history}")
+        return new_user
 
-    async def update_system_message(self, user_id: int, new_system_message: str):
-        stmt = select(User).where(User.id == user_id)
-        result = await self.session.execute(stmt)
-        user = result.scalar_one_or_none()
-        if user:
-            user.system_message = new_system_message
-            await self.session.commit()
-            await self.reset_history(user_id, new_system_message)
+    async def update_user_system_message(self, user_id: int, new_system_message: str) -> None:
+        stmt = (
+            update(User)
+                .where(User.telegram_id == user_id)
+                .values(system_message=new_system_message)
+        )
+        await self.session.execute(stmt)
+        await self.session.commit()
+
+    async def update_user_history(self, user_id: int, new_history: list) -> None:
+        stmt = (
+            update(User)
+                .where(User.telegram_id == user_id)
+                .values(history=new_history)
+        )
+        await self.session.execute(stmt)
+        await self.session.commit()
