@@ -123,22 +123,18 @@ class OpenAI:
     async def add_to_history(self, user_id, role, content, session: AsyncSession):
         user = await user_manager(session).get_user(user_id)
         if user is not None:
-            # Convert the history JSON string to a list
             history = json.loads(user.history)
             history.append({"role": role, "content": content})
-            # Update the history in the database using a raw SQL statement
-            stmt = (
-                f"UPDATE users SET history = '{json.dumps(history, ensure_ascii=False)}' WHERE telegram_id = {user_id}"
-            )
-            await session.execute(stmt)
-            await session.commit()
+            await user_manager(session).update_user_history(user_id, json.dumps(history, ensure_ascii=False))
 
     async def reset_history(self, user_id, session: AsyncSession, content=''):
         if content == '':
             content = self.content
         user = await user_manager(session).get_user(user_id)
         if user is not None:
-            await user_manager(session).update_user_history(user_id, [{"role": "system", "content": content}])
+            await user_manager(session).update_user_history(user_id,
+                                                            json.dumps([{"role": "system", "content": content}],
+                                                                       ensure_ascii=False))
 
     async def _summarise(self, conversation) -> str:
         messages = [
