@@ -83,7 +83,9 @@ class OpenAI:
 
                 await self.add_to_history(user_id, role="user", content=query, session=session)
 
-                token_count = self._count_tokens(user.history)
+                history_json = json.dumps(user.history, ensure_ascii=False)
+
+                token_count = self._count_tokens(history_json)
                 exceeded_max_tokens = token_count + self.config_tokens > self.max_tokens
                 exceeded_max_history_size = len(user.history) > self.max_history_size
 
@@ -148,18 +150,20 @@ class OpenAI:
         )
         return response.choices[0]['message']['content']
 
-    def _count_tokens(self, messages) -> int:
+    def _count_tokens(self, history_json: str) -> int:
         try:
             model = self.model
             encoding = tiktoken.encoding_for_model(model)
         except KeyError:
             encoding = tiktoken.get_encoding("gpt-3.5-turbo-16k-0613")
 
+        history = json.loads(history_json)
+
         tokens_per_message = 4
         tokens_per_name = 1
 
         num_tokens = sum(tokens_per_message + sum(len(encoding.encode(value)) for key, value in message.items())
-                         + (tokens_per_name if "name" in message else 0) for message in messages) + 4
+                         + (tokens_per_name if "name" in message else 0) for message in history) + 4
         return num_tokens
 
     @staticmethod
