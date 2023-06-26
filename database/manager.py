@@ -1,8 +1,7 @@
-import json
 import logging
-from typing import Optional
+from typing import Optional, List, Dict
 
-from sqlalchemy import select, update, insert
+from sqlalchemy import select, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
@@ -21,21 +20,14 @@ class UserManager:
         logging.info(f"get_user: user_id={user_id}, user={user}")
         return user
 
-    async def create_user(self, telegram_id: int, system_message: str) -> User:
-        new_user = User(telegram_id=telegram_id, system_message=system_message)
-        self.session.add(new_user)
+    async def create_user(self, user_id: int) -> User:
+        user = User(telegram_id=user_id)
+        self.session.add(user)
         await self.session.commit()
-        return new_user
+        return user
 
-    async def update_user_system_message(self, user_id: int, new_system_message: str) -> None:
-        stmt = (update(User).where(User.telegram_id == user_id).values(system_message=new_system_message))
-        await self.session.execute(stmt)
-        await self.session.commit()
-
-    async def update_user_history(self, user_id: int, new_history: list) -> None:
-        new_history_json = json.dumps(new_history, ensure_ascii=False)
-        stmt = (update(User).where(User.telegram_id == user_id).values(history=new_history_json))
-        await self.session.execute(stmt)
+    async def update_user_history(self, user: User, history: List[Dict[str, str]]) -> None:
+        user.history = history
         await self.session.commit()
 
     async def upsert_user(self, user: User) -> User:
