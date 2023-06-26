@@ -1,5 +1,6 @@
 import json
 import logging
+import os
 from calendar import monthrange
 from datetime import date
 from typing import Tuple
@@ -14,7 +15,8 @@ from tools.utils import config
 
 openai.api_key = config.api_key
 logger = logging.getLogger(__name__)
-with open("content.txt", "r", encoding="utf-8") as f:
+
+with open(os.path.join(os.path.dirname(__file__), 'content.json'), 'r', encoding='utf8') as f:
     sys_msg = f.read()
 
 
