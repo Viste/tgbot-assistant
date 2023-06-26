@@ -134,7 +134,7 @@ class OpenAI:
             if len(history) > 60:
                 history = history[-60:]
 
-            await user_manager.update_user_history(user, history)
+            await user_manager.update_user_history_and_commit(user, history)
 
     async def reset_history(self, user_id, session: AsyncSession, content=''):
         if content == '':
