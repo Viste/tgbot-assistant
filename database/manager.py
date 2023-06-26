@@ -2,7 +2,7 @@ import json
 import logging
 from typing import Optional
 
-from sqlalchemy import select, update
+from sqlalchemy import select, update, insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
@@ -37,3 +37,14 @@ class UserManager:
         stmt = (update(User).where(User.telegram_id == user_id).values(history=new_history_json))
         await self.session.execute(stmt)
         await self.session.commit()
+
+    async def upsert_user(self, user: User) -> User:
+        stmt = insert(User).values(
+            telegram_id=user.telegram_id,
+            system_message=user.system_message
+        ).on_duplicate_key_update(
+            system_message=user.system_message
+        )
+        await self.session.execute(stmt)
+        await self.session.commit()
+        return user

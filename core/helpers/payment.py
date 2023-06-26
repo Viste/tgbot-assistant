@@ -41,19 +41,10 @@ async def got_payment_ru(message: types.Message, state: FSMContext, session: Asy
     user = await session.get(User, userid)
 
     if user is None:
-        # Create a new user and add it to the database
-        user = User(
-            telegram_id=message.from_user.id,
-            telegram_username=message.from_user.username,
-            balance_amount=350,
-            max_tokens=0,
-            current_tokens=0,
-            subscription_start=now,
-            subscription_end=now + timedelta(days=30),
-            subscription_status='active',
-            updated_at=now
-        )
-        await session.merge(user)
+        user = User(telegram_id=message.from_user.id, telegram_username=message.from_user.username, balance_amount=350,
+                    max_tokens=0, current_tokens=0, subscription_start=now, subscription_end=now + timedelta(days=30),
+                    subscription_status='active', updated_at=now)
+        await session.upsert_user(user)
         await session.commit()
     else:
         user.subscription_start = now
