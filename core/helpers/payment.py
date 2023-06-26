@@ -53,7 +53,7 @@ async def got_payment_ru(message: types.Message, state: FSMContext, session: Asy
             subscription_status='active',
             updated_at=now
         )
-        session.add(user)
+        await session.merge(user)
         await session.commit()
     else:
         user.subscription_start = now
