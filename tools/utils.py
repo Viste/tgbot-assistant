@@ -8,7 +8,6 @@ import mutagen
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.manager import UserManager as user_manager
 from database.models import User
 
 
@@ -54,11 +53,6 @@ async def get_all_telegram_ids(session: AsyncSession) -> List[int]:
     telegram_ids = [row[0] for row in result.fetchall()]
     print(telegram_ids)
     return telegram_ids
-
-
-async def get_user_by_id(user_id: int, session: AsyncSession):
-    user = await user_manager(session).get_user(user_id)
-    return user
 
 
 def year_month(date_str):
