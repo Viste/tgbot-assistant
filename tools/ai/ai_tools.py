@@ -16,7 +16,7 @@ from tools.utils import config
 openai.api_key = config.api_key
 logger = logging.getLogger(__name__)
 
-with open(os.path.join(os.path.dirname(__file__), 'content.json'), 'r', encoding='utf8') as f:
+with open(os.path.join(os.path.dirname(__file__), 'content.txt'), 'r', encoding='utf8') as f:
     sys_msg = f.read()
 
 
