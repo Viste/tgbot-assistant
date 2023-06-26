@@ -6,6 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import LabeledPrice
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from database.manager import UserManager as user_manager
 from database.models import User
 from main import paper
 from tools.states import Payment
@@ -38,14 +39,13 @@ async def got_payment_ru(message: types.Message, state: FSMContext, session: Asy
     logging.info('Info about message %s', message)
     now = datetime.utcnow()
     userid = message.from_user.id
-    user = await session.get(User, userid)
+    user = await user_manager(session).get_user(userid)
 
     if user is None:
         user = User(telegram_id=message.from_user.id, telegram_username=message.from_user.username, balance_amount=350,
                     max_tokens=0, current_tokens=0, subscription_start=now, subscription_end=now + timedelta(days=30),
                     subscription_status='active', updated_at=now)
-        await session.upsert_user(user)
-        await session.commit()
+        await user_manager(session).upsert_user(user)
     else:
         user.subscription_start = now
         user.subscription_end = now + timedelta(days=30)
