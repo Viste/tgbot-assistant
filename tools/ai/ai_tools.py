@@ -143,7 +143,7 @@ class OpenAI:
         user = await user_manager.get_user(user_id)
 
         if user is not None:
-            await user_manager.update_user_history(user, [{"role": "system", "content": content}])
+            await user_manager.update_user_history_and_commit(user, [{"role": "system", "content": content}])
 
     async def _summarise(self, conversation) -> str:
         messages = [
