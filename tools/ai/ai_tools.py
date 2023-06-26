@@ -47,8 +47,6 @@ class OpenAI:
             user = await user_manager.create_user(chat_id)
         self.content = user.system_message
 
-        user.history = json.loads(user.history)
-
         response = await self._query_gpt(chat_id, query, session)
         answer = ''
 
@@ -130,7 +128,7 @@ class OpenAI:
         user = await user_manager.get_user(user_id)
 
         if user is not None:
-            history = json.loads(user.history)
+            history = user.history
             history.append({"role": role, "content": content})
 
             if len(history) > 60:
