@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def setup_routers() -> Router:
-    from . import core, demo_catcher, email_catcher, demo_listener, user
+    from . import core, demo_catcher, email_catcher, demo_listener, user, moderator
     from core.helpers import admin, callbacks, payment
 
     router = Router()
@@ -31,6 +31,7 @@ def setup_routers() -> Router:
     router.include_router(callbacks.router)
     router.include_router(payment.router)
     router.include_router(user.router)
+    router.include_router(moderator.router)
     router.include_router(demo_catcher.router)
     router.include_router(email_catcher.router)
     router.include_router(demo_listener.router)
