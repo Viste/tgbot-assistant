@@ -20,6 +20,7 @@ moderator = Moderator()
 @router.message(F.text)
 async def process_moderating(message: types.Message, session: AsyncSession) -> None:
     uid = message.from_user.id
+    username = message.from_user.username
     if await reply_if_banned(message, uid):
         return
     else:
@@ -31,28 +32,28 @@ async def process_moderating(message: types.Message, session: AsyncSession) -> N
         logging.info("Categories: %s", moderation['categories'])
         if moderation['flagged'] is True:
             if moderation['categories']['sexual'] is True:
-                text = f'Пользователь академии @{uid}, использует в своей речи контент сексуального характера. Сейчас ты пишешь ему, вынеси ему предупреждение'
+                text = f'Пользователь академии @{username}, использует в своей речи контент сексуального характера. Сейчас ты пишешь ему, вынеси ему предупреждение'
                 replay_text, total_tokens = await openai.get_resp(query=text, chat_id=uid, session=session)
                 chunks = split_into_chunks(replay_text)
                 for index, chunk in enumerate(chunks):
                     if index == 0:
                         await send_reply(message, chunk)
             elif moderation['categories']['hate'] is True:
-                text = f'Пользователь академии @{uid}, использует в своей речи очень много ненависти. Сейчас ты пишешь ему, вынеси ему предупреждение'
+                text = f'Пользователь академии @{username}, использует в своей речи очень много ненависти. Сейчас ты пишешь ему, вынеси ему предупреждение'
                 replay_text, total_tokens = await openai.get_resp(query=text, chat_id=uid, session=session)
                 chunks = split_into_chunks(replay_text)
                 for index, chunk in enumerate(chunks):
                     if index == 0:
                         await send_reply(message, chunk)
             elif moderation['categories']['violence'] is True:
-                text = f'Пользователь академии @{uid}, угрожает другим участникам чата физической расправой. Сейчас ты пишешь ему, вынеси ему предупреждение'
+                text = f'Пользователь академии @{username}, угрожает другим участникам чата физической расправой. Сейчас ты пишешь ему, вынеси ему предупреждение'
                 replay_text, total_tokens = await openai.get_resp(query=text, chat_id=uid, session=session)
                 chunks = split_into_chunks(replay_text)
                 for index, chunk in enumerate(chunks):
                     if index == 0:
                         await send_reply(message, chunk)
             elif moderation['categories']['self-harm'] is True:
-                text = f'Пользователь академии @{uid}, хочет себе навредить. Сейчас ты пишешь ему, поговори с ним'
+                text = f'Пользователь академии @{username}, хочет себе навредить. Сейчас ты пишешь ему, поговори с ним'
                 replay_text, total_tokens = await openai.get_resp(query=text, chat_id=uid, session=session)
                 chunks = split_into_chunks(replay_text)
                 for index, chunk in enumerate(chunks):
