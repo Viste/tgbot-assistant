@@ -109,6 +109,8 @@ class OpenAI:
                         user.history = user.history[-self.max_history_size:]
                         logging.info("Dialog From summary exception: %s", user.history)
 
+                logging.info(f"Sending history to OpenAI API: {user.history}")
+
                 response = await openai.ChatCompletion.acreate(model=self.model, messages=user.history, **self.args)
                 print(user.history)
                 result = response
