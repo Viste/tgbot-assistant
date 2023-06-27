@@ -30,6 +30,7 @@ class UserManager:
         user.history = history
         self.session.add(user)  # Add the user object to the session
         await self.session.commit()
+        await self.session.refresh(user)
         logging.info(f"User history updated in database for user_id={user.telegram_id}, history={history}")
 
     async def upsert_user(self, user: User) -> User:
