@@ -59,7 +59,7 @@ class OpenAIDialogue:
             self.add_to_history(chat_id, role="assistant", content=answer)
 
         total_tokens = response.usage['total_tokens'] if response.usage else 0
-        if response.usage and self.show_tokens:
+        if response.usage and self.show_tokens or chat_id != -1001647523732:
             await usage_observer.add_chat_tokens(int(response.usage['completion_tokens']), message_type='user')
             answer += "\n\n---\n" \
                       f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
