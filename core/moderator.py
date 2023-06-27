@@ -9,7 +9,7 @@ from tools.utils import split_into_chunks
 
 logger = logging.getLogger(__name__)
 router = Router()
-router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(-1001647523732))
+router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id == -1001647523732)
 moderator = Moderator()
 
 
