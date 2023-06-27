@@ -93,27 +93,33 @@ class OpenAI:
                 user = await user_manager.get_user(user_id)
                 history_json = json.dumps(user.history, ensure_ascii=False)
 
+                # Add the following lines to load the history as a list of dictionaries
+                if isinstance(user.history, str):
+                    user_history = json.loads(user.history)
+                else:
+                    user_history = user.history
+
                 token_count = self._count_tokens(history_json)
                 exceeded_max_tokens = token_count + self.config_tokens > self.max_tokens
-                exceeded_max_history_size = len(history_json) > self.max_history_size
+                exceeded_max_history_size = len(user_history) > self.max_history_size
 
                 if exceeded_max_tokens or exceeded_max_history_size:
                     logging.info(f'Chat history for chat ID {user_id} is too long. Summarising...')
                     try:
-                        summary = await self._summarise(history_json[:-1])
+                        summary = await self._summarise(user_history[:-1])
                         logging.info(f'Summary: {summary}')
                         await self.reset_history(user_id, session)
                         await self.add_to_history(user_id, role="assistant", content=summary, session=session)
                         await self.add_to_history(user_id, role="user", content=query, session=session)
-                        logging.info("Dialog From summary: %s", history_json)
+                        logging.info("Dialog From summary: %s", user_history)
                     except Exception as e:
                         logging.info(f'Error while summarising chat history: {str(e)}. Popping elements instead...')
-                        user.history = user.history[-self.max_history_size:]
-                        logging.info("Dialog From summary exception: %s", history_json)
+                        user_history = user_history[-self.max_history_size:]
+                        logging.info("Dialog From summary exception: %s", user_history)
 
-                logging.info(f"Sending history to OpenAI API: {history_json}")
+                logging.info(f"Sending history to OpenAI API: {user_history}")
 
-                response = await openai.ChatCompletion.acreate(model=self.model, messages=history_json, **self.args)
+                response = await openai.ChatCompletion.acreate(model=self.model, messages=user_history, **self.args)
                 print(history_json)
                 result = response
                 logging.info('RESULT-RESPONSE QUERY GPT: %s', result)
