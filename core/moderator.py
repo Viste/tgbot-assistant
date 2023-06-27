@@ -27,7 +27,8 @@ async def process_moderating(message: types.Message, session: AsyncSession) -> N
         text = html.escape(message.text)
 
         moderation = await moderator.query_gpt_mod(text)
-        print(moderation['flagged'])
+        logging.info("Flagged: %s", moderation['flagged'])
+        logging.info("Categories: %s", moderation['categories'])
         if moderation['flagged'] is True:
             if moderation['categories']['sexual'] is True:
                 text = f'Пользователь академии @{uid}, использует в своей речи контент сексуального характера. Сейчас ты пишешь ему, вынеси ему предупреждение'

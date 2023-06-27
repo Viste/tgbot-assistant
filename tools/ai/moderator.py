@@ -21,7 +21,6 @@ class Moderator:
             try:
                 response = await openai.Moderation.acreate(api_key=self.api_key, model=self.model, input=query)
                 result = response["results"][0]
-                logging.info("Result: %s", result)
                 return result
             except (openai.error.RateLimitError, openai.error.InvalidRequestError, Exception) as e:
                 self.retries += 1
