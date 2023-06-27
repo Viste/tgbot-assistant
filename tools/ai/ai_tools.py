@@ -49,7 +49,8 @@ class OpenAI:
 
         if user is None:
             user = await user_manager.create_user(chat_id)
-        self.content = user.system_message
+            user.system_message = self.content
+            await self.reset_history(chat_id, session)
 
         response = await self._query_gpt(chat_id, query, session)
         answer = ''
