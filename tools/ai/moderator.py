@@ -4,7 +4,6 @@ import openai
 
 from tools.utils import config
 
-openai.api_key = config.api_key
 logger = logging.getLogger(__name__)
 
 
@@ -14,12 +13,13 @@ class Moderator:
         super().__init__()
         self.model = "text-moderation-latest"
         self.max_retries = 10
+        self.api_key = config.api_key
         self.retries = 0
 
     async def query_gpt_mod(self, query):
         for retry in range(self.max_retries):
             try:
-                response = await openai.Moderation.acreate(model=self.model, input=query)
+                response = await openai.Moderation.acreate(api_key=self.api_key, model=self.model, input=query)
                 result = response["results"][0]
                 logging.info("Result: %s", result)
                 return result
