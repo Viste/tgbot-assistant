@@ -6,7 +6,7 @@ from aiogram.filters import Command
 from fluent.runtime import FluentLocalization
 
 from core.helpers.tools import banned, shadowbanned, update_config
-from core.helpers.work_manager import extract_id
+from core.helpers.admin_manager import extract_id
 
 logger = logging.getLogger(__name__)
 
