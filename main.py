@@ -7,6 +7,9 @@ from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.fsm.strategy import FSMStrategy
 from aioredis.client import Redis
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from fluent.runtime import FluentLocalization, FluentResourceLoader
+from middlewares.l10n import L10nMiddleware
+from pathlib import Path
 
 from core import setup_routers
 from middlewares.database import DbSessionMiddleware
@@ -30,10 +33,19 @@ logger = logging.getLogger(__name__)
 
 
 async def main():
+
+    # Получение пути до каталога locales относительно текущего файла
+    locales_dir = Path(__file__).parent.joinpath("locales")
+    # Создание объектов Fluent
+    # FluentResourceLoader использует фигурные скобки, поэтому f-strings здесь нельзя
+    l10n_loader = FluentResourceLoader(str(locales_dir) + "/{locale}")
+    l10n = FluentLocalization(["ru"], ["strings.ftl", "errors.ftl"], l10n_loader)
+
     storage = RedisStorage(redis=redis_client)
     worker = Dispatcher(storage=storage, fsm_strategy=FSMStrategy.USER_IN_CHAT)
     router = setup_routers()
     worker.update.middleware(db_middleware)
+    worker.update.middleware(L10nMiddleware(l10n))
     worker.include_router(router)
     useful_updates = worker.resolve_used_update_types()
     logging.info("Starting bot")

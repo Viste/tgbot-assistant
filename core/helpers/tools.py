@@ -6,6 +6,9 @@ from tools.utils import config
 
 logger = logging.getLogger(__name__)
 
+banned = config.banned_user_ids
+shadowbanned = config.shadowbanned_user_ids
+
 
 async def reply_if_banned(message: types.Message, uid: int) -> bool:
     if uid in config.banned_user_ids:

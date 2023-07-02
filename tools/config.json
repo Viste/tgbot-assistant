@@ -4,6 +4,7 @@
   "subs_api_key": "",
   "channel": "-1001849227232",
   "info_channel": "",
+  "admin_chat_id": "350493882",
   "payment_token": "",
   "admins": [
     58800377,
@@ -15,6 +16,8 @@
     62520772,
     903623904,
     902416013
+  ],
+  "shadowbanned_user_ids": [
   ],
   "allowed_groups": [
     -1001647523732,
