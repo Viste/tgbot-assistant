@@ -7,13 +7,13 @@ from fluent.runtime import FluentLocalization
 
 from core.helpers.tools import banned, shadowbanned, update_config
 from core.helpers.admin_manager import extract_id
-
+from tools.utils import config
 logger = logging.getLogger(__name__)
 
 router = Router()
 
 
-@router.message(Command(commands=["ban"]), F.reply_to_message)
+@router.message(Command(commands=["ban"]), F.chat.id.in_(config.admin_chat_id), F.reply_to_message)
 async def cmd_ban(message: types.Message, l10n: FluentLocalization):
     try:
         user_id = extract_id(message.reply_to_message)
@@ -24,7 +24,7 @@ async def cmd_ban(message: types.Message, l10n: FluentLocalization):
     await message.reply(l10n.format_value(msg_id="user-banned", args={"id": user_id}))
 
 
-@router.message(Command(commands=["shadowban"]), F.reply_to_message)
+@router.message(Command(commands=["shadowban"]), F.chat.id.in_(config.admin_chat_id), F.reply_to_message)
 async def cmd_shadowban(message: types.Message, l10n: FluentLocalization):
     try:
         user_id = extract_id(message.reply_to_message)
@@ -35,7 +35,7 @@ async def cmd_shadowban(message: types.Message, l10n: FluentLocalization):
     await message.reply(l10n.format_value(msg_id="user-shadowbanned", args={"id": user_id}))
 
 
-@router.message(Command(commands=["unban"]), F.reply_to_message)
+@router.message(Command(commands=["unban"]), F.chat.id.in_(config.admin_chat_id),  F.reply_to_message)
 async def cmd_unban(message: types.Message, l10n: FluentLocalization):
     try:
         user_id = extract_id(message.reply_to_message)
