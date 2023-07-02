@@ -28,7 +28,7 @@ def extract_id(message: types.Message) -> int:
     return int(hashtag[3:])
 
 
-@router.message(Command(commands=["get", "who"]), F.chat.id.in_(config.admin_chat_id), F.reply_to_message)
+@router.message(Command(commands=["get", "who"]), F.from_user.id.in_(config.admin_chat_id), F.reply_to_message)
 async def get_user_info(message: types.Message, bot: Bot, l10n: FluentLocalization):
     def get_full_name(chat: types.Chat):
         if not chat.first_name:
@@ -53,7 +53,7 @@ async def get_user_info(message: types.Message, bot: Bot, l10n: FluentLocalizati
                                                                     "id": user.id, "username": u}))
 
 
-@router.message(F.reply_to_message, F.chat.id.in_(config.admin_chat_id))
+@router.message(F.reply_to_message, F.from_user.id.in_(config.admin_chat_id))
 async def reply_to_user(message: types.Message, l10n: FluentLocalization):
     try:
         user_id = extract_id(message.reply_to_message)
@@ -70,7 +70,7 @@ async def reply_to_user(message: types.Message, l10n: FluentLocalization):
         )
 
 
-@router.message(Command(commands="online", ignore_case=True), F.chat.id.in_(config.admins))
+@router.message(Command(commands="online", ignore_case=True), F.from_user.id.in_(config.admins))
 @flags.chat_action("typing")
 async def online_cmd(message: types.Message, command: CommandObject, session: AsyncSession):
     first_name = message.chat.first_name
@@ -83,7 +83,7 @@ async def online_cmd(message: types.Message, command: CommandObject, session: As
     await message.reply(text)
 
 
-@router.message(Command(commands="offline", ignore_case=True), F.chat.id.in_(config.admins))
+@router.message(Command(commands="offline", ignore_case=True), F.from_user.id.in_(config.admins))
 @flags.chat_action("typing")
 async def offline_cmd(message: types.Message, session: AsyncSession):
     first_name = message.chat.first_name
@@ -94,7 +94,7 @@ async def offline_cmd(message: types.Message, session: AsyncSession):
     await message.reply(text)
 
 
-@router.message(Command(commands="help"), F.chat.id.in_(config.admins))
+@router.message(Command(commands="help"), F.from_user.id.in_(config.admins))
 @flags.chat_action("typing")
 async def info(message: types.Message):
     uid = message.from_user.id
@@ -109,14 +109,14 @@ async def info(message: types.Message):
         await message.reply(text, parse_mode=None)
 
 
-@router.message(Command(commands="money"), F.chat.id.in_(config.admins))
+@router.message(Command(commands="money"), F.from_user.id.in_(config.admins))
 @flags.chat_action("typing")
 async def usage(message: types.Message):
     text = openai.get_money()
     await message.reply(text, parse_mode=None)
 
 
-@router.message(Command(commands="emails"), F.chat.id.in_(config.admins))
+@router.message(Command(commands="emails"), F.from_user.id.in_(config.admins))
 @flags.chat_action("typing")
 async def mails_get(message: types.Message, session: AsyncSession):
     stmt = select(StreamEmails.email)
