@@ -37,7 +37,6 @@ async def get_user_info(message: types.Message, bot: Bot, l10n: FluentLocalizati
             return chat.first_name
         return f"{chat.first_name} {chat.last_name}"
 
-    logging.info(" GET WHOOO")
     try:
         user_id = extract_id(message.reply_to_message)
     except ValueError as ex:
