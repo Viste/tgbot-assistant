@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 def setup_routers() -> Router:
     from . import core, demo_catcher, email_catcher, demo_listener, user, moderator, ban_manager
-    from core.helpers import admin_manager, callbacks, payment
-    from core.ansma import unsupported_manager, user_manager
+    from core.helpers import admin_manager, callbacks, payment, unsupported_manager
+    from core.ansma import user_manager
 
     router = Router()
 
