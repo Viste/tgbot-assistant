@@ -28,7 +28,7 @@ def extract_id(message: types.Message) -> int:
     return int(hashtag[3:])
 
 
-@router.message(Command(commands=["get", "who"]), F.chat.id == config.admin_chat_id, F.reply_to_message)
+@router.message(Command(commands=["get", "who"]), F.chat.id.in_(config.admin_chat_id), F.reply_to_message)
 async def get_user_info(message: types.Message, bot: Bot, l10n: FluentLocalization):
     def get_full_name(chat: types.Chat):
         if not chat.first_name:
@@ -54,7 +54,7 @@ async def get_user_info(message: types.Message, bot: Bot, l10n: FluentLocalizati
                                                                     "id": user.id, "username": u}))
 
 
-@router.message(F.reply_to_message, F.chat.id == config.admin_chat_id)
+@router.message(F.reply_to_message, F.chat.id.in_(config.admin_chat_id))
 async def reply_to_user(message: types.Message, l10n: FluentLocalization):
     try:
         user_id = extract_id(message.reply_to_message)
