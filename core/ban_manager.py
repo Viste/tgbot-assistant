@@ -18,10 +18,10 @@ router.message.filter(F.chat.type.in_({'private'}))
 async def cmd_ban(message: types.Message, l10n: FluentLocalization):
     try:
         user_id = extract_id(message.reply_to_message)
+        logging.info("BAN EXTRACTED")
     except ValueError as ex:
         return await message.reply(str(ex))
     banned.add(int(user_id))
-    logging.info(" GET BAN")
     update_config()
     await message.reply(l10n.format_value(msg_id="user-banned", args={"id": user_id}))
 
