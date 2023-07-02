@@ -23,6 +23,7 @@ def extract_id(message: types.Message) -> int:
     if not entities or entities[-1].type != "hashtag":
         raise ValueError("Не удалось извлечь ID для ответа!")
     hashtag = entities[-1].extract_from(message.text or message.caption)
+    logging.info("hashtag: %s", hashtag)
     if len(hashtag) < 4 or not hashtag[3:].isdigit():
         raise ValueError("Некорректный ID для ответа!")
 
