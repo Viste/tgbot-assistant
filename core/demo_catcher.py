@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime
 
-from aiogram import types, F, Router, flags
+from aiogram import types, F, Router, flags, Bot
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 from sqlalchemy import desc, select
@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.exc import NoResultFound
 
 from database.models import Calendar, StreamEmails
-from main import paper
 from tools.states import Demo
 from tools.utils import config, check, pattern, check_bit_rate, email_patt
 
@@ -59,7 +58,8 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
             session.add(new_email)
             await session.commit()
         await message.reply(f"{first_name}, записал твой Email! Самое время прислать демку!\n"
-                            """Пожалуйста, убедись что отправляешь 320 mp3 длиной не менее 2 минут, с полностью прописанными тегами и названием файла в виде "Автор - Трек".\n""")
+                            """Пожалуйста, убедись что отправляешь 320 mp3 длиной не менее 2 минут, с полностью
+                            прописанными тегами и названием файла в виде "Автор - Трек".\n""")
         await state.set_state(Demo.get)
     else:
         await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
@@ -67,7 +67,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
 
 @router.message(Demo.get, F.content_type.in_({'audio'}))
 @flags.chat_action("typing")
-async def get_and_send_from_state(message: types.Message, state: FSMContext):
+async def get_and_send_from_state(message: types.Message, state: FSMContext, bot: Bot):
     uid = message.from_user.id
     if uid in config.banned_user_ids:
         text = "не хочу с тобой разговаривать"
@@ -86,9 +86,9 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext):
         logging.info('username: %s, duration: %s, artist: %s , title: %s, file_name: %s', message.chat.username,
                      message.audio.duration, message.audio.performer, message.audio.title, message.audio.file_name)
 
-        file_info = await paper.get_file(track)
+        file_info = await bot.get_file(track)
         file_data = file_info.file_path
-        await paper.download_file(file_data, f"{str(uid)}.mp3")
+        await bot.download_file(file_data, f"{str(uid)}.mp3")
 
         if username is None:
             await message.reply(
@@ -116,9 +116,9 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext):
                    f"Длина файла: {duration} секунды\n" \
                    f"title: {title}\n" \
                    f"Artist: {artist}"
-            await paper.send_audio(config.channel, audio=track, caption=text)
-            await message.reply(
-                "Спасибо за демку! Если захочешь прислать еще один, просто отправь его мне и помни про требования к треку.\n"
-                "320 mp3 длиной не менее 2 минут, с полностью прописанными тегами и названием файла в виде 'Автор - Трек'")
+            await bot.send_audio(config.channel, audio=track, caption=text)
+            await message.reply("Спасибо за демку! Если захочешь прислать еще один, просто отправь его мне и помни "
+                                "про требования к треку.\n320 mp3 длиной не менее 2 минут, с полностью прописанными "
+                                "тегами и названием файла в виде 'Автор - Трек'")
             os.remove(f"{str(uid)}.mp3")
             await state.clear()

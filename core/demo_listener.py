@@ -1,12 +1,11 @@
 import logging
 import os
 
-from aiogram import types, F, Router, flags
+from aiogram import types, F, Router, flags, Bot
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.user import has_active_subscription
-from main import paper
 from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.utils import config, split_into_chunks
 
@@ -19,7 +18,7 @@ audio = Audio()
 
 @flags.chat_action(action="typing", interval=5, initial_sleep=2)
 @router.message(F.audio)
-async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession):
+async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot):
     uid = message.from_user.id
     await state.update_data(chatid=message.chat.id)
     if uid in config.banned_user_ids:
@@ -38,9 +37,9 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
             return
 
         file_path = f"tmp/{str(uid)}.mp3"
-        file_info = await paper.get_file(message.audio.file_id)
+        file_info = await bot.get_file(message.audio.file_id)
         file_data = file_info.file_path
-        await paper.download_file(file_data, file_path)
+        await bot.download_file(file_data, file_path)
 
         result = await audio.process_audio_file(file_path)
         os.remove(file_path)
@@ -56,4 +55,4 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
                     await message.reply(chunk + err, parse_mode=None)
                 except Exception as error:
                     logging.info('Last exception from Core: %s', error)
-                    await message.reply(error, parse_mode=None)
+                    await message.reply(str(error), parse_mode=None)

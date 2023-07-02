@@ -4,7 +4,7 @@
   "subs_api_key": "",
   "channel": "-1001849227232",
   "info_channel": "",
-  "admin_chat_id": "350493882",
+  "admin_chat_id": [350493882],
   "payment_token": "",
   "remove_sent_confirmation": true,
   "admins": [
