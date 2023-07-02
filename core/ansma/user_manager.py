@@ -40,7 +40,7 @@ async def text_message(message: Message, bot: Bot, l10n: FluentLocalization):
     elif message.from_user.id in shadowbanned:
         return
     else:
-        await bot.send_message(config.admin_chat_id, message.html_text + f"\n\n#id{message.from_user.id}",
+        await bot.send_message(config.paperclip, message.html_text + f"\n\n#id{message.from_user.id}",
                                parse_mode="HTML")
         create_task(_send_expiring_notification(message, l10n))
 
@@ -54,8 +54,8 @@ async def supported_media(message: Message, l10n: FluentLocalization):
     elif message.from_user.id in shadowbanned:
         return
     else:
-        await message.copy_to(config.admin_chat_id, caption=((message.caption or "") +
-                                                             f"\n\n#id{message.from_user.id}"), parse_mode="HTML")
+        await message.copy_to(config.paperclip, caption=((message.caption or "") +
+                                                         f"\n\n#id{message.from_user.id}"), parse_mode="HTML")
         create_task(_send_expiring_notification(message, l10n))
 
 

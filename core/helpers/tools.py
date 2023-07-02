@@ -3,6 +3,7 @@ import json
 import os
 
 from aiogram import types
+from fluent.runtime import FluentLocalization
 
 from tools.utils import config
 
@@ -12,10 +13,9 @@ banned = set(config.banned_user_ids)
 shadowbanned = set(config.shadowbanned_user_ids)
 
 
-async def reply_if_banned(message: types.Message, uid: int) -> bool:
-    if uid in config.banned_user_ids:
-        text = "не хочу с тобой разговаривать"
-        await message.reply(text, parse_mode=None)
+async def reply_if_banned(message: types.Message, uid: int, l10n: FluentLocalization) -> bool:
+    if uid in banned:
+        await message.reply(l10n.format_value("you-were-banned-error"))
         return True
     return False
 
