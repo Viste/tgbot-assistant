@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 
 def setup_routers() -> Router:
     from . import core, demo_catcher, email_catcher, demo_listener, user, moderator
-    from core.helpers import admin, callbacks, payment
+    from core.helpers import work_manager, callbacks, payment
+    from core.ansma import admin_manager, admin_no_reply, ban_manager, rename_manager, unsupported_manager, user_manager
 
     router = Router()
 
@@ -26,7 +27,7 @@ def setup_routers() -> Router:
         await state.clear()
         await message.answer("Контекст обнулен.", reply_markup=ReplyKeyboardRemove())
 
-    router.include_router(admin.router)
+    router.include_router(work_manager.router)
     router.include_router(core.router)
     router.include_router(callbacks.router)
     router.include_router(payment.router)
@@ -35,5 +36,11 @@ def setup_routers() -> Router:
     router.include_router(demo_catcher.router)
     router.include_router(email_catcher.router)
     router.include_router(demo_listener.router)
+    router.include_router(admin_manager.router)
+    router.include_router(admin_no_reply.router)
+    router.include_router(ban_manager.router)
+    router.include_router(rename_manager.router)
+    router.include_router(unsupported_manager.router)
+    router.include_router(user_manager.router)
 
     return router
