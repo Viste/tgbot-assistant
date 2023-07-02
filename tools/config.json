@@ -6,6 +6,7 @@
   "info_channel": "",
   "admin_chat_id": "350493882",
   "payment_token": "",
+  "remove_sent_confirmation": true,
   "admins": [
     58800377,
     910007939,
