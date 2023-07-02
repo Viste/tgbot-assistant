@@ -38,24 +38,12 @@ async def get_user_info(message: Message, bot: Bot, l10n: FluentLocalization):
     try:
         user = await bot.get_chat(user_id)
     except TelegramAPIError as ex:
-        await message.reply(
-            l10n.format_value(
-                msg_id="cannot-get-user-info-error",
-                args={"error": ex.message})
-        )
+        await message.reply(l10n.format_value(msg_id="cannot-get-user-info-error", args={"error": ex.message}))
         return
 
     u = f"@{user.username}" if user.username else l10n.format_value("no")
-    await message.reply(
-        l10n.format_value(
-            msg_id="user-info",
-            args={
-                "name": get_full_name(user),
-                "id": user.id,
-                "username": u
-            }
-        )
-    )
+    await message.reply(l10n.format_value(msg_id="user-info", args={"name": get_full_name(user),
+                                                                    "id": user.id, "username": u}))
 
 
 @router.message(F.reply_to_message)

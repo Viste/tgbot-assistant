@@ -5,7 +5,7 @@ from aiogram.filters import Command
 from aiogram.types import Message
 from fluent.runtime import FluentLocalization
 
-from core.helpers.tools import banned, shadowbanned
+from core.helpers.tools import banned, shadowbanned, update_config
 from tools.utils import config
 from core.ansma.admin_manager import extract_id
 
@@ -20,6 +20,7 @@ async def cmd_ban(message: Message, l10n: FluentLocalization):
     except ValueError as ex:
         return await message.reply(str(ex))
     banned.add(int(user_id))
+    update_config()
     await message.reply(l10n.format_value(msg_id="user-banned", args={"id": user_id}))
 
 
@@ -30,6 +31,7 @@ async def cmd_shadowban(message: Message, l10n: FluentLocalization):
     except ValueError as ex:
         return await message.reply(str(ex))
     shadowbanned.add(int(user_id))
+    update_config()
     await message.reply(l10n.format_value(msg_id="user-shadowbanned", args={"id": user_id}))
 
 
@@ -44,6 +46,7 @@ async def cmd_unban(message: Message, l10n: FluentLocalization):
         banned.remove(user_id)
     with suppress(KeyError):
         shadowbanned.remove(user_id)
+    update_config()
     await message.reply(l10n.format_value(msg_id="user-unbanned", args={"id": user_id}))
 
 
