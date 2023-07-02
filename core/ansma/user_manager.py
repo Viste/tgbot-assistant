@@ -70,6 +70,11 @@ async def unsupported_types(message: Message, l10n: FluentLocalization):
         await message.reply(l10n.format_value("unsupported-message-type-error"))
 
 
+@router.edited_message(AnsMa.get)
+async def edited_message_warning(message: Message, l10n: FluentLocalization):
+    await message.reply(l10n.format_value("cannot-update-edited-error"))
+
+
 @router.message(Command(commands="help"))
 async def info_user(message: Message, l10n: FluentLocalization):
     await message.answer(l10n.format_value("help"))
