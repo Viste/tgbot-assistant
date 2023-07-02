@@ -1,7 +1,10 @@
+import logging
+
 from aiogram import Router
 from aiogram.types import Message
 from fluent.runtime import FluentLocalization
 
+logger = logging.getLogger(__name__)
 
 router = Router()
 

@@ -1,3 +1,5 @@
+import logging
+
 from aiogram import Router, F, Bot
 from aiogram.exceptions import TelegramAPIError
 from aiogram.filters import Command
@@ -5,6 +7,8 @@ from aiogram.types import Message, Chat
 from fluent.runtime import FluentLocalization
 
 from tools.utils import config
+
+logger = logging.getLogger(__name__)
 
 router = Router()
 router.message.filter(F.chat.id == config.admin_chat_id)
@@ -30,6 +34,7 @@ async def get_user_info(message: Message, bot: Bot, l10n: FluentLocalization):
             return chat.first_name
         return f"{chat.first_name} {chat.last_name}"
 
+    logging.info(" GET WHOOO")
     try:
         user_id = extract_id(message.reply_to_message)
     except ValueError as ex:

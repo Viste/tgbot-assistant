@@ -1,8 +1,12 @@
+import logging
+
 from aiogram import Router, F
 from aiogram.types import ContentType, Message
 from fluent.runtime import FluentLocalization
 
 from tools.utils import config
+
+logger = logging.getLogger(__name__)
 
 router = Router()
 router.message.filter(F.chat.id == config.admin_chat_id)

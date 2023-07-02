@@ -1,3 +1,4 @@
+import logging
 from asyncio import create_task, sleep
 
 from aiogram import Router, F, Bot
@@ -12,6 +13,7 @@ from tools.utils import config
 from tools.states import AnsMa
 from filters.media import SupportedMediaFilter
 
+logger = logging.getLogger(__name__)
 router = Router()
 
 

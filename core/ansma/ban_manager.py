@@ -1,3 +1,4 @@
+import logging
 from contextlib import suppress
 
 from aiogram import Router, F
@@ -8,6 +9,8 @@ from fluent.runtime import FluentLocalization
 from core.helpers.tools import banned, shadowbanned, update_config
 from tools.utils import config
 from core.ansma.admin_manager import extract_id
+
+logger = logging.getLogger(__name__)
 
 router = Router()
 router.message.filter(F.chat.id == config.admin_chat_id)
