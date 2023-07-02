@@ -19,6 +19,7 @@ router.message.filter(F.chat.type.in_({'private'}))
 
 def extract_id(message: types.Message) -> int:
     entities = message.entities or message.caption_entities
+    logging.info("entities: %s", entities)
     if not entities or entities[-1].type != "hashtag":
         raise ValueError("Не удалось извлечь ID для ответа!")
     hashtag = entities[-1].extract_from(message.text or message.caption)
@@ -94,7 +95,7 @@ async def offline_cmd(message: types.Message, session: AsyncSession):
     await message.reply(text)
 
 
-@router.message(Command(commands="help"), F.from_user.id.in_(config.admins))
+@router.message(F.from_user.id.in_(config.admins), Command(commands="help"))
 @flags.chat_action("typing")
 async def info(message: types.Message):
     uid = message.from_user.id
