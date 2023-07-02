@@ -37,7 +37,7 @@ async def cmd_ban(message: types.Message, l10n: FluentLocalization):
         logging.info("CONFIG UPDATED")
         await message.reply(l10n.format_value(msg_id="user-banned", args={"id": user_id}))
         logging.info("REPLY SENT")
-    except ValueError as ex:
+    except Exception as ex:  # Catch all exceptions
         logging.error("EXCEPTION: %s", ex)
         return await message.reply(str(ex))
 
