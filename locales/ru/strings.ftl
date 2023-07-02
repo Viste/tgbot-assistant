@@ -1,8 +1,8 @@
 no = нет
 user-info =
     Имя: { $name }
-    #id{ NUMBER($id, useGrouping: 0) }
     Username: { $username }
+    #id{ NUMBER($id, useGrouping: 0) }
 user-banned = ID { NUMBER($id, useGrouping: 0) } добавлен в список заблокированных. При попытке отправить сообщение пользователь получит уведомление о том, что заблокирован.
 user-shadowbanned = ID { NUMBER($id, useGrouping: 0) } добавлен в список скрытно заблокированных. При попытке отправить сообщение пользователь не узнает, что заблокирован.
 user-unbanned = ID { NUMBER($id, useGrouping: 0) } разблокирован.
