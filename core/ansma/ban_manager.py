@@ -8,15 +8,14 @@ from fluent.runtime import FluentLocalization
 
 from core.helpers.tools import banned, shadowbanned, update_config
 from tools.utils import config
-from core.ansma.admin_manager import extract_id
+from core.helpers.work_manager import extract_id
 
 logger = logging.getLogger(__name__)
 
 router = Router()
-router.message.filter(F.chat.id == config.admin_chat_id)
 
 
-@router.message(Command(commands=["ban"]), F.reply_to_message)
+@router.message(Command(commands=["ban"]), F.reply_to_message, F.chat.id == config.admin_chat_id)
 async def cmd_ban(message: Message, l10n: FluentLocalization):
     try:
         user_id = extract_id(message.reply_to_message)
@@ -27,7 +26,7 @@ async def cmd_ban(message: Message, l10n: FluentLocalization):
     await message.reply(l10n.format_value(msg_id="user-banned", args={"id": user_id}))
 
 
-@router.message(Command(commands=["shadowban"]), F.reply_to_message)
+@router.message(Command(commands=["shadowban"]), F.reply_to_message, F.chat.id == config.admin_chat_id)
 async def cmd_shadowban(message: Message, l10n: FluentLocalization):
     try:
         user_id = extract_id(message.reply_to_message)
@@ -38,7 +37,7 @@ async def cmd_shadowban(message: Message, l10n: FluentLocalization):
     await message.reply(l10n.format_value(msg_id="user-shadowbanned", args={"id": user_id}))
 
 
-@router.message(Command(commands=["unban"]), F.reply_to_message)
+@router.message(Command(commands=["unban"]), F.reply_to_message, F.chat.id == config.admin_chat_id)
 async def cmd_unban(message: Message, l10n: FluentLocalization):
     try:
         user_id = extract_id(message.reply_to_message)
@@ -53,7 +52,7 @@ async def cmd_unban(message: Message, l10n: FluentLocalization):
     await message.reply(l10n.format_value(msg_id="user-unbanned", args={"id": user_id}))
 
 
-@router.message(Command(commands=["list_banned"]))
+@router.message(Command(commands=["list_banned"]), F.chat.id == config.admin_chat_id)
 async def cmd_list_banned(message: Message, l10n: FluentLocalization):
     has_bans = len(banned) > 0 or len(shadowbanned) > 0
     if not has_bans:

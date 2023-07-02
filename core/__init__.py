@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def setup_routers() -> Router:
     from . import core, demo_catcher, email_catcher, demo_listener, user, moderator
     from core.helpers import work_manager, callbacks, payment
-    from core.ansma import admin_manager, admin_no_reply, ban_manager, edit_manager, unsupported_manager, user_manager
+    from core.ansma import admin_no_reply, ban_manager, edit_manager, unsupported_manager, user_manager
 
     router = Router()
 
@@ -31,7 +31,6 @@ def setup_routers() -> Router:
     router.include_router(unsupported_manager.router)
     router.include_router(ban_manager.router)
     router.include_router(admin_no_reply.router)
-    router.include_router(admin_manager.router)
     router.include_router(edit_manager.router)
     router.include_router(user_manager.router)
     router.include_router(core.router)
