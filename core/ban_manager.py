@@ -19,22 +19,22 @@ async def cmd_ban(message: types.Message, l10n: FluentLocalization):
     try:
         user_id = extract_id(message.reply_to_message)
         logging.info("BAN EXTRACTED")
+        banned.add(int(user_id))
+        update_config()
+        await message.reply(l10n.format_value(msg_id="user-banned", args={"id": user_id}))
     except ValueError as ex:
         return await message.reply(str(ex))
-    banned.add(int(user_id))
-    update_config()
-    await message.reply(l10n.format_value(msg_id="user-banned", args={"id": user_id}))
 
 
 @router.message(Command(commands=["shadowban"]), F.reply_to_message, F.from_user.id.in_(config.admin_chat_id))
 async def cmd_shadowban(message: types.Message, l10n: FluentLocalization):
     try:
         user_id = extract_id(message.reply_to_message)
+        shadowbanned.add(int(user_id))
+        update_config()
+        await message.reply(l10n.format_value(msg_id="user-shadowbanned", args={"id": user_id}))
     except ValueError as ex:
         return await message.reply(str(ex))
-    shadowbanned.add(int(user_id))
-    update_config()
-    await message.reply(l10n.format_value(msg_id="user-shadowbanned", args={"id": user_id}))
 
 
 @router.message(Command(commands=["unban"]), F.reply_to_message, F.from_user.id.in_(config.admin_chat_id))
