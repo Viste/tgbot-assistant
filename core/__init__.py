@@ -28,6 +28,12 @@ def setup_routers() -> Router:
         await message.answer("Контекст обнулен.", reply_markup=ReplyKeyboardRemove())
 
     router.include_router(work_manager.router)
+    router.include_router(admin_manager.router)
+    router.include_router(admin_no_reply.router)
+    router.include_router(ban_manager.router)
+    router.include_router(rename_manager.router)
+    router.include_router(unsupported_manager.router)
+    router.include_router(user_manager.router)
     router.include_router(core.router)
     router.include_router(callbacks.router)
     router.include_router(payment.router)
@@ -36,11 +42,5 @@ def setup_routers() -> Router:
     router.include_router(demo_catcher.router)
     router.include_router(email_catcher.router)
     router.include_router(demo_listener.router)
-    router.include_router(admin_manager.router)
-    router.include_router(admin_no_reply.router)
-    router.include_router(ban_manager.router)
-    router.include_router(rename_manager.router)
-    router.include_router(unsupported_manager.router)
-    router.include_router(user_manager.router)
 
     return router
