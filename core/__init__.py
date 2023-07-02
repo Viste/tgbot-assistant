@@ -30,7 +30,6 @@ def setup_routers() -> Router:
     router.include_router(work_manager.router)
     router.include_router(unsupported_manager.router)
     router.include_router(ban_manager.router)
-    router.include_router(admin_no_reply.router)
     router.include_router(edit_manager.router)
     router.include_router(user_manager.router)
     router.include_router(core.router)
