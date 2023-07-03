@@ -51,7 +51,7 @@ async def process_ask(message: types.Message, session: AsyncSession, l10n: Fluen
     logging.info("%s", message)
     text = html.escape(message.text)
 
-    replay_text, total_tokens = await openai.get_resp(text, uid, session)
+    replay_text, total_tokens = await openai.get_resp(text, uid)
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         if index == 0:

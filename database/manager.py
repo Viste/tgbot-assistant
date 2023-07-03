@@ -28,7 +28,7 @@ class UserManager:
 
     async def update_user_history_and_commit(self, user: User, history: List[Dict[str, str]]) -> None:
         user.history = history
-        self.session.add(user)  # Add the user object to the session
+        self.session.add(user)
         await self.session.commit()
         logging.info(f"User history updated in database for user_id={user.telegram_id}, history={history}")
 
