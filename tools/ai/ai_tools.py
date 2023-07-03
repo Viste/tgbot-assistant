@@ -36,6 +36,7 @@ class UserHistoryManager:
             history.append({"role": role, "content": content})
             if len(history) > 60:
                 history = history[-60:]
+            logging.info(f"Adding to history: user_id={user_id}, role={role}, content={content}")
             await self.user_manager.update_user_history_and_commit(user, history)
 
     async def reset_history(self, user_id: int, content: str) -> None:
