@@ -33,11 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 async def main():
-
-    # Получение пути до каталога locales относительно текущего файла
     locales_dir = Path(__file__).parent.joinpath("locales")
-    # Создание объектов Fluent
-    # FluentResourceLoader использует фигурные скобки, поэтому f-strings здесь нельзя
     l10n_loader = FluentResourceLoader(str(locales_dir) + "/{locale}")
     l10n = FluentLocalization(["ru"], ["strings.ftl", "errors.ftl"], l10n_loader)
 

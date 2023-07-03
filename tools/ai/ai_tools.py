@@ -3,7 +3,7 @@ import logging
 import os
 from calendar import monthrange
 from datetime import date
-from typing import Tuple
+from typing import Tuple, Dict, List
 
 import openai
 import requests
@@ -20,12 +20,37 @@ with open(os.path.join(os.path.dirname(__file__), 'content.txt'), 'r', encoding=
     sys_msg = f.read()
 
 
+class UserHistoryManager:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+        self.user_manager = UserManager(session)
+
+    async def get_history(self, user_id: int) -> List[Dict[str, str]]:
+        user = await self.user_manager.get_user(user_id)
+        return user.history if user else []
+
+    async def add_to_history(self, user_id: int, role: str, content: str) -> None:
+        user = await self.user_manager.get_user(user_id)
+        if user is not None:
+            history = user.history
+            history.append({"role": role, "content": content})
+            if len(history) > 60:
+                history = history[-60:]
+            await self.user_manager.update_user_history_and_commit(user, history)
+
+    async def reset_history(self, user_id: int, content: str) -> None:
+        user = await self.user_manager.get_user(user_id)
+        if user is not None:
+            await self.user_manager.update_user_history_and_commit(user, [{"role": "system", "content": content}])
+
+
 class OpenAI:
     max_retries: int
 
-    def __init__(self):
+    def __init__(self, session: AsyncSession):
         super().__init__()
         self.model = "gpt-3.5-turbo-16k-0613"
+        self.history_manager = UserHistoryManager(session)
         self.max_retries = 5
         self.max_tokens = 16096
         self.config_tokens = 4096
@@ -49,8 +74,9 @@ class OpenAI:
 
         if user is None:
             user = await user_manager.create_user(chat_id)
-            user.system_message = self.content
-            await self.reset_history(chat_id, session)
+
+        user.system_message = self.content
+        await self.history_manager.reset_history(chat_id, self.content)
 
         response = await self._query_gpt(chat_id, query, session)
         answer = ''
@@ -59,17 +85,17 @@ class OpenAI:
             for index, choice in enumerate(response.choices):
                 content = choice['message']['content'].strip()
                 if index == 0:
-                    await self.add_to_history(chat_id, role="assistant", content=content, session=session)
+                    await self.history_manager.add_to_history(chat_id, role="assistant", content=content)
                 answer += f'{index + 1}\u20e3\n'
                 answer += content
                 answer += '\n\n'
         elif response.choices and len(response.choices) >= 0:
             answer = response.choices[0]['message']['content'].strip()
-            await self.add_to_history(chat_id, role="assistant", content=answer, session=session)
+            await self.history_manager.add_to_history(chat_id, role="assistant", content=answer)
         else:
             answer = response.choices[0]['message']['content'].strip()
 
-        await self.add_to_history(chat_id, role="assistant", content=answer, session=session)
+        await self.history_manager.add_to_history(chat_id, role="assistant", content=answer)
 
         total_tokens = response.usage['total_tokens'] if response.usage else 0
         if response.usage and self.show_tokens:
@@ -83,6 +109,9 @@ class OpenAI:
     async def _query_gpt(self, user_id, query, session: AsyncSession):
         user_manager = UserManager(session)
         user = await user_manager.get_user(user_id)
+
+        await self.add_to_history(user_id, role="user", content=query, session=session)
+
         for _ in range(self.max_retries):
             try:
                 if user is None:
@@ -93,7 +122,6 @@ class OpenAI:
                 user = await user_manager.get_user(user_id)
                 history_json = json.dumps(user.history, ensure_ascii=False)
 
-                # Add the following lines to load the history as a list of dictionaries
                 if isinstance(user.history, str):
                     user_history = json.loads(user.history)
                 else:
@@ -137,29 +165,6 @@ class OpenAI:
                 break
 
         return result
-
-    async def add_to_history(self, user_id, role, content, session: AsyncSession):
-        user_manager = UserManager(session)
-        user = await user_manager.get_user(user_id)
-
-        if user is not None:
-            history = user.history
-            history.append({"role": role, "content": content})
-
-            if len(history) > 60:
-                history = history[-60:]
-
-            logging.info(f"Updating history for user_id={user_id}, history={history}")
-            await user_manager.update_user_history_and_commit(user, history)
-
-    async def reset_history(self, user_id, session: AsyncSession, content=''):
-        if content == '':
-            content = self.content
-        user_manager = UserManager(session)
-        user = await user_manager.get_user(user_id)
-
-        if user is not None:
-            await user_manager.update_user_history_and_commit(user, [{"role": "system", "content": content}])
 
     async def _summarise(self, conversation) -> str:
         messages = [

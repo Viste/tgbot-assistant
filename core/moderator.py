@@ -3,6 +3,7 @@ import logging
 
 from aiogram import types, F, Router, flags
 from sqlalchemy.ext.asyncio import AsyncSession
+from fluent.runtime import FluentLocalization
 
 from core.helpers.tools import reply_if_banned, send_reply
 from tools.ai.moderator import Moderator
@@ -18,10 +19,10 @@ moderator = Moderator()
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
 @router.message(F.text)
-async def process_moderating(message: types.Message, session: AsyncSession) -> None:
+async def process_moderating(message: types.Message, session: AsyncSession, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
     username = message.from_user.username
-    if await reply_if_banned(message, uid):
+    if await reply_if_banned(message, uid, l10n):
         return
     else:
         logging.info("%s", message)
