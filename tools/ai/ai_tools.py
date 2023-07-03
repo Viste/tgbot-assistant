@@ -50,7 +50,8 @@ class OpenAI:
     def __init__(self, session: AsyncSession):
         super().__init__()
         self.model = "gpt-3.5-turbo-16k-0613"
-        self.history_manager = UserHistoryManager(session)
+        self.session = session
+        self.history_manager = UserHistoryManager(self.session)
         self.max_retries = 5
         self.max_tokens = 16096
         self.config_tokens = 4096
@@ -68,8 +69,8 @@ class OpenAI:
         }
         self.content = sys_msg
 
-    async def get_resp(self, query: str, chat_id: int, session: AsyncSession) -> Tuple[str, str]:
-        user_manager = UserManager(session)
+    async def get_resp(self, query: str, chat_id: int) -> Tuple[str, str]:
+        user_manager = UserManager(self.session)
         user = await user_manager.get_user(chat_id)
 
         if user is None:
@@ -78,7 +79,7 @@ class OpenAI:
         user.system_message = self.content
         await self.history_manager.reset_history(chat_id, self.content)
 
-        response = await self._query_gpt(chat_id, query, session)
+        response = await self._query_gpt(chat_id, query, self.session)
         answer = ''
 
         if response.choices and len(response.choices) > 1 and self.n_choices > 1:
@@ -110,14 +111,14 @@ class OpenAI:
         user_manager = UserManager(session)
         user = await user_manager.get_user(user_id)
 
-        await self.add_to_history(user_id, role="user", content=query, session=session)
+        await self.history_manager.add_to_history(user_id, role="user", content=query)
 
         for _ in range(self.max_retries):
             try:
                 if user is None:
-                    await self.reset_history(user_id, session)
+                    await self.history_manager.reset_history(user_id, self.content)
 
-                await self.add_to_history(user_id, role="user", content=query, session=session)
+                await self.history_manager.add_to_history(user_id, role="user", content=query)
 
                 user = await user_manager.get_user(user_id)
                 history_json = json.dumps(user.history, ensure_ascii=False)
@@ -136,9 +137,9 @@ class OpenAI:
                     try:
                         summary = await self._summarise(user_history[:-1])
                         logging.info(f'Summary: {summary}')
-                        await self.reset_history(user_id, session)
-                        await self.add_to_history(user_id, role="assistant", content=summary, session=session)
-                        await self.add_to_history(user_id, role="user", content=query, session=session)
+                        await self.history_manager.reset_history(user_id, self.content)
+                        await self.history_manager.add_to_history(user_id, role="assistant", content=summary)
+                        await self.history_manager.add_to_history(user_id, role="user", content=query)
                         logging.info("Dialog From summary: %s", user_history)
                     except Exception as e:
                         logging.info(f'Error while summarising chat history: {str(e)}. Popping elements instead...')

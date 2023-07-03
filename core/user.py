@@ -6,6 +6,7 @@ from aiogram import types, F, Router, flags
 from aiogram.fsm.context import FSMContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from fluent.runtime import FluentLocalization
 
 from core.helpers.tools import send_reply, reply_if_banned
 from database.models import User
@@ -32,10 +33,10 @@ async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
 
 @flags.chat_action(action="typing", interval=5, initial_sleep=2)
 @router.message(F.text.startswith("Папер!"))
-async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession) -> None:
+async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
     uid = message.from_user.id
-    if await reply_if_banned(message, uid):
+    if await reply_if_banned(message, uid, l10n):
         return
     else:
         if not await has_active_subscription(uid, session):
@@ -64,9 +65,9 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
 @router.message(Dialogue.get, F.text)
-async def process_dialogue(message: types.Message, session: AsyncSession) -> None:
+async def process_dialogue(message: types.Message, session: AsyncSession, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
-    if await reply_if_banned(message, uid):
+    if await reply_if_banned(message, uid, l10n):
         return
     else:
         logging.info("%s", message)
