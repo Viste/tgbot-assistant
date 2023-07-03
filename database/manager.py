@@ -2,7 +2,6 @@ import logging
 from typing import Optional, List, Dict
 
 from sqlalchemy import select, insert
-from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
@@ -15,7 +14,7 @@ class UserManager:
         self.session = session
 
     async def get_user(self, user_id: int) -> Optional[User]:
-        stmt = select(User).options(joinedload(User.history)).where(user_id == User.telegram_id)
+        stmt = select(User).where(User.telegram_id == user_id)
         result = await self.session.execute(stmt)
         user = result.scalar_one_or_none()
         logging.info(f"get_user: user_id={user_id}, user={user}")
