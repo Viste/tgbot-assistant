@@ -25,6 +25,13 @@ def split_into_chunks(text: str, chunk_size: int = 4096) -> list[str]:
     return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
+def check(string, performer):
+    if re.search(performer, string):
+        return True
+    else:
+        return False
+
+
 def check_bit_rate(file):
     f = mutagen.File(file)
     bit_rate = f.info.bitrate / 1000
