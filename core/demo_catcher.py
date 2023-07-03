@@ -13,7 +13,7 @@ from fluent.runtime import FluentLocalization
 from database.models import Calendar, StreamEmails
 from core.helpers.tools import reply_if_banned
 from tools.states import Demo
-from tools.utils import config, check, pattern, check_bit_rate, email_patt
+from tools.utils import config, check_bit_rate, email_patt
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -102,10 +102,6 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
     elif artist is None:
         await message.reply(
             "Тег artist в треке не заполнен, не могу его принять.\nПожалуйста исправь и отправь еще раз.")
-    elif check(file_name, pattern) is False:
-        await message.reply(
-            "Название не соответствует требованиям, возможно ты не указал дефис между автором и названием трека, "
-            "не могу его принять.\nПожалуйста исправь и отправь еще раз.")
     elif check_bit_rate(f"{str(uid)}.mp3") is False:
         await message.reply('Битрейт mp3 файла менее 320.')
         os.remove(f"{str(uid)}.mp3")

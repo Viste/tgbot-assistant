@@ -18,19 +18,11 @@ class JSONObject:
 
 cfg_file = open(os.path.join(os.path.dirname(__file__), 'config.json'), 'r', encoding='utf8')
 config = json.loads(cfg_file.read(), object_hook=JSONObject)
-pattern = re.compile("^([\w\W\s]+?\s+?)-\s+?([\w\W\s]+?)\.mp3$")
 email_patt = re.compile("^(\w+?|\w+?\.\w+?|\w+?\.\w+?\.\w+?)@\w+?\.\w{2,12}$")
 
 
 def split_into_chunks(text: str, chunk_size: int = 4096) -> list[str]:
     return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
-
-
-def check(string, performer):
-    if re.search(performer, string):
-        return True
-    else:
-        return False
 
 
 def check_bit_rate(file):
