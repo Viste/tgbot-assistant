@@ -7,9 +7,11 @@ from fluent.runtime import FluentLocalization
 
 from core.helpers.tools import banned, shadowbanned, update_config
 from tools.utils import config
-logger = logging.getLogger(__name__)
+
 
 router = Router()
+
+logger = logging.getLogger(__name__)
 router.message.filter(F.chat.type.in_({'private'}))
 
 

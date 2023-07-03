@@ -13,8 +13,9 @@ from tools.utils import config
 from tools.states import AnsMa
 from filters.media import SupportedMediaFilter
 
-logger = logging.getLogger(__name__)
 router = Router()
+
+logger = logging.getLogger(__name__)
 
 
 async def _send_expiring_notification(message: Message, l10n: FluentLocalization):

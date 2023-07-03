@@ -14,18 +14,16 @@ from core.helpers.tools import reply_if_banned
 from tools.states import Mail
 from tools.utils import check, email_patt
 
-logger = logging.getLogger(__name__)
 router = Router()
+logger = logging.getLogger(__name__)
 router.message.filter(F.chat.type.in_({'private'}))
 
 
 @router.message(Command(commands="course", ignore_case=True))
 async def course_cmd(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
-    uid = message.from_user.id
-    if await reply_if_banned(message, uid, l10n):
+    if await reply_if_banned(message, message.from_user.id, l10n):
         return
 
-    first_name = message.chat.first_name
     now = datetime.now()
     try:
         result = await session.execute(select(Calendar).order_by(desc(Calendar.end_time)).limit(1))
@@ -36,13 +34,13 @@ async def course_cmd(message: types.Message, state: FSMContext, session: AsyncSe
     if close_date is not None:
         if close_date.end_time is not None or now < close_date.end_time:
             await message.answer(
-                f"Привет {first_name}!\nЯ собираю email адреса для платных курсов Нейропанк академии\n"
+                f"Привет {message.chat.first_name}!\nЯ собираю email адреса для платных курсов Нейропанк академии\n"
                 f"Для начала напиши мне свой email, чтобы я предоставил тебе доступ к стриму")
             await state.set_state(Mail.start)
         else:
-            await message.answer(f"Привет {first_name}!\nСейчас не время присылать email, попробуй позже")
+            await message.answer(f"Привет {message.chat.first_name}!\nСейчас не время присылать email, попробуй позже")
     else:
-        await message.answer(f"Привет {first_name}!\nСейчас не время присылать email, попробуй позже")
+        await message.answer(f"Привет {message.chat.first_name}!\nСейчас не время присылать email, попробуй позже")
 
 
 @router.message(Mail.start)

@@ -11,8 +11,8 @@ from database.models import User
 from tools.states import Payment
 from tools.utils import config
 
-logger = logging.getLogger(__name__)
 router = Router()
+logger = logging.getLogger(__name__)
 
 price = [LabeledPrice(label='demo_room', amount=35000)]
 

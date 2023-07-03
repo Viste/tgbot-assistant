@@ -5,9 +5,9 @@ from fluent.runtime import FluentLocalization
 
 from tools.utils import config
 
-logger = logging.getLogger(__name__)
-
 router = Router()
+
+logger = logging.getLogger(__name__)
 
 
 @router.message(F.reply_to_message, F.chat.id_in_(config.admin_chat_id), F.poll)

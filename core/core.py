@@ -12,8 +12,9 @@ from tools.ai.ai_tools import OpenAI
 from tools.states import Text
 from tools.utils import config, split_into_chunks
 
-logger = logging.getLogger(__name__)
 router = Router()
+
+logger = logging.getLogger(__name__)
 router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups))
 
 

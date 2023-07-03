@@ -6,8 +6,8 @@ from aiogram.fsm.context import FSMContext
 from main import paper
 from tools.states import Payment
 
-logger = logging.getLogger(__name__)
 router = Router()
+logger = logging.getLogger(__name__)
 
 
 @router.callback_query(F.data == "buy_subscription")

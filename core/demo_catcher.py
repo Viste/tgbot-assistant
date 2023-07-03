@@ -15,8 +15,8 @@ from core.helpers.tools import reply_if_banned
 from tools.states import Demo
 from tools.utils import config, check, pattern, check_bit_rate, email_patt
 
-logger = logging.getLogger(__name__)
 router = Router()
+logger = logging.getLogger(__name__)
 router.message.filter(F.chat.type.in_({'private'}))
 channel = config.channel
 

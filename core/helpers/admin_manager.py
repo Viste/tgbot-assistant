@@ -11,11 +11,10 @@ from database.models import Calendar, StreamEmails
 from tools.ai.ai_tools import OpenAI
 from tools.utils import config, get_dt
 
-logger = logging.getLogger(__name__)
-openai = OpenAI()
 router = Router()
 router.message.filter(F.chat.type.in_({'private'}))
 
+logger = logging.getLogger(__name__)
 
 def extract_id(message: types.Message) -> int:
     entities = message.entities or message.caption_entities
@@ -113,7 +112,8 @@ async def info(message: types.Message):
 
 @router.message(Command(commands="money"), F.from_user.id.in_(config.admins))
 @flags.chat_action("typing")
-async def usage(message: types.Message):
+async def usage(message: types.Message, session: AsyncSession):
+    openai = OpenAI(session)
     text = openai.get_money()
     await message.reply(text, parse_mode=None)
 

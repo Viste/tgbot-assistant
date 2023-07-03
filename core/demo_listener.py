@@ -11,8 +11,8 @@ from core.helpers.tools import reply_if_banned
 from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.utils import split_into_chunks
 
-logger = logging.getLogger(__name__)
 router = Router()
+logger = logging.getLogger(__name__)
 router.message.filter(F.chat.type.in_({'private'}))
 openai = OpenAIListener()
 audio = Audio()
