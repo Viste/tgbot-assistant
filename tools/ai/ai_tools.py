@@ -27,24 +27,20 @@ class UserHistoryManager:
 
     async def get_history(self, user_id: int) -> List[Dict[str, str]]:
         user = await self.user_manager.get_user(user_id)
-        # Parse the history JSON string into a Python list
-        return json.loads(user.history) if user else []
+        return user.history if user else []
 
     async def add_to_history(self, user_id: int, role: str, content: str) -> None:
         user = await self.user_manager.get_user(user_id)
         if user is not None:
-            # Parse the history JSON string into a Python list
-            history = json.loads(user.history)
+            history = user.history
             history.append({"role": role, "content": content})
             if len(history) > 60:
                 history = history[-60:]
-            # Convert the history list into a JSON string
             await self.user_manager.update_user_history_and_commit(user, history)
 
     async def reset_history(self, user_id: int, content: str) -> None:
         user = await self.user_manager.get_user(user_id)
         if user is not None:
-            # Convert the history list into a JSON string
             await self.user_manager.update_user_history_and_commit(user, [{"role": "system", "content": content}])
 
 
