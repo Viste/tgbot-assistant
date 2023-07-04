@@ -27,21 +27,24 @@ class UserHistoryManager:
 
     async def get_history(self, user_id: int) -> List[Dict[str, str]]:
         user = await self.user_manager.get_user(user_id)
-        return user.history if user else []
+        # Parse the history JSON string into a Python list
+        return json.loads(user.history) if user else []
 
     async def add_to_history(self, user_id: int, role: str, content: str) -> None:
         user = await self.user_manager.get_user(user_id)
         if user is not None:
-            history = user.history
+            # Parse the history JSON string into a Python list
+            history = json.loads(user.history)
             history.append({"role": role, "content": content})
             if len(history) > 60:
                 history = history[-60:]
-            logging.info(f"Adding to history: user_id={user_id}, role={role}, content={content}")
+            # Convert the history list into a JSON string
             await self.user_manager.update_user_history_and_commit(user, history)
 
     async def reset_history(self, user_id: int, content: str) -> None:
         user = await self.user_manager.get_user(user_id)
         if user is not None:
+            # Convert the history list into a JSON string
             await self.user_manager.update_user_history_and_commit(user, [{"role": "system", "content": content}])
 
 
@@ -121,36 +124,28 @@ class OpenAI:
 
                 await self.history_manager.add_to_history(user_id, role="user", content=query)
 
-                user = await user_manager.get_user(user_id)
-                history_json = json.dumps(user.history, ensure_ascii=False)
-
-                if isinstance(user.history, str):
-                    user_history = json.loads(user.history)
-                else:
-                    user_history = user.history
-
-                token_count = self._count_tokens(history_json)
+                token_count = self._count_tokens(user.history)
                 exceeded_max_tokens = token_count + self.config_tokens > self.max_tokens
-                exceeded_max_history_size = len(user_history) > self.max_history_size
+                exceeded_max_history_size = len(user.history) > self.max_history_size
 
                 if exceeded_max_tokens or exceeded_max_history_size:
                     logging.info(f'Chat history for chat ID {user_id} is too long. Summarising...')
                     try:
-                        summary = await self._summarise(user_history[:-1])
+                        summary = await self._summarise(user.history[:-1])
                         logging.info(f'Summary: {summary}')
                         await self.history_manager.reset_history(user_id, self.content)
                         await self.history_manager.add_to_history(user_id, role="assistant", content=summary)
                         await self.history_manager.add_to_history(user_id, role="user", content=query)
-                        logging.info("Dialog From summary: %s", user_history)
+                        logging.info("Dialog From summary: %s", user.history)
                     except Exception as e:
                         logging.info(f'Error while summarising chat history: {str(e)}. Popping elements instead...')
-                        user_history = user_history[-self.max_history_size:]
+                        user_history = user.history[-self.max_history_size:]
                         logging.info("Dialog From summary exception: %s", user_history)
 
-                logging.info(f"Sending history to OpenAI API: {user_history}")
+                logging.info(f"Sending history to OpenAI API: {user.history}")
 
-                response = await openai.ChatCompletion.acreate(model=self.model, messages=user_history, **self.args)
-                print(history_json)
+                response = await openai.ChatCompletion.acreate(model=self.model, messages=user.history, **self.args)
+                logging.info('User HISTORY: %s', user.history)
                 result = response
                 logging.info('RESULT-RESPONSE QUERY GPT: %s', result)
                 break
