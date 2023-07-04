@@ -13,7 +13,7 @@ from fluent.runtime import FluentLocalization
 from database.models import Calendar, StreamEmails
 from core.helpers.tools import reply_if_banned
 from tools.states import Demo
-from tools.utils import config, check_bit_rate, email_patt
+from tools.utils import config, check_bit_rate, email_patt, check
 
 router = Router()
 logger = logging.getLogger(__name__)
