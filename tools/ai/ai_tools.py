@@ -72,12 +72,11 @@ class OpenAI:
     async def get_resp(self, query: str, chat_id: int) -> Tuple[str, str]:
         user_manager = UserManager(self.session)
         user = await user_manager.get_user(chat_id)
+        user.system_message = self.content
 
         if user is None:
             user = await user_manager.create_user(chat_id)
-
-        user.system_message = self.content
-        await self.history_manager.reset_history(chat_id, self.content)
+            await self.history_manager.reset_history(chat_id, self.content)
 
         response = await self._query_gpt(chat_id, query, self.session)
         answer = ''
