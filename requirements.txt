@@ -1,4 +1,5 @@
 aiogram==3.0.0b7
+aiomysql
 sqlalchemy==2.0.19
 mutagen
 aiohttp
@@ -9,3 +10,6 @@ openai
 tiktoken
 urllib3
 tqdm
+fluent
+numpy
+essentia
