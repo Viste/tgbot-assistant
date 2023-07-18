@@ -1,12 +1,12 @@
 {
-  "token": "",
-  "api_key": "",
-  "subs_api_key": "",
+  "token": "6150244029:AAH5f6v6-UxNVmX72bluQxGweWw8_KDcYDc",
+  "api_key": "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",
+  "subs_api_key": "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",
   "channel": "-1001849227232",
-  "info_channel": "",
+  "info_channel": "-1001537420102",
   "paperclip": "58800377",
   "admin_chat_id": [58800377],
-  "payment_token": "",
+  "payment_token": "1920051371:TEST:638206538803798102",
   "remove_sent_confirmation": true,
   "admins": [
     58800377,
@@ -25,14 +25,15 @@
     -1001647523732,
     -1001700103389,
     -1001849227232,
+    -1001537420102,
     -1001582049557
   ],
   "redis": {
-    "host": "localhost",
+    "host": "redis-master.redis.svc.pprfnk.local",
     "port": 6379,
     "password": null,
     "db": 1,
     "conversation": 2
   },
-  "db_url": "mariadb+aiomysql://cyber:password@127.0.0.1/cyber"
+  "db_url": "mariadb+aiomysql://sysop:0Z3tcFg7FE60YBpKdquwrQRk@pprfnkdb-primary.mariadb.svc.pprfnk.local/cyber?charset=utf8mb4"
 }

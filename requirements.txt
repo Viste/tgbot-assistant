@@ -1,0 +1,11 @@
+aiogram==3.0.0b7
+sqlalchemy==2.0.19
+mutagen
+aiohttp
+datetime
+aioredis
+redis
+openai
+tiktoken
+urllib3
+tqdm
