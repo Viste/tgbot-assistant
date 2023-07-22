@@ -13,3 +13,5 @@ tqdm
 fluent
 numpy
 essentia
+pydantic
+fluent.runtime
