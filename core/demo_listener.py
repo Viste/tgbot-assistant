@@ -37,7 +37,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
                              reply_markup=keyboard)
         return
 
-    file_path = f"tmp/{str(uid)}.mp3"
+    file_path = f"/app/tmp/{str(uid)}.mp3"
     file_info = await bot.get_file(message.audio.file_id)
     file_data = file_info.file_path
     await bot.download_file(file_data, file_path)
