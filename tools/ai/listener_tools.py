@@ -5,20 +5,15 @@ import numpy as np
 import openai
 import tiktoken
 
-from tools.ai.user_dialogue import OpenAIDialogue
+from tools.ai.ai_tools import OpenAIDialogue
 from tools.utils import config
 
 openai.api_key = config.subs_api_key
 logger = logging.getLogger(__name__)
 
 args = {
-    "temperature": 0.15,
-    "max_tokens": 512,
-    "top_p": 1,
-    "frequency_penalty": 0,
-    "presence_penalty": 0.8,
-    "stop": None
-}
+    "temperature": 0.15, "max_tokens": 512, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None
+    }
 
 
 class Audio:
@@ -138,10 +133,7 @@ class OpenAIListener:
     async def _query_gpt_listen(self, query):
         while self.retries < self.max_retries:
             try:
-                return await openai.ChatCompletion.acreate(model=self.model,
-                                                           messages=[{"role": "system", "content": self.listen_content},
-                                                                     {"role": "user", "content": query}],
-                                                           **args)
+                return await openai.ChatCompletion.acreate(model=self.model, messages=[{"role": "system", "content": self.listen_content}, {"role": "user", "content": query}], **args)
 
             except openai.error.RateLimitError as e:
                 self.retries += 10
@@ -173,10 +165,10 @@ class OpenAIListener:
                 answer += '\n\n'
         elif response.choices and len(response.choices) >= 0:
             answer = response.choices[0]['message']['content'].strip()
-            self.openai_dialogue.add_to_history(chat_id, role="assistant", content=answer)
+            await self.openai_dialogue.add_to_history(chat_id, role="assistant", content=answer)
         else:
             answer = response.choices[0]['message']['content'].strip()
-            self.openai_dialogue.add_to_history(chat_id, role="assistant", content=answer)
+            await self.openai_dialogue.add_to_history(chat_id, role="assistant", content=answer)
 
         total_tokens = response.usage['total_tokens'] if response.usage else 0
         if response.usage and self.show_tokens:
@@ -185,7 +177,7 @@ class OpenAIListener:
                       f" ({str(response.usage['prompt_tokens'])} prompt," \
                       f" {str(response.usage['completion_tokens'])} completion)"
 
-        self.openai_dialogue.add_to_history(chat_id, role="assistant", content=answer)
+        await self.openai_dialogue.add_to_history(chat_id, role="assistant", content=answer)
 
         return answer, total_tokens
 
