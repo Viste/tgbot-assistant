@@ -51,14 +51,14 @@ class OpenAI:
         self.history = UserHistoryManager()
         self.max_retries = 5
         self.max_tokens = 16096
-        self.config_tokens = 2096
+        self.config_tokens = 4096
         self.max_history_size = 10
         self.n_choices = 1
         self.retries = 0
         self.show_tokens = False
         self.api_key = config.api_key
         self.args = {
-            "temperature": 0.1, "max_tokens": 15096, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None
+            "temperature": 0.1, "max_tokens": 4096, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None
             }
 
     async def add_to_history(self, user_id, role, content):
