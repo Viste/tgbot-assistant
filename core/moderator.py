@@ -7,7 +7,7 @@ from fluent.runtime import FluentLocalization
 
 from core.helpers.tools import reply_if_banned, send_reply
 from tools.ai.moderator import Moderator
-from tools.ai.user_dialogue import OpenAIDialogue
+from tools.ai.ai_tools import OpenAIDialogue
 from tools.utils import split_into_chunks
 
 router = Router()
