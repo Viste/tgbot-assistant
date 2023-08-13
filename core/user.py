@@ -41,14 +41,9 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
         return
     else:
         if not await has_active_subscription(uid, session):
-            kb = [
-                [
-                    types.InlineKeyboardButton(text="Купить подписку", callback_data="buy_subscription")
-                ],
-            ]
+            kb = [[types.InlineKeyboardButton(text="Купить подписку", callback_data="buy_subscription")], ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-            await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.",
-                                 reply_markup=keyboard)
+            await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.", reply_markup=keyboard)
             print(uid)
             return
 

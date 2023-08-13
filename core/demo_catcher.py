@@ -79,7 +79,6 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
     duration = message.audio.duration
     artist = message.audio.performer
     title = message.audio.title
-    file_name = message.audio.file_name
     data = await state.get_data()
     email = data['email']
 
