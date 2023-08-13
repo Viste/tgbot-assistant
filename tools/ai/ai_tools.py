@@ -51,14 +51,14 @@ class OpenAI:
         self.history = UserHistoryManager()
         self.max_retries = 5
         self.max_tokens = 16096
-        self.config_tokens = 4096
+        self.config_tokens = 1024
         self.max_history_size = 10
         self.n_choices = 1
         self.retries = 0
         self.show_tokens = False
         self.api_key = config.api_key
         self.args = {
-            "temperature": 0.1, "max_tokens": 4096, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None
+            "temperature": 0.1, "max_tokens": 1024, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None
             }
 
     async def add_to_history(self, user_id, role, content):
@@ -143,7 +143,7 @@ class OpenAI:
 
     async def _summarise(self, conversation) -> str:
         messages = [{"role": "assistant", "content": "Summarize this conversation in 700 characters or less"}, {"role": "user", "content": str(conversation)}]
-        response = await openai.ChatCompletion.acreate(model=self.model, messages=messages, temperature=0.1)
+        response = await openai.ChatCompletion.acreate(api_key=self.api_key, model=self.model, messages=messages, temperature=0.1)
         return response.choices[0]['message']['content']
 
     def _count_tokens(self, history_json: str) -> int:
