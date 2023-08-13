@@ -10,7 +10,7 @@ from fluent.runtime import FluentLocalization
 
 from core.helpers.tools import send_reply, reply_if_banned
 from database.models import User
-from tools.ai.user_dialogue import OpenAIDialogue
+from tools.ai.ai_tools import OpenAIDialogue
 from tools.states import Dialogue
 from tools.utils import split_into_chunks
 
