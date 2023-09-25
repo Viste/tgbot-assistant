@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 from fluent.runtime import FluentLocalization
 
-from core.user import has_active_subscription
+from core.private_dialogue import has_active_subscription
 from core.helpers.tools import reply_if_banned
 from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.utils import split_into_chunks

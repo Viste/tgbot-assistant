@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def setup_routers() -> Router:
-    from . import core, demo_catcher, email_catcher, demo_listener, user, moderator, ban_manager
+    from . import chat_dialogue, demo_catcher, email_catcher, demo_listener, private_dialogue, moderator, ban_manager
     from core.helpers import admin_manager, callbacks, payment, unsupported_manager
 
     router = Router()
