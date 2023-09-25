@@ -29,13 +29,8 @@ class User(Base):
     telegram_id: int = Column(BigInteger, nullable=False, unique=True)
     telegram_username = Column(String(255), nullable=True, unique=True)
     balance_amount = Column(Float, nullable=False, default=0)
-    max_tokens = Column(Integer, nullable=False, default=0)
-    current_tokens = Column(Integer, nullable=False, default=0)
-    price_per_token = Column(Float, nullable=False, default=0.002)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    used_tokens = Column(Integer, nullable=False, default=0)  # new field
     subscription_start = Column(DateTime, nullable=True)
     subscription_end = Column(DateTime, nullable=True)
     subscription_status = Column(String(50), nullable=False, default='inactive')
-    history = Column(JSON, nullable=True, default=[])
-    system_message = Column(UnicodeText(length=4096), nullable=True, default='')
     mariadb_engine = "InnoDB"
