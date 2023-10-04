@@ -19,6 +19,11 @@ jobs:
         python-version: ["3.9", "3.10"]
 
     steps:
+    - name: Prepare
+      shell: sh
+      run: |
+        apk update
+        apk add nodejs docker-cli
     - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v3

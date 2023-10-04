@@ -1,0 +1,32 @@
+name: deploy cyberpaperbot
+
+on:
+  push:
+    branches: [ 'master' ]
+  pull_request:
+    branches: [ 'master' ]
+
+jobs:
+  build-image:
+    runs-on: self-hosted
+    steps:
+      - name: Prepare
+        shell: sh
+        run: |
+          apk update
+          apk add nodejs docker-cli
+
+      - name: Checkout repository
+        uses: https://github.com/actions/checkout@master
+        with:
+          submodules: 'recursive'
+
+      - name: Build image
+        shell: sh
+        run: |
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u vistee --password-stdin
+          docker build -t vistee/pprfnk:cyberpaperbot .
+
+      - name: Push image
+        shell: sh
+        run: docker push vistee/pprfnk:cyberpaperbot
