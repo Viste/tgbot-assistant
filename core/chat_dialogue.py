@@ -4,6 +4,7 @@ import logging
 from aiogram import types, F, Router, flags
 from aiogram.fsm.context import FSMContext
 from fluent.runtime import FluentLocalization
+from aiogram.filters import Command
 
 from core.helpers.tools import send_reply, reply_if_banned
 from tools.ai.ai_tools import OpenAI
@@ -54,3 +55,8 @@ async def process_ask(message: types.Message, l10n: FluentLocalization) -> None:
     for index, chunk in enumerate(chunks):
         if index == 0:
             await send_reply(message, chunk)
+
+
+@router.message(Command(commands="help"))
+async def info_user(message: types.Message, l10n: FluentLocalization):
+    await message.answer(l10n.format_value("help"))
