@@ -12,16 +12,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Prepare
-        shell: sh
-        run: |
-          apk update
-          apk add nodejs docker-cli docker-cli-buildx
-          apk add kubectl
-
-      - name: Checkout repository
-        uses: https://github.com/actions/checkout@master
-        with:
-          submodules: 'recursive'
+        uses: https://${{ secrets.TOKEN }}@git.pprfnk.tech/PPRFNK-Tech/prepare-action@master
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -51,6 +42,8 @@ jobs:
           file: Dockerfile
           push: true
           tags: vistee/pprfnk:cyberpaperbot
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
 
       - name: Move cache
         run: |
@@ -66,4 +59,5 @@ jobs:
           namespace: nastya
 
       - name: Rollout pod in k8s
+        shell: bash
         run: kubectl rollout restart -n cyberpaper deployment cyberpaper-bot
