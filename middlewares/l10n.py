@@ -13,7 +13,6 @@ class L10nMiddleware(BaseMiddleware):
             self,
             handler: Callable[[Message, Dict[str, Any]], Awaitable[Any]],
             event: Message,
-            data: Dict[str, Any]
-    ) -> Any:
+            data: Dict[str, Any]) -> Any:
         data["l10n"] = self.l10n_object
         await handler(event, data)
