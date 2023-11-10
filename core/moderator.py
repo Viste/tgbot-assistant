@@ -10,11 +10,11 @@ from tools.ai.moderator import Moderator
 from tools.ai.ai_tools import OpenAIDialogue
 from tools.utils import split_into_chunks
 
-#router = Router()
-#logger = logging.getLogger(__name__)
-#router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id == -1001647523732)
-#openai = OpenAIDialogue()
-#moderator = Moderator()
+# router = Router()
+# logger = logging.getLogger(__name__)
+# router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id == -1001647523732)
+# openai = OpenAIDialogue()
+# moderator = Moderator()
 #
 # @flags.chat_action(action="typing", interval=1, initial_sleep=2)
 # @router.message(F.text)
