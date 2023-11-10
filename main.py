@@ -26,8 +26,7 @@ db_middleware = DbSessionMiddleware(session_pool=session_maker)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    stream=sys.stdout,
-)
+    stream=sys.stdout,)
 
 logger = logging.getLogger(__name__)
 
