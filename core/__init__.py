@@ -28,7 +28,6 @@ def setup_routers() -> Router:
 
     router.include_router(admin_manager.router)
     router.include_router(unsupported_manager.router)
-    router.include_router(moderator.router)
     router.include_router(demo_catcher.router)
     router.include_router(email_catcher.router)
     router.include_router(demo_listener.router)
