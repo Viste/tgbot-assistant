@@ -14,7 +14,7 @@ from tools.utils import config
 
 logger = logging.getLogger(__name__)
 
-clinet = AsyncOpenAI()
+clinet = AsyncOpenAI(api_key=config.api_key)
 
 class UserHistoryManager:
     _instance = None
