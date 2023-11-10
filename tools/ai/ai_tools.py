@@ -73,17 +73,17 @@ class OpenAI:
         logger.info('Response: %s, Answer: %s', response, answer)
         if response.choices and len(response.choices) > 1 and self.n_choices > 1:
             for index, choice in enumerate(response.choices):
-                content = choice['message']['content'].strip()
+                content = choice.message.content.strip()
                 if index == 0:
                     await self.add_to_history(chat_id, role="assistant", content=content)
                 answer += f'{index + 1}\u20e3\n'
                 answer += content
                 answer += '\n\n'
         elif response.choices and len(response.choices) >= 0:
-            answer = response.choices[0]['message']['content'].strip()
+            answer = response.choices[0].message.content.strip()
             await self.add_to_history(chat_id, role="assistant", content=answer)
         else:
-            answer = response.choices[0]['message']['content'].strip()
+            answer = response.choices[0].message.content.strip()
             await self.add_to_history(chat_id, role="assistant", content=answer)
 
         total_tokens = response.usage['total_tokens'] if response.usage else 0
@@ -144,7 +144,7 @@ class OpenAI:
     async def _summarise(self, conversation) -> str:
         messages = [{"role": "assistant", "content": "Summarize this conversation in 700 characters or less"}, {"role": "user", "content": str(conversation)}]
         response = self.client.chat.completions.create(model=self.model, messages=messages, temperature=0.1)
-        return response.choices[0]['message']['content']
+        return response.choices[0].message.content
 
     def _count_tokens(self, messages) -> int:
         try:
@@ -214,17 +214,17 @@ class OpenAIDialogue:
 
         if response.choices and len(response.choices) > 1 and self.n_choices > 1:
             for index, choice in enumerate(response.choices):
-                content = choice['message']['content'].strip()
+                content = choice.message.content.strip()
                 if index == 0:
                     await self.add_to_history(chat_id, role="assistant", content=content)
                 answer += f'{index + 1}\u20e3\n'
                 answer += content
                 answer += '\n\n'
         elif response.choices and len(response.choices) >= 0:
-            answer = response.choices[0]['message']['content'].strip()
+            answer = response.choices[0].message.content.strip()
             await self.add_to_history(chat_id, role="assistant", content=answer)
         else:
-            answer = response.choices[0]['message']['content'].strip()
+            answer = response.choices[0].message.content.strip()
             await self.add_to_history(chat_id, role="assistant", content=answer)
 
         total_tokens = response.usage['total_tokens'] if response.usage else 0
@@ -293,7 +293,7 @@ class OpenAIDialogue:
     async def _summarise(self, conversation) -> str:
         messages = [{"role": "assistant", "content": "Summarize this conversation in 700 characters or less"}, {"role": "user", "content": str(conversation)}]
         response = await self.client.ChatCompletion.create(model=self.model, messages=messages, temperature=0.1)
-        return response.choices[0]['message']['content']
+        return response.choices[0].message.content
 
     def _count_tokens(self, messages) -> int:
         try:
