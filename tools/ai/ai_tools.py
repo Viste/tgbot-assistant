@@ -14,8 +14,6 @@ from tools.utils import config
 
 logger = logging.getLogger(__name__)
 
-clinet = AsyncOpenAI(api_key=config.api_key)
-
 class UserHistoryManager:
     _instance = None
     user_dialogs: dict[int: list] = {}
@@ -51,13 +49,13 @@ class OpenAI:
         self.model = "gpt-3.5-turbo-16k"
         self.history = UserHistoryManager()
         self.max_retries = 5
+        self.client = AsyncOpenAI(api_key=config.api_key)
         self.max_tokens = 16096
         self.config_tokens = 1024
         self.max_history_size = 10
         self.n_choices = 1
         self.retries = 0
         self.show_tokens = False
-        self.api_key = config.api_key
         self.args = {
             "temperature": 0.1, "max_tokens": 1024, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None
             }
@@ -122,15 +120,15 @@ class OpenAI:
                         await self.history.trim_history(user_id, self.max_history_size)
                         logging.info("Dialog From summary exception: %s", self.history.user_dialogs[user_id])
 
-                return await client.chat.completions.create(api_key=self.api_key, model=self.model, messages=self.history.user_dialogs[user_id], **self.args)
+                return await self.client.chat.completions.create(model=self.model, messages=self.history.user_dialogs[user_id], **self.args)
 
-            except client.error.RateLimitError as e:
+            except self.client.error.RateLimitError as e:
                 self.retries += 1
                 logging.info("Dialog From Ratelim: %s", self.history.user_dialogs[user_id])
                 if self.retries == self.max_retries:
                     return f'⚠️OpenAI: Превышены лимиты ⚠️\n{str(e)}'
 
-            except client.error.InvalidRequestError as er:
+            except self.client.error.InvalidRequestError as er:
                 self.retries += 1
                 logging.info("Dialog From bad req: %s", self.history.user_dialogs[user_id])
                 if self.retries == self.max_retries:
@@ -144,7 +142,7 @@ class OpenAI:
 
     async def _summarise(self, conversation) -> str:
         messages = [{"role": "assistant", "content": "Summarize this conversation in 700 characters or less"}, {"role": "user", "content": str(conversation)}]
-        response = client.chat.completions.create(api_key=self.api_key, model=self.model, messages=messages, temperature=0.1)
+        response = self.client.chat.completions.create(model=self.model, messages=messages, temperature=0.1)
         return response.choices[0]['message']['content']
 
     def _count_tokens(self, messages) -> int:
@@ -198,7 +196,7 @@ class OpenAIDialogue:
         self.n_choices = 1
         self.retries = 0
         self.show_tokens = False
-        self.api_key = config.api_key
+        self.clinet = AsyncOpenAI(api_key=config.api_key)
         self.history = UserHistoryManager()
         self.args = {"temperature": 0.1, "max_tokens": 1024, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None}
 
@@ -266,15 +264,15 @@ class OpenAIDialogue:
                         await self.history.trim_history(user_id, self.max_history_size)
                         logging.info("Dialog From summary exception: %s", self.history.user_dialogs[user_id])
 
-                return await client.chat.completions.create(api_key=self.api_key, model=self.model, messages=self.history.user_dialogs[user_id], **self.args)
+                return await self.client.chat.completions.create(model=self.model, messages=self.history.user_dialogs[user_id], **self.args)
 
-            except client.error.RateLimitError as e:
+            except self.client.error.RateLimitError as e:
                 self.retries += 1
                 logging.info("Dialog From Ratelim: %s", self.history.user_dialogs[user_id])
                 if self.retries == self.max_retries:
                     return f'⚠️OpenAI: Превышены лимиты ⚠️\n{str(e)}'
 
-            except client.error.InvalidRequestError as er:
+            except self.client.error.InvalidRequestError as er:
                 self.retries += 1
                 logging.info("Dialog From bad req: %s", self.history.user_dialogs[user_id])
                 if self.retries == self.max_retries:
@@ -293,7 +291,7 @@ class OpenAIDialogue:
 
     async def _summarise(self, conversation) -> str:
         messages = [{"role": "assistant", "content": "Summarize this conversation in 700 characters or less"}, {"role": "user", "content": str(conversation)}]
-        response = await client.ChatCompletion.create(api_key=self.api_key, model=self.model, messages=messages, temperature=0.1)
+        response = await self.client.ChatCompletion.create(model=self.model, messages=messages, temperature=0.1)
         return response.choices[0]['message']['content']
 
     def _count_tokens(self, messages) -> int:
