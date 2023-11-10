@@ -6,7 +6,7 @@ aiohttp
 datetime~=5.2
 aioredis~=2.0.1
 redis
-openai
+openai==0.28
 tiktoken
 urllib3
 tqdm
