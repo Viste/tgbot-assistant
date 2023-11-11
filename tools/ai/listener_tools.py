@@ -154,29 +154,29 @@ class OpenAIListener:
                 if self.retries == self.max_retries:
                     return f'⚠️Ошибочка вышла ⚠️\n{str(err)}', err
 
-    async def get_resp_listen(self, chat_id: int, query: str) -> tuple[str, str]:
+    async def get_resp_listen(self, chat_id: int, query: str) -> tuple[str, int]:
         response = await self._query_gpt_listen(query)
         answer = ''
 
         if response.choices and len(response.choices) > 1 and self.n_choices > 1:
             for index, choice in enumerate(response.choices):
-                content = choice['message']['content'].strip()
+                content = choice.message.content.strip()
                 answer += f'{index + 1}\u20e3\n'
                 answer += content
                 answer += '\n\n'
         elif response.choices and len(response.choices) >= 0:
-            answer = response.choices[0]['message']['content'].strip()
+            answer = response.choices[0].message.content.strip()
             await self.openai_dialogue.add_to_history(chat_id, role="assistant", content=answer)
         else:
-            answer = response.choices[0]['message']['content'].strip()
+            answer = response.choices[0].message.content.strip()
             await self.openai_dialogue.add_to_history(chat_id, role="assistant", content=answer)
 
-        total_tokens = response.usage['total_tokens'] if response.usage else 0
+        total_tokens = response.usage.total_tokens if response.usage else 0
         if response.usage and self.show_tokens:
             answer += "\n\n---\n" \
-                      f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
-                      f" ({str(response.usage['prompt_tokens'])} prompt," \
-                      f" {str(response.usage['completion_tokens'])} completion)"
+                      f"💰 Использовано Токенов: {str(response.usage.total_tokens)}" \
+                      f" ({str(response.usage.prompt_tokens)} prompt," \
+                      f" {str(response.usage.completion_tokens)} completion)"
 
         await self.openai_dialogue.add_to_history(chat_id, role="assistant", content=answer)
 
