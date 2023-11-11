@@ -47,9 +47,9 @@ class OpenAI:
     def __init__(self):
         super().__init__()
         self.model = "gpt-4"
+        self.client = AsyncOpenAI(api_key=config.api_key)
         self.history = UserHistoryManager()
         self.max_retries = 5
-        self.client = AsyncOpenAI(api_key=config.api_key)
         self.max_tokens = 16096
         self.config_tokens = 1024
         self.max_history_size = 10
