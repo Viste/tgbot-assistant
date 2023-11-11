@@ -10,10 +10,12 @@ from core.private_dialogue import has_active_subscription
 from core.helpers.tools import reply_if_banned
 from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.utils import split_into_chunks
+from tools.utils import config
 
 router = Router()
 logger = logging.getLogger(__name__)
-router.message.filter(F.chat.type.in_({'private'}))
+# router.message.filter(F.chat.type.in_({'private'}))
+router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups))
 openai = OpenAIListener()
 audio = Audio()
 
@@ -26,16 +28,16 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
     if await reply_if_banned(message, uid, l10n):
         return
 
-    if not await has_active_subscription(uid, session):
-        kb = [
-            [
-                types.InlineKeyboardButton(text="Купить подписку", callback_data="buy_subscription")
-            ],
-        ]
-        keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-        await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.",
-                             reply_markup=keyboard)
-        return
+    # if not await has_active_subscription(uid, session):
+    #    kb = [
+    #        [
+    #            types.InlineKeyboardButton(text="Купить подписку", callback_data="buy_subscription")
+    #        ],
+    #    ]
+    #    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+    #    await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.",
+    #                         reply_markup=keyboard)
+    #    return
 
     file_path = f"/app/tmp/{str(uid)}.mp3"
     file_info = await bot.get_file(message.audio.file_id)
