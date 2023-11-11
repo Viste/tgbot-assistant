@@ -46,7 +46,7 @@ class OpenAI:
 
     def __init__(self):
         super().__init__()
-        self.model = "gpt-4"
+        self.model = "gpt-4-1106-preview"
         self.client = AsyncOpenAI(api_key=config.api_key)
         self.history = UserHistoryManager()
         self.max_retries = 5
@@ -143,7 +143,7 @@ class OpenAI:
 
     async def _summarise(self, conversation) -> str:
         messages = [{"role": "assistant", "content": "Summarize this conversation in 700 characters or less"}, {"role": "user", "content": str(conversation)}]
-        response = self.client.chat.completions.create(model=self.model, messages=messages, temperature=0.1)
+        response =  await self.client.chat.completions.create(model=self.model, messages=messages, temperature=0.1)
         return response.choices[0].message.content
 
     def _count_tokens(self, messages) -> int:
