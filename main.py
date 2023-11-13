@@ -44,7 +44,7 @@ async def main():
     worker.include_router(router)
     useful_updates = worker.resolve_used_update_types()
     logging.info("Starting bot")
-    await worker.start_polling(paper, skip_updates=True, handle_signals=True)
+    await worker.start_polling(paper, allowed_updates=useful_updates, handle_signals=True)
 
 
 if __name__ == '__main__':
