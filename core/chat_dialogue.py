@@ -14,7 +14,7 @@ from tools.utils import config, split_into_chunks
 router = Router()
 
 logger = logging.getLogger(__name__)
-router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.listen_groups))
+router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups))
 
 
 @flags.chat_action("typing")

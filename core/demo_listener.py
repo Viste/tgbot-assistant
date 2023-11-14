@@ -15,7 +15,7 @@ from tools.utils import config
 router = Router()
 logger = logging.getLogger(__name__)
 # router.message.filter(F.chat.type.in_({'private'}))
-router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups))
+router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.listen_groups))
 openai = OpenAIListener()
 audio = Audio()
 
