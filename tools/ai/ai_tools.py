@@ -281,7 +281,7 @@ class OpenAI:
     def __init__(self):
         super().__init__()
         self.model = "gpt-4-1106-preview"
-        self.client = AsyncOpenAI(api_key=config.api_key, base_url='https://api.pprfnk.tech/v1')
+        self.client = AsyncOpenAI(api_key=config.api_key, base_url='176.222.52.92:9000/v1')
         self.history = UserHistoryManager()
         self.max_retries = 5
         self.max_tokens = 16096
