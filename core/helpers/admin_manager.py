@@ -92,7 +92,7 @@ async def offline_cmd(message: types.Message, session: AsyncSession):
     await session.execute(delete(Calendar))
     await session.execute(delete(StreamEmails))
     await session.commit()
-    text = f"Личность подтверждена! Уважаемый, {first_name}, включаю прием дэмок"
+    text = f"Личность подтверждена! Уважаемый, {first_name}, выключаю прием дэмок"
     await message.reply(text)
 
 
@@ -105,16 +105,17 @@ async def info(message: types.Message):
         await message.reply(text, parse_mode=None)
     else:
         text = "Для запуска приема демок напиши /online и укажи дату окончания приема демок\n" \
-               "Например: /online 22.04.2023 23:59" \
+               "Например: /online 22.04.2023 23:59\n" \
+               "Не забудь потом написать /offline" \
                "\n" \
-               "Автор: @vistee"
+               "© PPRFNK Tech Team"
         await message.reply(text, parse_mode=None)
 
 
 @router.message(Command(commands="money"), F.from_user.id.in_(config.admins))
 @flags.chat_action("typing")
-async def usage(message: types.Message, session: AsyncSession):
-    openai = OpenAI(session)
+async def usage(message: types.Message):
+    openai = OpenAI()
     text = openai.get_money()
     await message.reply(text, parse_mode=None)
 
