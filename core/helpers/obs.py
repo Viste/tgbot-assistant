@@ -9,6 +9,12 @@ class ClientOBS:
         self.url = "https://obs2.pprfnk.tech/telegram"
         self.session = aiohttp.ClientSession()
 
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        await self.close()
+
     async def send_request(self, name: str, message: str):
         headers = {
             "Content-Type": "application/json"

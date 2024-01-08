@@ -24,14 +24,14 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
     else:
         logging.info("%s", message)
         text = html.escape(message.text)
-        await obs.send_request(nickname, text)
+        async with ClientOBS() as client:
+            await client.send_request(nickname, text)
 
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
 @router.message(F.content_type.in_({'animation'}))
 async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
     uid = message.from_user.id
-    obs = ClientOBS()
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else " ")
     if await reply_if_banned(message, uid, l10n):
         return
@@ -40,4 +40,5 @@ async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot
         file_id = message.animation.file_id
         file_info = await bot.get_file(file_id)
         file_url = f"https://api.telegram.org/file/bot{config.api_key}/{file_info.file_path}"
-        await obs.send_request(nickname, file_url)
+        async with ClientOBS() as client:
+            await client.send_request(nickname, file_url)
