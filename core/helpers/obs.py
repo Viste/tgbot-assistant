@@ -14,7 +14,7 @@ class ClientOBS:
             "Content-Type": "application/json"
             }
         data = {
-            "message": message, "meta": meta, "key": self.key
+            "name": meta, "message": message, "key": self.key
             }
         async with self.session.post(self.url, headers=headers, json=data) as resp:
             return await resp.json()
