@@ -25,7 +25,7 @@ router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id == -10
 async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
     obs = ClientOBS()
-    nickname = message.from_user.first_name
+    nickname = message.from_user.first_name + " " + message.from_user.last_name
     if await reply_if_banned(message, uid, l10n):
         return
     else:
@@ -39,7 +39,7 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
 async def process_obs(message: types.Message, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
     obs = ClientOBS()
-    nickname = message.from_user.username
+    nickname = message.from_user.username + " " + message.from_user.last_name
     if await reply_if_banned(message, uid, l10n):
         return
     else:
