@@ -2,30 +2,35 @@ import html
 import logging
 
 from aiogram import types, F, Router, flags
-from sqlalchemy.ext.asyncio import AsyncSession
+# from sqlalchemy.ext.asyncio import AsyncSession
 from fluent.runtime import FluentLocalization
 
 from core.helpers.tools import reply_if_banned, send_reply
-from tools.ai.moderator import Moderator
-from tools.ai.ai_tools import OpenAIDialogue
+# from tools.ai.moderator import Moderator
+# from tools.ai.ai_tools import OpenAIDialogue
 from tools.utils import split_into_chunks
+from core.helpers.obs import ClientOBS
 
-# router = Router()
-# logger = logging.getLogger(__name__)
-# router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id == -1001647523732)
+
+router = Router()
+logger = logging.getLogger(__name__)
+router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id == -1001647523732)
 # openai = OpenAIDialogue()
 # moderator = Moderator()
-#
-# @flags.chat_action(action="typing", interval=1, initial_sleep=2)
-# @router.message(F.text)
-# async def process_moderating(message: types.Message, session: AsyncSession, l10n: FluentLocalization) -> None:
-#    uid = message.from_user.id
-#    username = message.from_user.username
-#    if await reply_if_banned(message, uid, l10n):
-#        return
-#    else:
-#        logging.info("%s", message)
-#        text = html.escape(message.text)
+
+
+@flags.chat_action(action="typing", interval=1, initial_sleep=2)
+@router.message(F.text)
+async def process_obs(message: types.Message, l10n: FluentLocalization) -> None:
+    uid = message.from_user.id
+    obs = ClientOBS()
+    username = message.from_user.username
+    if await reply_if_banned(message, uid, l10n):
+        return
+    else:
+        logging.info("%s", message)
+        text = html.escape(message.text)
+        result = await obs.send_message(message.from_user.first_name, text)
 
 #        moderation = await moderator.query_gpt_mod(text)
 #        logging.info("Flagged: %s", moderation['flagged'])
