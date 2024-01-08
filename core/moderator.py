@@ -15,6 +15,7 @@ from core.helpers.obs import ClientOBS
 router = Router()
 logger = logging.getLogger(__name__)
 router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id == -1001647523732)
+
 # openai = OpenAIDialogue()
 # moderator = Moderator()
 
