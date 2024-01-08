@@ -31,7 +31,7 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
     else:
         logging.info("%s", message)
         text = html.escape(message.text)
-        await obs.send_message(nickname, text)
+        await obs.send_request(nickname, text)
 
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
@@ -45,7 +45,7 @@ async def process_obs(message: types.Message, l10n: FluentLocalization) -> None:
     else:
         logging.info("%s", message)
         text = html.escape(message.text)
-        await obs.send_message(nickname, text)
+        await obs.send_request(nickname, text)
 
 #        moderation = await moderator.query_gpt_mod(text)
 #        logging.info("Flagged: %s", moderation['flagged'])
