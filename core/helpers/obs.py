@@ -1,5 +1,5 @@
 import aiohttp
-from tools.utils import config
+# from tools.utils import config
 
 
 class ClientOBS:
@@ -9,7 +9,7 @@ class ClientOBS:
         self.url = "https://obs2.pprfnk.tech/telegram"
         self.session = aiohttp.ClientSession()
 
-    async def send_request(self, title: str, message: str, meta: dict):
+    async def send_request(self, message: str, meta: dict):
         headers = {
             "Content-Type": "application/json"
             }
