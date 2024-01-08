@@ -19,10 +19,8 @@ router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id == -10
 # openai = OpenAIDialogue()
 # moderator = Moderator()
 
-logging.info("%s", types.Message)
-
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
-@router.message(F.text)
+@router.message(F.content_type.in_({'text'}))
 async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
     obs = ClientOBS()
@@ -36,7 +34,7 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
 
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
-@router.message(F.Animation)
+@router.message(F.content_type.in_({'animation'}))
 async def process_obs(message: types.Message, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
     obs = ClientOBS()
