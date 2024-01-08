@@ -9,43 +9,28 @@ from core.helpers.tools import reply_if_banned
 # from tools.ai.moderator import Moderator
 # from tools.ai.ai_tools import OpenAIDialogue
 # from tools.utils import split_into_chunks
+from tools.utils import config
 from core.helpers.obs import ClientOBS
 
 
-router = Router()
-logger = logging.getLogger(__name__)
-router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id == -1001647523732)
+# router = Router()
+# logger = logging.getLogger(__name__)
+# router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id == -1001647523732)
 
 # openai = OpenAIDialogue()
 # moderator = Moderator()
 
-@flags.chat_action(action="typing", interval=1, initial_sleep=2)
-@router.message(F.content_type.in_({'text'}))
-async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> None:
-    uid = message.from_user.id
-    obs = ClientOBS()
-    nickname = message.from_user.username + " " + (message.from_user.last_name if message.from_user.last_name else " ")
-    if await reply_if_banned(message, uid, l10n):
-        return
-    else:
-        logging.info("%s", message)
-        text = html.escape(message.text)
-        await obs.send_request(nickname, text)
 
-
-@flags.chat_action(action="typing", interval=1, initial_sleep=2)
-@router.message(F.content_type.in_({'animation'}))
-async def process_obs(message: types.Message, l10n: FluentLocalization) -> None:
-    uid = message.from_user.id
-    obs = ClientOBS()
-    nickname = message.from_user.username + " " + (message.from_user.last_name if message.from_user.last_name else " ")
-    if await reply_if_banned(message, uid, l10n):
-        return
-    else:
-        logging.info("%s", message)
-        text = html.escape(message.text)
-        await obs.send_request(nickname, text)
-
+# @flags.chat_action(action="typing", interval=1, initial_sleep=2)
+# @router.message(F.content_type.in_({'text'}))
+# async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> None:
+#    uid = message.from_user.id
+#    nickname = message.from_user.username + " " + (message.from_user.last_name if message.from_user.last_name else " ")
+#    if await reply_if_banned(message, uid, l10n):
+#        return
+#    else:
+#        logging.info("%s", message)
+#        text = html.escape(message.text)
 #        moderation = await moderator.query_gpt_mod(text)
 #        logging.info("Flagged: %s", moderation['flagged'])
 #        logging.info("Categories: %s", moderation['categories'])
