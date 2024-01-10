@@ -42,3 +42,18 @@ async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot
         file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
         async with ClientOBS() as client:
             await client.send_request(nickname, file_url)
+
+
+@router.message(F.content_type.in_({'stickers'}))
+async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
+    uid = message.from_user.id
+    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else " ")
+    if await reply_if_banned(message, uid, l10n):
+        return
+    else:
+        logging.info("%s", message)
+        file_id = message.animation.file_id
+        file_info = await bot.get_file(file_id)
+        file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
+        async with ClientOBS() as client:
+            await client.send_request(nickname, file_url)
