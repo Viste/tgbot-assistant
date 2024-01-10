@@ -10,8 +10,7 @@ from core.helpers.obs import ClientOBS
 
 router = Router()
 logger = logging.getLogger(__name__)
-router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id == -1001647523732)
-
+router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(-1001647523732, -1001922960346))
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
 @router.message(F.content_type.in_({'text'}))
@@ -44,7 +43,7 @@ async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot
             await client.send_request(nickname, file_url)
 
 
-@router.message(F.content_type.in_({'stickers'}))
+@router.message(F.content_type.in_({'sticker'}))
 async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
     uid = message.from_user.id
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else " ")
@@ -52,7 +51,7 @@ async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot
         return
     else:
         logging.info("%s", message)
-        file_id = message.animation.file_id
+        file_id = message.sticker.file_id
         file_info = await bot.get_file(file_id)
         file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
         async with ClientOBS() as client:
