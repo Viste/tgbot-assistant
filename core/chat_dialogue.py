@@ -16,6 +16,8 @@ router = Router()
 logger = logging.getLogger(__name__)
 router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups))
 
+logging.info("%s", types.message)
+
 
 @flags.chat_action("typing")
 @router.message(F.text.startswith("@cyberpaperbot"))
