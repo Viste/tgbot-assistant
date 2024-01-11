@@ -14,7 +14,7 @@ from tools.utils import config, split_into_chunks
 router = Router()
 
 logger = logging.getLogger(__name__)
-router.message.filter(F.chat.type.in_({'group', 'supergroup'}))
+router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.allowed_groups), F.message_thread_id == 12842)
 
 
 @flags.chat_action("typing")
@@ -59,5 +59,4 @@ async def process_ask(message: types.Message, l10n: FluentLocalization) -> None:
 
 @router.message(Command(commands="help"))
 async def info_user(message: types.Message, l10n: FluentLocalization):
-    logging.info("%s", message)
     await message.answer(l10n.format_value("help"))
