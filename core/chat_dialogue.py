@@ -14,7 +14,7 @@ from tools.utils import config, split_into_chunks
 router = Router()
 
 logger = logging.getLogger(__name__)
-router.message.filter(F.chat.type.in_({'group', 'supergroup'})
+router.message.filter(F.chat.type.in_({'group', 'supergroup'}))
 
 logging.info("%s", types.message)
 
