@@ -17,7 +17,6 @@ router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_({-
 @router.message(F.content_type.in_({'text'}))
 async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
-    obs = ClientOBS()
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else " ")
     if await reply_if_banned(message, uid, l10n):
         return
