@@ -52,7 +52,7 @@ async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot
         return
     else:
         logging.info("%s", message)
-        file_id = message.sticker.file_id
+        file_id = message.sticker.thumbnail.file_id
         file_info = await bot.get_file(file_id)
         file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
         async with ClientOBS() as client:
