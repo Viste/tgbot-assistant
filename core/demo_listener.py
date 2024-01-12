@@ -10,12 +10,11 @@ from core.private_dialogue import has_active_subscription
 from core.helpers.tools import reply_if_banned
 from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.utils import split_into_chunks
-from tools.utils import config
 
 router = Router()
 logger = logging.getLogger(__name__)
-# router.message.filter(F.chat.type.in_({'private'}))
-router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.listen_groups))
+router.message.filter(F.chat.type.in_({'private'}), F.chat.id.in_({282035840, 350493882}))
+# router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(config.listen_groups))
 openai = OpenAIListener()
 audio = Audio()
 
