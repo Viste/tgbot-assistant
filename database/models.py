@@ -18,7 +18,7 @@ class StreamEmails(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     stream_id = Column(Integer, nullable=False, autoincrement=False, unique=True)
-    email = Column(String(255), nullable=False, unique=True)
+    email = Column(String(255), nullable=False, unique=False)
     mariadb_engine = "InnoDB"
 
 
@@ -29,7 +29,7 @@ class User(Base):
     telegram_id: int = Column(BigInteger, nullable=False, unique=True)
     telegram_username = Column(String(255), nullable=True, unique=True)
     balance_amount = Column(Float, nullable=False, default=0)
-    used_tokens = Column(Integer, nullable=False, default=0)  # new field
+    used_tokens = Column(Integer, nullable=False, default=0)
     subscription_start = Column(DateTime, nullable=True)
     subscription_end = Column(DateTime, nullable=True)
     subscription_status = Column(String(50), nullable=False, default='inactive')
