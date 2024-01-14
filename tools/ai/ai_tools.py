@@ -431,7 +431,7 @@ class OpenAIDialogue:
         self.n_choices = 1
         self.retries = 0
         self.show_tokens = False
-        self.clinet = AsyncOpenAI(api_key=config.api_key, base_url='http://176.222.52.92:9000/v1')
+        self.client = AsyncOpenAI(api_key=config.api_key, base_url='http://176.222.52.92:9000/v1')
         self.history = UserHistoryManager()
         self.args = {"temperature": 0.1, "max_tokens": 2024, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None}
 
