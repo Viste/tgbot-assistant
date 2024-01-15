@@ -61,7 +61,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
             await session.commit()
         await message.reply(f"{first_name}, записал твой Email! Самое время прислать демку!\n"
                             """Пожалуйста, убедись что отправляешь 320 mp3 длиной не менее 2 минут, с полностью
-                            прописанными тегами и названием файла в виде "Автор - Трек".\n""")
+                            прописанными тегами\n и названием файла в виде "Автор - Трек".\n""")
         await state.set_state(Demo.get)
     else:
         await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
@@ -112,7 +112,7 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
                f"title: {title}\n" \
                f"Artist: {artist}"
         await bot.send_audio(config.channel, audio=track, caption=text)
-        await message.reply("Спасибо за демку! Если захочешь прислать еще один, просто отправь его мне и помни "
+        await message.reply("Спасибо за демку! Если захочешь прислать еще один, просто снова напиши /demo и помни "
                             "про требования к треку.\n320 mp3 длиной не менее 2 минут, с полностью прописанными "
                             "тегами и названием файла в виде 'Автор - Трек'")
         os.remove(f"{str(uid)}.mp3")
