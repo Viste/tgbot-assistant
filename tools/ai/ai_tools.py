@@ -433,7 +433,7 @@ class OpenAIDialogue:
         self.show_tokens = False
         self.client = AsyncOpenAI(api_key=config.api_key, base_url='http://176.222.52.92:9000/v1')
         self.history = UserHistoryManager()
-        self.args = {"temperature": 0.1, "max_tokens": 2024, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None}
+        self.args = {"temperature": 0.1, "max_tokens": 1024, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None}
 
     async def add_to_history(self, user_id, role, content):
         await self.history.add_to_history(user_id, role, content)
