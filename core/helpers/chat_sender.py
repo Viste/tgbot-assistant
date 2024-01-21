@@ -58,7 +58,7 @@ async def process_obs_sticker(message: types.Message, l10n: FluentLocalization, 
             await client.send_request(nickname, file_url)
 
 
-@router.message(F.content_type.in_({'Photo'}))
+@router.message(F.content_type.in_({'photo'}))
 async def process_obs_image(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
     uid = message.from_user.id
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
