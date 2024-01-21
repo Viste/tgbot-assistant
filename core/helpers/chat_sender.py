@@ -17,7 +17,7 @@ router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_({-
 @router.message(F.content_type.in_({'text'}))
 async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
-    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else " ")
+    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
     if await reply_if_banned(message, uid, l10n):
         return
     else:
@@ -29,9 +29,9 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
 @router.message(F.content_type.in_({'animation'}))
-async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
+async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
     uid = message.from_user.id
-    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else " ")
+    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
     if await reply_if_banned(message, uid, l10n):
         return
     else:
@@ -44,14 +44,29 @@ async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot
 
 
 @router.message(F.content_type.in_({'sticker'}))
-async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
+async def process_obs_sticker(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
     uid = message.from_user.id
-    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else " ")
+    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
     if await reply_if_banned(message, uid, l10n):
         return
     else:
         logging.info("%s", message)
         file_id = message.sticker.thumbnail.file_id
+        file_info = await bot.get_file(file_id)
+        file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
+        async with ClientOBS() as client:
+            await client.send_request(nickname, file_url)
+
+
+@router.message(F.content_type.in_({'Image'}))
+async def process_obs_image(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
+    uid = message.from_user.id
+    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
+    if await reply_if_banned(message, uid, l10n):
+        return
+    else:
+        logging.info("%s", message)
+        file_id = message.thumbnail.file_id
         file_info = await bot.get_file(file_id)
         file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
         async with ClientOBS() as client:
