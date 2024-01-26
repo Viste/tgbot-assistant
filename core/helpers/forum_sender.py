@@ -18,7 +18,7 @@ router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_({-
 async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
     obs = ClientOBS()
-    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else " ")
+    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
     if await reply_if_banned(message, uid, l10n):
         return
     else:
@@ -32,7 +32,7 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
 @router.message(F.content_type.in_({'animation'}))
 async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
     uid = message.from_user.id
-    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else " ")
+    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
     if await reply_if_banned(message, uid, l10n):
         return
     else:
@@ -47,7 +47,7 @@ async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot
 @router.message(F.content_type.in_({'sticker'}))
 async def process_obs(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
     uid = message.from_user.id
-    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else " ")
+    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
     if await reply_if_banned(message, uid, l10n):
         return
     else:

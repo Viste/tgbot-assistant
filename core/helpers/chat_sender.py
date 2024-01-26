@@ -10,7 +10,7 @@ from core.helpers.obs import ClientOBS
 
 router = Router()
 logger = logging.getLogger(__name__)
-router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_({-1001647523732}))
+router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_({-1001814931266}))
 
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
