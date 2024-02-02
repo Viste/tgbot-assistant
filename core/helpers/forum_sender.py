@@ -18,7 +18,7 @@ state = ChatState()
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
 @router.message(F.content_type.in_({'text'}))
 async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> None:
-    logging.info("State chat %s Message INfo: %s", state.active_chat, message)
+    logging.info("State chat %s", state.active_chat)
     if message.chat.id != state.active_chat or message.message_thread_id != state.thread_id:
         return
     uid = message.from_user.id
