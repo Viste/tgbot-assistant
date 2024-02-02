@@ -28,9 +28,12 @@ async def get_sub(callback: types.CallbackQuery, pay_state: FSMContext):
 async def process_callback(callback: types.CallbackQuery):
     if callback.data == "academy_chat":
         state.active_chat = -1001647523732
+        logging.info('state changed to academy %s', state.active_chat)
     elif callback.data == "np_pro":
         state.active_chat = -1001814931266
+        logging.info('state changed to pro %s', state.active_chat)
     elif callback.data == "np_basic":
         state.active_chat = -1001922960346
         state.thread_id = 25503
+        logging.info('state changed to academy %s', state.active_chat)
     await callback.answer()
