@@ -140,7 +140,8 @@ async def mails_get(message: types.Message, session: AsyncSession):
 async def stream_cmd(message: types.Message):
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text="Нейропанк Академия", callback_data="academy_chat"))
-    kb.add(InlineKeyboardButton(text="НЕЙРОПАНК PRO (КОНТЕНТ ПО ПОДПИСКЕ)", callback_data="np_pro"))
+    kb.add(InlineKeyboardButton(text="PRO (КОНТЕНТ ПО ПОДПИСКЕ)", callback_data="np_pro"))
+    kb.add(InlineKeyboardButton(text="ЛИКВИД КУРС", callback_data="liqud_chat"))
     kb.add(InlineKeyboardButton(text="НАЧАЛЬНЫЙ #1 - от 0 до паладина!", callback_data="np_basic"))
 
     await message.reply("Паша, чат то выбери:", reply_markup=kb.as_markup(resize_keyboard=True))

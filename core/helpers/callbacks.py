@@ -37,5 +37,8 @@ async def process_callback(callback: types.CallbackQuery):
     elif callback.data == "np_basic":
         state.active_chat = -1001922960346
         state.thread_id = 25503
-        logging.info('state changed to academy %s', state.active_chat)
+        logging.info('state changed to basic %s', state.active_chat)
+    elif callback.data == "liqud_chat":
+        state.active_chat = -1001999768206
+        logging.info('state changed to liquid %s', state.active_chat)
     await callback.answer()
