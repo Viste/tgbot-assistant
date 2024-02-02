@@ -25,9 +25,3 @@ class UserManager:
         self.session.add(user)
         await self.session.commit()
         return user
-
-    async def upsert_user(self, user: User) -> User:
-        stmt = insert(User).values(telegram_id=user.telegram_id, system_message=user.system_message).on_duplicate_key_update(system_message=user.system_message)
-        await self.session.execute(stmt)
-        await self.session.commit()
-        return user

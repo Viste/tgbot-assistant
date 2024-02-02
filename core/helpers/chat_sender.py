@@ -7,15 +7,18 @@ from fluent.runtime import FluentLocalization
 from core.helpers.tools import reply_if_banned
 from tools.utils import config
 from core.helpers.obs import ClientOBS
+from core.helpers.tools import active_chat, thread_id
 
 router = Router()
 logger = logging.getLogger(__name__)
-router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_({-1001814931266}))
+router.message.filter(F.chat.type.in_({'group', 'supergroup'}))
 
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
 @router.message(F.content_type.in_({'text'}))
 async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> None:
+    if message.chat.id != active_chat:
+        return
     uid = message.from_user.id
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
     if await reply_if_banned(message, uid, l10n):
@@ -30,6 +33,8 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
 @router.message(F.content_type.in_({'animation'}))
 async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
+    if message.chat.id != active_chat:
+        return
     uid = message.from_user.id
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
     if await reply_if_banned(message, uid, l10n):
@@ -45,6 +50,8 @@ async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot:
 
 @router.message(F.content_type.in_({'sticker'}))
 async def process_obs_sticker(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
+    if message.chat.id != active_chat:
+        return
     uid = message.from_user.id
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
     if await reply_if_banned(message, uid, l10n):
@@ -60,6 +67,8 @@ async def process_obs_sticker(message: types.Message, l10n: FluentLocalization, 
 
 @router.message(F.content_type.in_({'photo'}))
 async def process_obs_image(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
+    if message.chat.id != active_chat:
+        return
     uid = message.from_user.id
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
     if await reply_if_banned(message, uid, l10n):

@@ -1,8 +1,7 @@
 import logging
 
-from aiogram import types, Router, F, flags, Bot
+from aiogram import types, Router, F, flags
 from aiogram.filters.command import Command, CommandObject
-from aiogram.exceptions import TelegramAPIError
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fluent.runtime import FluentLocalization
@@ -10,6 +9,8 @@ from fluent.runtime import FluentLocalization
 from database.models import Calendar, StreamEmails
 from tools.ai.ai_tools import OpenAI
 from tools.utils import config, get_dt
+from aiogram.types import InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 router = Router()
 router.message.filter(F.chat.type.in_({'private'}))
@@ -132,3 +133,13 @@ async def mails_get(message: types.Message, session: AsyncSession):
         await message.reply(all_emails_str, parse_mode=None)
     else:
         await message.reply("Нет записей", parse_mode=None)
+
+
+@router.message(Command(commands="stream", ignore_case=True), F.from_user.id.in_(config.admins))
+@flags.chat_action("typing")
+async def stream_cmd(message: types.Message):
+    kb = InlineKeyboardBuilder()
+    kb.add(InlineKeyboardButton(text="Нейропанк Академия", callback_data="academy_chat"))
+    kb.add(InlineKeyboardButton(text="НЕЙРОПАНК PRO (КОНТЕНТ ПО ПОДПИСКЕ)", callback_data="np_pro"))
+    kb.add(InlineKeyboardButton(text="НАЧАЛЬНЫЙ #1 - от 0 до паладина!", callback_data="np_basic"))
+    await message.reply("Паша, чат то выбери епта:", reply_markup=kb.as_markup(resize_keyboard=True))

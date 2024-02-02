@@ -12,6 +12,9 @@ logger = logging.getLogger(__name__)
 banned = set(config.banned_user_ids)
 shadowbanned = set(config.shadowbanned_user_ids)
 
+active_chat = None
+thread_id = None
+
 
 async def reply_if_banned(message: types.Message, uid: int, l10n: FluentLocalization) -> bool:
     if uid in banned:
