@@ -12,8 +12,16 @@ logger = logging.getLogger(__name__)
 banned = set(config.banned_user_ids)
 shadowbanned = set(config.shadowbanned_user_ids)
 
-active_chat = None
-thread_id = None
+
+class ChatState:
+    _instance = None
+    active_chat = None
+    thread_id = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(ChatState, cls).__new__(cls)
+        return cls._instance
 
 
 async def reply_if_banned(message: types.Message, uid: int, l10n: FluentLocalization) -> bool:
