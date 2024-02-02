@@ -26,6 +26,8 @@ async def get_sub(callback: types.CallbackQuery, pay_state: FSMContext):
 
 @router.callback_query()
 async def process_callback(callback: types.CallbackQuery):
+    logger.info("Callback query received: %s", callback.data)
+
     if callback.data == "academy_chat":
         state.active_chat = -1001647523732
         logging.info('state changed to academy %s', state.active_chat)

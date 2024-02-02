@@ -30,6 +30,7 @@ def setup_routers() -> Router:
     router.include_router(admin_manager.router)
     router.include_router(unsupported_manager.router)
     router.include_router(chat_dialogue.router)
+    router.include_router(callbacks.router)
     router.include_router(forum_dialogue.router)
     router.include_router(private_dialogue.router)
     router.include_router(chat_sender.router)
