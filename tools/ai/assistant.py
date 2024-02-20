@@ -60,17 +60,17 @@ class OpenAIAssist:
         while self.retries < self.max_retries:
             while self.retries < self.max_retries:
                 try:
-                    await self.client.beta.threads.messages.create(role="user", thread_id=str(user_id), content=query)
-                    await self.client.beta.threads.runs.create(thread_id=str(user_id), assistant_id=self.assistant_id, instructions=f"ник того с кем ты разговариваешь {name}")
+                    thread = await self.client.beta.threads.messages.create(role="user", thread_id=thread.id, content=query)
+                    await self.client.beta.threads.runs.create(thread_id=thread.id, assistant_id=self.assistant_id, instructions=f"ник того с кем ты разговариваешь {name}")
 
                     # Ждем пока Run перейдет в статус completed
                     while True:
-                        run = await self.client.beta.threads.runs.retrieve(thread_id=str(user_id), run_id=run.id)
+                        run = await self.client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
                         logging.info('FROM NEW SPEAK WITH PAPER RUN: %s', run)
                         if run.status == "completed":
                             break
 
-                    messages = await self.client.beta.threads.messages.list(thread_id=str(user_id))
+                    messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
                     logging.info('FROM NEW SPEAK WITH PAPER MESSAGE: %s', messages)
                     return messages[-1]
 

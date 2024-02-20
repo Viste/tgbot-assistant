@@ -19,7 +19,7 @@ router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(co
 
 
 @flags.chat_action("typing")
-@router.message(F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?"))
+@router.message(F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot"))
 async def ask(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
     await state.set_state(Text.get)
     openai = OpenAI()
@@ -64,7 +64,7 @@ async def info_user(message: types.Message, l10n: FluentLocalization):
 
 
 @flags.chat_action("typing")
-@router.message(F.text.regexp(r"[\s\S]+?киберпапер[\s\S]+?"))
+@router.message(F.text.regexp(r"[\s\S]+?киберпапер[\s\S]+?") | F.text.startswith("киберпапер"))
 async def assist(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
     await state.set_state(Text.get)
     openai = OpenAIAssist()
