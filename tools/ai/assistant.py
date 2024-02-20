@@ -60,7 +60,8 @@ class OpenAIAssist:
         while self.retries < self.max_retries:
             while self.retries < self.max_retries:
                 try:
-                    thread = await self.client.beta.threads.messages.create(role="user", thread_id=thread.id, content=query)
+                    thread = await self.client.beta.threads.create()
+                    await self.client.beta.threads.messages.create(role="user", thread_id=thread.id, content=query)
                     await self.client.beta.threads.runs.create(thread_id=thread.id, assistant_id=self.assistant_id, instructions=f"ник того с кем ты разговариваешь {name}")
 
                     # Ждем пока Run перейдет в статус completed
