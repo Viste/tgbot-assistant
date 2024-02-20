@@ -19,7 +19,7 @@ router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(co
 
 
 @flags.chat_action("typing")
-@router.message(F.text.startwith('@cyberpaperbot'))
+@router.message(F.text.startswith("@cyberpaperbot"))
 async def ask(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
     await state.set_state(Text.get)
     openai = OpenAI()
@@ -75,7 +75,7 @@ async def assist(message: types.Message, state: FSMContext, l10n: FluentLocaliza
 
     logging.info("%s", message)
     text = html.escape(message.text)
-    escaped_text = text.strip('киберпапер ')
+    escaped_text = text.strip("киберпапер ")
 
     replay_text, total_tokens = await openai.get_resp(escaped_text, uid, message.from_user.first_name)
     chunks = split_into_chunks(replay_text)
