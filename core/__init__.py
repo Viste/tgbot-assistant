@@ -12,7 +12,6 @@ def setup_routers() -> Router:
     from . import chat_dialogue, demo_catcher, email_catcher, demo_listener, forum_dialogue, private_dialogue
     from core.helpers import chat_sender, forum_sender
     from core.helpers import admin_manager, callbacks, payment, unsupported_manager
-    from core.phoenix import phoenix
 
     router = Router()
 
@@ -31,7 +30,6 @@ def setup_routers() -> Router:
     router.include_router(admin_manager.router)
     router.include_router(unsupported_manager.router)
     router.include_router(chat_dialogue.router)
-    router.include_router(phoenix.router)
     router.include_router(callbacks.router)
     router.include_router(forum_dialogue.router)
     router.include_router(private_dialogue.router)
