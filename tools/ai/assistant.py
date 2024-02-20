@@ -65,15 +65,18 @@ class OpenAIAssist:
                     run = await self.client.beta.threads.runs.create(thread_id=thread.id, assistant_id=self.assistant_id, instructions=f"ник того с кем ты разговариваешь {name}")
 
                     # Ждем пока Run перейдет в статус completed
-                    while True:
-                        await self.client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
+                    status = "queued"
+                    while status != "completed":
+                        run_status = await self.client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
                         logging.info('FROM NEW SPEAK WITH PAPER RUN: %s', run)
-                        if run.status == "completed":
-                            break
+                        status = run_status.status
 
                     messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
                     logging.info('FROM NEW SPEAK WITH PAPER MESSAGE: %s', messages)
-                    return messages[-1]
+                    if messages:
+                        return messages[-1].content  # Предполагается, что messages - это список объектов сообщений, и у этих объектов есть атрибут content
+                    else:
+                        return "No messages found."
 
                 except Exception as e:
                     print(f"An error occurred: {e}")
