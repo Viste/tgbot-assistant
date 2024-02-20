@@ -18,7 +18,7 @@ router.message.filter(F.chat.type.in_({'group', 'supergroup'}), F.chat.id.in_(co
 
 
 @flags.chat_action("typing")
-@router.message(F.text.regexp(r'[\s\S]+?\@cyberpaperbot[\s\S]+?'))
+@router.message(F.text.startwith('@cyberpaperbot'))
 async def ask(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
     await state.set_state(Text.get)
     openai = OpenAI()
