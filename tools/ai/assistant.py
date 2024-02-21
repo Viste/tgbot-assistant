@@ -57,9 +57,8 @@ class OpenAIAssist:
                     logging.info('CONTENT: %s', messages.data[0].content[0])
                     if messages:
                         messages_list = messages.data[0]
-                        last_message = messages_list[-1]
                         logging.info('LAST MESSAGE FROM IF: %s', last_message)
-                        return last_message.content[0].text.value
+                        return messages_list.content[0].text.value
                     else:
                         return "No messages found."
 
