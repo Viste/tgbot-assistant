@@ -1,8 +1,8 @@
-import logging
 import asyncio
-import json
+import logging
 
 from openai import AsyncOpenAI
+
 from tools.utils import config
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ class OpenAIAssist:
 
         logger.info('!!!!!Response: %s', response)
 
-        answer = response['content'][0]['text']['value']
+        answer = response
 
         total_tokens = response.usage.total_tokens if response.usage else 0
         if response.usage and self.show_tokens:
@@ -54,7 +54,9 @@ class OpenAIAssist:
                     messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
                     logging.info('FROM NEW SPEAK WITH PAPER MESSAGE: %s', messages.data)
                     if messages:
-                        return messages.data.threadmessage.content[0].text.value
+                        messages_list = messages.to_list()
+                        logging.info('FROM NEW SPEAK WITH PAPER MESSAGE: %s', messages_list)
+                        return messages_list.data.content[0].text.value
                     else:
                         return "No messages found."
 
