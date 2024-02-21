@@ -42,26 +42,23 @@ class OpenAIAssist:
         return answer, total_tokens
 
     async def _query_gpt(self, user_id: int, query: str, name: str):
-        while self.retries < self.max_retries:
-            while self.retries < self.max_retries:
-                try:
-                    thread = await self.client.beta.threads.create()
-                    await self.client.beta.threads.messages.create(role="user", thread_id=thread.id, content=query)
-                    run = await self.client.beta.threads.runs.create(thread_id=thread.id, assistant_id=self.assistant_id, instructions=f"ник того с кем ты разговариваешь {name}")
+        try:
+            thread = await self.client.beta.threads.create()
+            await self.client.beta.threads.messages.create(role="user", thread_id=thread.id, content=query)
+            run = await self.client.beta.threads.runs.create(thread_id=thread.id, assistant_id=self.assistant_id, instructions=f"ник того с кем ты разговариваешь {name}")
 
-                    await asyncio.sleep(180)
+            await asyncio.sleep(180)
 
-                    messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
-                    logging.info('FULL MESSAGE: %s', messages)
-                    logging.info('DATA: %s', messages.data)
-                    logging.info('CONTENT: %s', messages.data[0].content[0])
-                    if messages:
-                        messages_list = messages.data[0]
-                        logging.info('LAST MESSAGE FROM IF: %s', last_message)
-                        return messages_list.content[0].text.value
-                    else:
-                        return "No messages found."
+            messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
+            logging.info('FULL MESSAGE: %s', messages)
+            logging.info('DATA: %s', messages.data)
+            logging.info('CONTENT: %s', messages.data[0].content[0])
+            if messages:
+                messages_list = messages.data[0]
+                logging.info('LAST MESSAGE FROM IF: %s', last_message)
+                return messages_list.content[0].text.value
+            else:
+                return "No messages found."
 
-                except Exception as e:
-                    print(f"An error occurred: {e}")
-                    self.retries += 1
+        except Exception as e:
+            print(f"An error occurred: {e}")
