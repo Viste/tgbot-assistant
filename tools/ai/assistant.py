@@ -49,7 +49,7 @@ class OpenAIAssist:
                     await self.client.beta.threads.messages.create(role="user", thread_id=thread.id, content=query)
                     run = await self.client.beta.threads.runs.create(thread_id=thread.id, assistant_id=self.assistant_id, instructions=f"ник того с кем ты разговариваешь {name}")
 
-                    await asyncio.sleep(120)
+                    await asyncio.sleep(180)
 
                     messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
                     logging.info('FROM NEW SPEAK WITH PAPER MESSAGE: %s', messages.data)
