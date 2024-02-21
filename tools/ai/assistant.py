@@ -38,9 +38,10 @@ class OpenAIAssist:
         try:
             thread = await self.client.beta.threads.create()
             await self.client.beta.threads.messages.create(role="user", thread_id=thread.id, content=query)
-            run = await self.client.beta.threads.runs.create(thread_id=thread.id, assistant_id=self.assistant_id, instructions=f"ник того с кем ты разговариваешь {name}")
+            run = await self.client.beta.threads.runs.create(thread_id=thread.id, assistant_id=self.assistant_id, instructions=f"ник того с кем ты разговариваешь {name}, обращайся ко всем по "
+                                                                                                                               f"никнейму")
 
-            await asyncio.sleep(180)
+            await asyncio.sleep(160)
 
             messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
             logging.info('FULL MESSAGE: %s', messages)
