@@ -4,6 +4,7 @@ import os
 
 from aiogram import types
 from fluent.runtime import FluentLocalization
+from aiogram.enums import ParseMode
 
 from tools.utils import config
 
