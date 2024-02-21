@@ -52,7 +52,8 @@ class OpenAIAssist:
                     await asyncio.sleep(180)
 
                     messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
-                    logging.info('FROM NEW SPEAK WITH PAPER MESSAGE: %s', messages.data)
+                    logging.info('FULL MESSAGE: %s', messages)
+                    logging.info('DATA: %s', messages.data)
                     if messages:
                         messages_list = messages.to_list()
                         logging.info('FROM NEW SPEAK WITH PAPER MESSAGE: %s', messages_list)
