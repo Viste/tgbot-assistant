@@ -54,7 +54,7 @@ class OpenAIAssist:
                     messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
                     logging.info('FROM NEW SPEAK WITH PAPER MESSAGE: %s', messages.data)
                     if messages:
-                        return messages.data.content[0].text.value
+                        return messages.data.threadmessage.content[0].text.value
                     else:
                         return "No messages found."
 
