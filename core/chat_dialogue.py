@@ -77,7 +77,7 @@ async def assist(message: types.Message, state: FSMContext, l10n: FluentLocaliza
     text = html.escape(message.text)
     escaped_text = text.strip("киберпапер")
 
-    replay_text, total_tokens = await openai.get_resp(escaped_text, uid, message.from_user.first_name)
+    replay_text = await openai.get_resp(escaped_text, uid, message.from_user.first_name)
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         if index == 0:
@@ -96,7 +96,7 @@ async def process_assist(message: types.Message, l10n: FluentLocalization) -> No
     logging.info("%s", message)
     text = html.escape(message.text)
 
-    replay_text, total_tokens = await openai.get_resp(text, uid, message.from_user.first_name)
+    replay_text = await openai.get_resp(text, uid, message.from_user.first_name)
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         if index == 0:

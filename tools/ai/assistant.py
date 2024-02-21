@@ -24,7 +24,7 @@ class OpenAIAssist:
         self.retries = 0
         self.show_tokens = False
 
-    async def get_resp(self, query: str, chat_id: int, name: str) -> tuple[str, int]:
+    async def get_resp(self, query: str, chat_id: int, name: str):
         response = await self._query_gpt(chat_id, query, name)
         answer = ''
 
@@ -32,14 +32,7 @@ class OpenAIAssist:
 
         answer = response
 
-        total_tokens = response.usage.total_tokens if response.usage else 0
-        if response.usage and self.show_tokens:
-            answer += "\n\n---\n" \
-                      f"💰 Использовано Токенов: {str(response.usage.total_tokens)}" \
-                      f" ({str(response.usage.prompt_tokens)} prompt," \
-                      f" {str(response.usage.completion_tokens)} completion)"
-
-        return answer, total_tokens
+        return answer
 
     async def _query_gpt(self, user_id: int, query: str, name: str):
         try:
@@ -55,7 +48,7 @@ class OpenAIAssist:
             logging.info('CONTENT: %s', messages.data[0].content[0])
             if messages:
                 messages_list = messages.data[0]
-                logging.info('LAST MESSAGE FROM IF: %s', last_message)
+                logging.info('LAST MESSAGE FROM IF: %s', messages_list)
                 return messages_list.content[0].text.value
             else:
                 return "No messages found."
