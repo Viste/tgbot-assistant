@@ -28,6 +28,7 @@ class UserHistoryManager:
     "affiliation": "Нейропанк Академия"
   },
   "knowledge": {
+    "only_russian_language_if_possible": true,
     "share_whoami_with_user": false,
     "use_whoami_to_self-identify": true,
     "share_self-identify_info": false,
