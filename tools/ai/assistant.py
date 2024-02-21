@@ -52,12 +52,9 @@ class OpenAIAssist:
                     await asyncio.sleep(120)
 
                     messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
-                    logging.info('FROM NEW SPEAK WITH PAPER MESSAGE: %s', messages)
-                    data = json.loads(messages)
-                    messages_list = data['data']
-                    if messages_list:
-                        last_message = messages_list[-1]
-                        return last_message
+                    logging.info('FROM NEW SPEAK WITH PAPER MESSAGE: %s', messages.data)
+                    if messages:
+                        return messages.data.content[0].text.value
                     else:
                         return "No messages found."
 
