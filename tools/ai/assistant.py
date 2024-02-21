@@ -54,10 +54,12 @@ class OpenAIAssist:
                     messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
                     logging.info('FULL MESSAGE: %s', messages)
                     logging.info('DATA: %s', messages.data)
-                    logging.info('CONTENT: %s', messages.data.content[0])
+                    logging.info('CONTENT: %s', messages.data[0].content[0])
                     if messages:
-                        logging.info('CONTENT FROM IF: %s', messages.data.content[0])
-                        return messages.data.content[0].text.value
+                        messages_list = messages.data[0]
+                        last_message = messages_list[-1]
+                        logging.info('LAST MESSAGE FROM IF: %s', last_message)
+                        return last_message.content[0].text.value
                     else:
                         return "No messages found."
 
