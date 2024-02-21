@@ -64,13 +64,6 @@ class OpenAIAssist:
                     await self.client.beta.threads.messages.create(role="user", thread_id=thread.id, content=query)
                     run = await self.client.beta.threads.runs.create(thread_id=thread.id, assistant_id=self.assistant_id, instructions=f"ник того с кем ты разговариваешь {name}")
 
-                    # Ждем пока Run перейдет в статус completed
-                    status = "queued"
-                    while status != "completed":
-                        run_status = await self.client.beta.threads.runs.retrieve(thread_id=thread.id, run_id=run.id)
-                        logging.info('FROM NEW SPEAK WITH PAPER RUN: %s', run)
-                        status = run_status.status
-
                     messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
                     logging.info('FROM NEW SPEAK WITH PAPER MESSAGE: %s', messages)
                     if messages:
