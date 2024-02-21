@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import json
 
 from openai import AsyncOpenAI
 from tools.utils import config
@@ -28,16 +29,8 @@ class OpenAIAssist:
         answer = ''
 
         logger.info('!!!!!Response: %s', response)
-        if response.choices and len(response.choices) > 1 and self.n_choices > 1:
-            for index, choice in enumerate(response.choices):
-                content = choice.message.content.strip()
-                answer += f'{index + 1}\u20e3\n'
-                answer += content
-                answer += '\n\n'
-        elif response.choices and len(response.choices) >= 0:
-            answer = response.choices[0].message.content.strip()
-        else:
-            answer = response.choices[0].message.content.strip()
+
+        answer = response['content'][0]['text']['value']
 
         total_tokens = response.usage.total_tokens if response.usage else 0
         if response.usage and self.show_tokens:
@@ -60,8 +53,11 @@ class OpenAIAssist:
 
                     messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
                     logging.info('FROM NEW SPEAK WITH PAPER MESSAGE: %s', messages)
-                    if messages:
-                        return messages[-1].content  # Предполагается, что messages - это список объектов сообщений, и у этих объектов есть атрибут content
+                    data = json.loads(messages)
+                    messages_list = data['data']
+                    if messages_list:
+                        last_message = messages_list[-1]
+                        return last_message
                     else:
                         return "No messages found."
 
