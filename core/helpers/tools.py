@@ -33,7 +33,7 @@ async def reply_if_banned(message: types.Message, uid: int, l10n: FluentLocaliza
 
 async def send_reply(message: types.Message, text: str) -> None:
     try:
-        await message.reply(text, parse_mode=None)
+        await message.reply(text, parse_mode=ParseMode.HTML)
     except Exception as err:
         logging.info('Exception while sending reply: %s', err)
         try:

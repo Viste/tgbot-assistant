@@ -27,7 +27,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
     if await reply_if_banned(message, uid, l10n):
         return
 
-    # if not await has_active_subscription(uid, session):
+    if not await has_active_subscription(uid, session):
     #    kb = [
     #        [
     #            types.InlineKeyboardButton(text="Купить подписку", callback_data="buy_subscription")
@@ -36,7 +36,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
     #    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
     #    await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.",
     #                         reply_markup=keyboard)
-    #    return
+        return
 
     file_path = f"/app/tmp/{str(uid)}.mp3"
     file_info = await bot.get_file(message.audio.file_id)

@@ -1,15 +1,7 @@
-import json
 import logging
-from calendar import monthrange
-from datetime import date
+import asyncio
 
 from openai import AsyncOpenAI
-import requests
-import tiktoken
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
-
-from database.models import User
 from tools.utils import config
 
 logger = logging.getLogger(__name__)
@@ -35,7 +27,7 @@ class OpenAIAssist:
         response = await self._query_gpt(chat_id, query, name)
         answer = ''
 
-        logger.info('Response: %s, Answer: %s', response, answer)
+        logger.info('!!!!!Response: %s', response)
         if response.choices and len(response.choices) > 1 and self.n_choices > 1:
             for index, choice in enumerate(response.choices):
                 content = choice.message.content.strip()
@@ -63,6 +55,8 @@ class OpenAIAssist:
                     thread = await self.client.beta.threads.create()
                     await self.client.beta.threads.messages.create(role="user", thread_id=thread.id, content=query)
                     run = await self.client.beta.threads.runs.create(thread_id=thread.id, assistant_id=self.assistant_id, instructions=f"ник того с кем ты разговариваешь {name}")
+
+                    await asyncio.sleep(120)
 
                     messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
                     logging.info('FROM NEW SPEAK WITH PAPER MESSAGE: %s', messages)
