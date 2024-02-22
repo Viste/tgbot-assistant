@@ -42,4 +42,8 @@ async def process_callback(callback: types.CallbackQuery):
         state.active_chat = -1001999768206
         state.thread_id = 4284
         logging.info('state changed to liquid %s', state.active_chat)
+    elif callback.data == "super_pro":
+        state.active_chat = -1002040950538
+        state.thread_id = 4284
+        logging.info('state changed to liquid %s', state.active_chat)
     await callback.answer()
