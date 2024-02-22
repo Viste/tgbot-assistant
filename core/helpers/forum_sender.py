@@ -22,7 +22,6 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
     if message.chat.id != state.active_chat or message.message_thread_id != state.thread_id:
         return
     uid = message.from_user.id
-    obs = ClientOBS()
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
     if await reply_if_banned(message, uid, l10n):
         return
