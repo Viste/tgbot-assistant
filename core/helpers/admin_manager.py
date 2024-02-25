@@ -3,15 +3,16 @@ import logging
 from aiogram import types, Router, F, flags
 from aiogram.filters.command import Command, CommandObject
 from aiogram.fsm.context import FSMContext
+from aiogram.types import InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fluent.runtime import FluentLocalization
 
 from database.models import Calendar, StreamEmails
-from tools.ai.ai_tools import OpenAI
-from aiogram.types import InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from database.manager import UserManager
+from tools.ai.ai_tools import OpenAI
+from tools.utils import config, get_dt
 
 router = Router()
 router.message.filter(F.chat.type.in_({'private'}))
