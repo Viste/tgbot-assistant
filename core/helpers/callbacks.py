@@ -2,7 +2,9 @@ import logging
 
 from aiogram import types, Router, F, Bot
 from aiogram.fsm.context import FSMContext
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from database.models import CourseParticipant
 
 from main import paper
 from tools.states import Payment
@@ -63,8 +65,11 @@ async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, 
     user_id = data['chatid']
     if callback.data == "academy":
         course_name = "Нейропанк Академия (Общий поток)"
-        emails = await manager.get_emails_by_course(course_name=course_name)
+        stmt = select(CourseParticipant.email).where(CourseParticipant.course_name == course_name)
         logger.info("Course name: %s", course_name)
+        result = await session.execute(stmt)
+        emails = result.scalars().all()
+        logging.info(f"Retrieved emails for course {course_name}: {emails}")
         if emails:
             logger.info("Emails: %s", emails)
             email_list = "\n".join(emails)
