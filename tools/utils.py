@@ -19,6 +19,7 @@ class JSONObject:
 cfg_file = open(os.path.join(os.path.dirname(__file__), 'config.json'), 'r', encoding='utf8')
 config = json.loads(cfg_file.read(), object_hook=JSONObject)
 email_patt = re.compile("^(\w+?|\w+?\.\w+?|\w+?\.\w+?\.\w+?)@\w+?\.\w{2,12}$")
+gmail_patt = re.compile("^[a-zA-Z0-9._%+-]+?@gmail\.com")
 
 
 def split_into_chunks(text: str, chunk_size: int = 4096) -> list[str]:

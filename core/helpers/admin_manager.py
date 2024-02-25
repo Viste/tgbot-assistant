@@ -141,9 +141,23 @@ async def stream_cmd(message: types.Message):
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text="Нейропанк Академия", callback_data="academy_chat"))
     kb.add(InlineKeyboardButton(text="PRO (КОНТЕНТ ПО ПОДПИСКЕ)", callback_data="np_pro"))
-    kb.add(InlineKeyboardButton(text="ЛИКВИД КУРС", callback_data="liqud_chat"))
+    kb.add(InlineKeyboardButton(text="ЛИКВИД КУРС", callback_data="liquid_chat"))
     kb.add(InlineKeyboardButton(text="НАЧАЛЬНЫЙ #1 - от 0 до паладина!", callback_data="np_basic"))
     kb.add(InlineKeyboardButton(text="SUPER PRO#1 (DNB)", callback_data="super_pro"))
     kb.add(InlineKeyboardButton(text="НЕЙРОФАНК КУРС ", callback_data="neuro"))
 
-    await message.reply("Паша, чат то выбери:", reply_markup=kb.as_markup(resize_keyboard=True))
+    await message.reply("Паша, чат то выбери:", reply_markup=kb.as_markup(resize_keyboard=False))
+
+
+@router.message(Command(commands="getmail", ignore_case=True), F.from_user.id.in_(config.admins))
+@flags.chat_action("typing")
+async def stream_cmd(message: types.Message):
+    kb = InlineKeyboardBuilder()
+    kb.add(InlineKeyboardButton(text="Нейропанк Академия", callback_data="academy"))
+    kb.add(InlineKeyboardButton(text="PRO (КОНТЕНТ ПО ПОДПИСКЕ)", callback_data="np_pro"))
+    kb.add(InlineKeyboardButton(text="ЛИКВИД КУРС", callback_data="liquid_chat"))
+    kb.add(InlineKeyboardButton(text="НАЧАЛЬНЫЙ #1 - от 0 до паладина!", callback_data="np_basic"))
+    kb.add(InlineKeyboardButton(text="SUPER PRO#1 (DNB)", callback_data="super_pro"))
+    kb.add(InlineKeyboardButton(text="НЕЙРОФАНК КУРС ", callback_data="neuro"))
+
+    await message.reply("Паша, какого курса тебе дать почты?", reply_markup=kb.as_markup(resize_keyboard=False))

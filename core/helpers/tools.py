@@ -14,6 +14,16 @@ banned = set(config.banned_user_ids)
 shadowbanned = set(config.shadowbanned_user_ids)
 
 
+active_chats = {
+    -1001647523732: 0,  # academy chat
+    -1001814931266: 12,  # neuropunk pro
+    -1001922960346: 34,  # neuropunk basic
+    -1001999768206: 4,  # liquid
+    -1002040950538: 2,  # SUPER PRO
+    -1001961684542: 2450,  # neurofunk
+}
+
+
 class ChatState:
     _instance = None
     active_chat = None
@@ -22,6 +32,17 @@ class ChatState:
     def __new__(cls, *args, **kwargs):
         if cls._instance is None:
             cls._instance = super(ChatState, cls).__new__(cls)
+        return cls._instance
+
+
+class EmailChatState:
+    _instance = None
+    active_chat = None
+    thread_id = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super(EmailChatState, cls).__new__(cls)
         return cls._instance
 
 

@@ -2,10 +2,12 @@ import logging
 
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from main import paper
 from tools.states import Payment
 from core.helpers.tools import ChatState
+from database.manager import UserManager
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -25,7 +27,7 @@ async def get_sub(callback: types.CallbackQuery, pay_state: FSMContext):
 
 
 @router.callback_query()
-async def process_callback(callback: types.CallbackQuery):
+async def process_sender(callback: types.CallbackQuery):
     logger.info("Callback query received: %s", callback.data)
     if callback.data == "academy_chat":
         state.active_chat = -1001647523732
@@ -38,7 +40,7 @@ async def process_callback(callback: types.CallbackQuery):
         state.active_chat = -1001922960346
         state.thread_id = 25503
         logging.info('state changed to basic %s', state.active_chat)
-    elif callback.data == "liqud_chat":
+    elif callback.data == "liquid_chat":
         state.active_chat = -1001999768206
         state.thread_id = 4284
         logging.info('state changed to liquid %s', state.active_chat)
@@ -50,4 +52,59 @@ async def process_callback(callback: types.CallbackQuery):
         state.active_chat = -1001961684542
         state.thread_id = 4048
         logging.info('state changed to NEURO %s', state.active_chat)
+    await callback.answer()
+
+
+@router.callback_query()
+async def process_catcher(callback: types.CallbackQuery, session: AsyncSession):
+    logger.info("Callback query received: %s", callback.data)
+    manager = UserManager(session)
+    if callback.data == "academy":
+        course_name = "Нейропанк Академия (Общий поток)"
+        emails = await manager.get_emails_by_course(course_name=course_name)
+        if emails:
+            email_list = "\n".join(emails)
+            await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
+        else:
+            await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
+    elif callback.data == "np_pro":
+        course_name = "Нейропанк Академия (Общий поток)"
+        emails = await manager.get_emails_by_course(course_name=course_name)
+        if emails:
+            email_list = "\n".join(emails)
+            await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
+        else:
+            await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
+    elif callback.data == "np_basic":
+        course_name = "НАЧАЛЬНЫЙ #1 - от 0 до паладина!"
+        emails = await manager.get_emails_by_course(course_name=course_name)
+        if emails:
+            email_list = "\n".join(emails)
+            await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
+        else:
+            await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
+    elif callback.data == "liquid":
+        course_name = "ЛИКВИД КУРС #1 - Нейропанк Академия"
+        emails = await manager.get_emails_by_course(course_name=course_name)
+        if emails:
+            email_list = "\n".join(emails)
+            await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
+        else:
+            await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
+    elif callback.data == "super_pro":
+        course_name = "SUPER PRO#1 (DNB)"
+        emails = await manager.get_emails_by_course(course_name=course_name)
+        if emails:
+            email_list = "\n".join(emails)
+            await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
+        else:
+            await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
+    elif callback.data == "neuro":
+        course_name = "НЕЙРОФАНК КУРС #1"
+        emails = await manager.get_emails_by_course(course_name=course_name)
+        if emails:
+            email_list = "\n".join(emails)
+            await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
+        else:
+            await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
     await callback.answer()
