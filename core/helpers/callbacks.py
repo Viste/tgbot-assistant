@@ -75,8 +75,10 @@ async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, 
             email_list = "\n".join(emails)
             logger.info("Emails: %s", email_list)
             await bot.send_message(chat_id=user_id, text=f"Email адреса участников курса '{course_name}':\n{email_list}")
+            await callback.answer()
         else:
             await bot.send_message(chat_id=user_id, text=f"Участников на курсе '{course_name}' не найдено.")
+            await callback.answer()
     elif callback.data == "np_pro":
         course_name = "Нейропанк Академия (Общий поток)"
         emails = await manager.get_emails_by_course(course_name=course_name)
