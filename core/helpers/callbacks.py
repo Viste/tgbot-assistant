@@ -63,7 +63,7 @@ async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, 
     manager = UserManager(session)
     data = await catch_state.get_data()
     user_id = data['chatid']
-    if callback.data == "academy":
+    if callback.data == "course_academy":
         course_name = "Нейропанк Академия (Общий поток)"
         stmt = select(CourseParticipant.email).where(CourseParticipant.course_name == course_name)
         logger.info("Course name: %s", course_name)
@@ -79,7 +79,7 @@ async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, 
         else:
             await bot.send_message(chat_id=user_id, text=f"Участников на курсе '{course_name}' не найдено.")
             await callback.answer()
-    elif callback.data == "np_pro":
+    elif callback.data == "course_np_pro":
         course_name = "Нейропанк Академия (Общий поток)"
         emails = await manager.get_emails_by_course(course_name=course_name)
         if emails:
@@ -87,7 +87,7 @@ async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, 
             await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
         else:
             await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
-    elif callback.data == "np_basic":
+    elif callback.data == "course_np_basic":
         course_name = "НАЧАЛЬНЫЙ #1 - от 0 до паладина!"
         emails = await manager.get_emails_by_course(course_name=course_name)
         if emails:
@@ -95,7 +95,7 @@ async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, 
             await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
         else:
             await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
-    elif callback.data == "liquid":
+    elif callback.data == "course_liquid":
         course_name = "ЛИКВИД КУРС #1 - Нейропанк Академия"
         emails = await manager.get_emails_by_course(course_name=course_name)
         if emails:
@@ -103,7 +103,7 @@ async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, 
             await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
         else:
             await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
-    elif callback.data == "super_pro":
+    elif callback.data == "course_super_pro":
         course_name = "SUPER PRO#1 (DNB)"
         emails = await manager.get_emails_by_course(course_name=course_name)
         if emails:
@@ -111,7 +111,7 @@ async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, 
             await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
         else:
             await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
-    elif callback.data == "neuro":
+    elif callback.data == "course_neuro":
         course_name = "НЕЙРОФАНК КУРС #1"
         emails = await manager.get_emails_by_course(course_name=course_name)
         if emails:
