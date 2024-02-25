@@ -57,65 +57,35 @@ async def process_sender(callback: types.CallbackQuery):
     await callback.answer()
 
 
-@router.callback_query(F.data.startswith("course_"))
+@router.callback_query()
 async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, bot: Bot, catch_state: FSMContext):
     logger.info("Callback query received: %s", callback.data)
-    manager = UserManager(session)
     data = await catch_state.get_data()
     user_id = data['chatid']
-    if callback.data == "course_academy":
-        course_name = "Нейропанк Академия (Общий поток)"
-        stmt = select(CourseParticipant.email).where(CourseParticipant.course_name == course_name)
-        logger.info("Course name: %s", course_name)
-        result = await session.execute(stmt)
-        emails = result.scalars().all()
-        logging.info(f"Retrieved emails for course {course_name}: {emails}")
-        if emails:
-            logger.info("Emails: %s", emails)
-            email_list = "\n".join(emails)
-            logger.info("Emails: %s", email_list)
-            await bot.send_message(chat_id=user_id, text=f"Email адреса участников курса '{course_name}':\n{email_list}")
-            await callback.answer()
+    course_name = None
+    manager = UserManager(session)
+
+    if callback.data.startswith("course_"):
+        if callback.data == "course_academy":
+            course_name = "Нейропанк Академия (Общий поток)"
+        elif callback.data == "course_np_pro":
+            course_name = "НЕЙРОПАНК PRO (КОНТЕНТ ПО ПОДПИСКЕ) by Paperclip"
+        elif callback.data == "course_np_basic":
+            course_name = "НАЧАЛЬНЫЙ #1 - от 0 до паладина!"
+        elif callback.data == "course_liquid":
+            course_name = "ЛИКВИД КУРС #1 - Нейропанк Академия"
+        elif callback.data == "course_super_pro":
+            course_name = "SUPER PRO#1 (DNB)"
+        elif callback.data == "course_neuro":
+            course_name = "НЕЙРОФАНК КУРС #1"
+
+        if course_name:
+            manager = UserManager(session)
+            emails = await manager.get_emails_by_course(course_name=course_name)
+            if emails:
+                email_list = "\n".join(emails)
+                await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
+            else:
+                await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
         else:
-            await bot.send_message(chat_id=user_id, text=f"Участников на курсе '{course_name}' не найдено.")
-            await callback.answer()
-    elif callback.data == "course_np_pro":
-        course_name = "Нейропанк Академия (Общий поток)"
-        emails = await manager.get_emails_by_course(course_name=course_name)
-        if emails:
-            email_list = "\n".join(emails)
-            await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
-        else:
-            await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
-    elif callback.data == "course_np_basic":
-        course_name = "НАЧАЛЬНЫЙ #1 - от 0 до паладина!"
-        emails = await manager.get_emails_by_course(course_name=course_name)
-        if emails:
-            email_list = "\n".join(emails)
-            await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
-        else:
-            await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
-    elif callback.data == "course_liquid":
-        course_name = "ЛИКВИД КУРС #1 - Нейропанк Академия"
-        emails = await manager.get_emails_by_course(course_name=course_name)
-        if emails:
-            email_list = "\n".join(emails)
-            await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
-        else:
-            await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
-    elif callback.data == "course_super_pro":
-        course_name = "SUPER PRO#1 (DNB)"
-        emails = await manager.get_emails_by_course(course_name=course_name)
-        if emails:
-            email_list = "\n".join(emails)
-            await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
-        else:
-            await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
-    elif callback.data == "course_neuro":
-        course_name = "НЕЙРОФАНК КУРС #1"
-        emails = await manager.get_emails_by_course(course_name=course_name)
-        if emails:
-            email_list = "\n".join(emails)
-            await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
-        else:
-            await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
+            await callback.answer("Неизвестный курс.", show_alert=True)
