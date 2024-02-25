@@ -1,7 +1,7 @@
 import logging
 from typing import Optional, List
 
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 from database.models import CourseParticipant
@@ -46,3 +46,12 @@ class UserManager:
         emails = result.scalars().all()
         logging.info(f"Retrieved emails for course {course_name}: {emails}")
         return emails
+
+    async def delete_email_from_course(self, course_name: str, email: str) -> bool:
+        async with self.session.begin():
+            stmt = delete(CourseParticipant).where(CourseParticipant.course_name == course_name, CourseParticipant.email == email)
+            result = await self.session.execute(stmt)
+            if result.rowcount:
+                await self.session.commit()
+                return True
+        return False

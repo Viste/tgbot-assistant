@@ -9,10 +9,9 @@ from fluent.runtime import FluentLocalization
 
 from database.models import Calendar, StreamEmails
 from tools.ai.ai_tools import OpenAI
-from tools.utils import config, get_dt
-from tools.states import Admin
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from database.manager import UserManager
 
 router = Router()
 router.message.filter(F.chat.type.in_({'private'}))
@@ -164,3 +163,19 @@ async def stream_cmd(message: types.Message, state: FSMContext):
     kb.add(InlineKeyboardButton(text="НЕЙРОФАНК КУРС ", callback_data="course_neuro"))
 
     await message.reply("Паша, какого курса тебе дать почты?", reply_markup=kb.as_markup(resize_keyboard=False))
+
+
+@router.message(Command(commands=['delete_email'], ignore_case=True), F.from_кuser.id.in_(config.admins))
+async def delete_email_command(message: types.Message, session: AsyncSession):
+    manager = UserManager(session)
+    args = message.get_args().split(', ')  # Разделение аргументов через запятую и пробел
+    if len(args) != 2:
+        await message.reply("Пожалуйста, укажите название курса, как в телеграм и электронную почту для удаления в формате: /delete_email Курс Название, email@gmail.com")
+        return
+
+    course_name, email = args
+    success = await UserManager.delete_email_from_course(manager, course_name=course_name, email=email)
+    if success:
+        await message.reply(f"Электронная почта {email} успешно удалена из курса {course_name}.")
+    else:
+        await message.reply("Не удалось удалить электронную почту. Проверьте правильность введенных данных.")

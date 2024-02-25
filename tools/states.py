@@ -23,7 +23,3 @@ class Payment(StatesGroup):
 
 class Mail(StatesGroup):
     start = State()
-
-
-class Admin(StatesGroup):
-    start = State()
