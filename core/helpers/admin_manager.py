@@ -2,6 +2,7 @@ import logging
 
 from aiogram import types, Router, F, flags
 from aiogram.filters.command import Command, CommandObject
+from aiogram.fsm.context import FSMContext
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from fluent.runtime import FluentLocalization
@@ -151,7 +152,8 @@ async def stream_cmd(message: types.Message):
 
 @router.message(Command(commands="getmail", ignore_case=True), F.from_user.id.in_(config.admins))
 @flags.chat_action("typing")
-async def stream_cmd(message: types.Message):
+async def stream_cmd(message: types.Message, state: FSMContext):
+    await state.update_data(chatid=message.chat.id)
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text="Нейропанк Академия", callback_data="academy"))
     kb.add(InlineKeyboardButton(text="PRO (КОНТЕНТ ПО ПОДПИСКЕ)", callback_data="np_pro"))

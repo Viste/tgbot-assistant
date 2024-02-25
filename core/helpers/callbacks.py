@@ -1,6 +1,6 @@
 import logging
 
-from aiogram import types, Router, F
+from aiogram import types, Router, F, Bot
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -56,17 +56,22 @@ async def process_sender(callback: types.CallbackQuery):
 
 
 @router.callback_query()
-async def process_catcher(callback: types.CallbackQuery, session: AsyncSession):
+async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, bot: Bot, catch_state: FSMContext):
     logger.info("Callback query received: %s", callback.data)
     manager = UserManager(session)
+    data = await catch_state.get_data()
+    user_id = data['chatid']
     if callback.data == "academy":
         course_name = "Нейропанк Академия (Общий поток)"
         emails = await manager.get_emails_by_course(course_name=course_name)
+        logger.info("Course name: %s", course_name)
         if emails:
+            logger.info("Emails: %s", emails)
             email_list = "\n".join(emails)
-            await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
+            logger.info("Emails: %s", email_list)
+            await bot.send_message(chat_id=user_id, text=f"Email адреса участников курса '{course_name}':\n{email_list}")
         else:
-            await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
+            await bot.send_message(chat_id=user_id, text=f"Участников на курсе '{course_name}' не найдено.")
     elif callback.data == "np_pro":
         course_name = "Нейропанк Академия (Общий поток)"
         emails = await manager.get_emails_by_course(course_name=course_name)

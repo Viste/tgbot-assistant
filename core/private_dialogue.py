@@ -33,7 +33,7 @@ async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
 
 
 @flags.chat_action(action="typing", interval=5, initial_sleep=2)
-@router.message(F.text.startswith("Папер!"))
+@router.message(F.text.regexp(r"[\s\S]+?киберпапер[\s\S]+?") | F.text.startswith("киберпапер"))
 async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
     uid = message.from_user.id
@@ -48,7 +48,7 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
 
         logging.info("%s", message)
         text = html.escape(message.text)
-        escaped_text = text.strip('Папер! ')
+        escaped_text = text.strip('киберпапер ')
 
         await state.set_state(Dialogue.get)
         replay_text, total_tokens = await openai.get_resp(escaped_text, uid, session)
