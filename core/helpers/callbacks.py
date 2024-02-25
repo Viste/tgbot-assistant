@@ -58,10 +58,8 @@ async def process_sender(callback: types.CallbackQuery):
 
 
 @router.callback_query(lambda c: c.data.startswith("course_"))
-async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, bot: Bot, catch_state: FSMContext):
+async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, bot: Bot):
     logger.info("Callback query received: %s", callback.data)
-    data = await catch_state.get_data()
-    user_id = data['chatid']
     course_name = None
     manager = UserManager(session)
 
