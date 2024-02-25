@@ -144,5 +144,6 @@ async def stream_cmd(message: types.Message):
     kb.add(InlineKeyboardButton(text="ЛИКВИД КУРС", callback_data="liqud_chat"))
     kb.add(InlineKeyboardButton(text="НАЧАЛЬНЫЙ #1 - от 0 до паладина!", callback_data="np_basic"))
     kb.add(InlineKeyboardButton(text="SUPER PRO#1 (DNB)", callback_data="super_pro"))
+    kb.add(InlineKeyboardButton(text="НЕЙРОФАНК КУРС ", callback_data="neuro"))
 
     await message.reply("Паша, чат то выбери:", reply_markup=kb.as_markup(resize_keyboard=True))
