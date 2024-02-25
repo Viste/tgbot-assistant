@@ -28,7 +28,7 @@ async def get_sub(callback: types.CallbackQuery, pay_state: FSMContext):
     await callback.answer()
 
 
-@router.callback_query()
+@router.callback_query(lambda c: c.data in ["academy_chat", "np_pro", "np_basic", "liquid_chat", "super_pro", "neuro"])
 async def process_sender(callback: types.CallbackQuery):
     logger.info("Callback query received: %s", callback.data)
     if callback.data == "academy_chat":
@@ -57,7 +57,7 @@ async def process_sender(callback: types.CallbackQuery):
     await callback.answer()
 
 
-@router.callback_query()
+@router.callback_query(lambda c: c.data.startswith("course_"))
 async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, bot: Bot, catch_state: FSMContext):
     logger.info("Callback query received: %s", callback.data)
     data = await catch_state.get_data()
