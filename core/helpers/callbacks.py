@@ -57,7 +57,7 @@ async def process_sender(callback: types.CallbackQuery):
     await callback.answer()
 
 
-@router.callback_query()
+@router.callback_query(F.data.startswith("course_"))
 async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, bot: Bot, catch_state: FSMContext):
     logger.info("Callback query received: %s", callback.data)
     manager = UserManager(session)
@@ -119,4 +119,3 @@ async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, 
             await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
         else:
             await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
-    await callback.answer()
