@@ -48,6 +48,6 @@ async def process_callback(callback: types.CallbackQuery):
         logging.info('state changed to SUPER PRO %s', state.active_chat)
     elif callback.data == "neuro":
         state.active_chat = -1001961684542
-        state.thread_id = 293
+        state.thread_id = 4048
         logging.info('state changed to NEURO %s', state.active_chat)
     await callback.answer()
