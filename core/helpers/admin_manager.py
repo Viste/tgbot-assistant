@@ -166,10 +166,10 @@ async def stream_cmd(message: types.Message, state: FSMContext):
     await message.reply("Паша, какого курса тебе дать почты?", reply_markup=kb.as_markup(resize_keyboard=False))
 
 
-@router.message(Command(commands=['delete_email'], ignore_case=True), F.from_кuser.id.in_(config.admins))
+@router.message(Command(commands=['delete_email'], ignore_case=True), F.from_user.id.in_(config.admins))
 async def delete_email_command(message: types.Message, session: AsyncSession):
     manager = UserManager(session)
-    args = message.get_args().split(', ')  # Разделение аргументов через запятую и пробел
+    args = message.get_args().split(', ')
     if len(args) != 2:
         await message.reply("Пожалуйста, укажите название курса, как в телеграм и электронную почту для удаления в формате: /delete_email Курс Название, email@gmail.com")
         return
