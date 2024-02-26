@@ -7,7 +7,6 @@ from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from fluent.runtime import FluentLocalization
 
 from database.models import Calendar, StreamEmails
 from database.manager import UserManager

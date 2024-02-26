@@ -8,7 +8,6 @@ from aiogram.filters import Command
 
 from core.helpers.tools import send_reply, reply_if_banned
 from tools.ai.ai_tools import OpenAI
-from tools.ai.assistant import OpenAIAssist
 from tools.states import Text
 from tools.utils import config, split_into_chunks
 

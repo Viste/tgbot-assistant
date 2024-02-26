@@ -14,15 +14,8 @@ banned = set(config.banned_user_ids)
 shadowbanned = set(config.shadowbanned_user_ids)
 
 
-active_chats = {
-    -1001647523732: 0,  # academy chat
-    -1001814931266: 12,  # neuropunk pro
-    -1001922960346: 34,  # neuropunk basic
-    -1001999768206: 4,  # liquid
-    -1002040950538: 2,  # SUPER PRO
-    -1001961684542: 2450,  # neurofunk
-    -1002094481198: 2, #nerve
-}
+active_chats = {-1001647523732: 0, -1001814931266: 12, -1001922960346: 34, -1001999768206: 4, -1002040950538: 2, -1001961684542: 2450, -1002094481198: 2}
+# academy, neuropunk pro, neuropunk basic, liquid, SUPER PRO, neurofunk, nerve
 
 
 class ChatState:
