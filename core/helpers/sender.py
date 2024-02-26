@@ -20,12 +20,12 @@ state = ChatState()
 async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> None:
     logging.info("%s", message)
     logging.info("State chat %s", state.active_chat)
+    uid = message.from_user.id
+    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
+    if await reply_if_banned(message, uid, l10n):
+        return
     if message.chat.is_forum is True:
         if message.chat.id != state.active_chat or message.message_thread_id != state.thread_id:
-            return
-        uid = message.from_user.id
-        nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
-        if await reply_if_banned(message, uid, l10n):
             return
         else:
             logging.info("%s", message)
@@ -34,10 +34,6 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
                 await client.send_request(nickname, text)
     else:
         if message.chat.id != state.active_chat:
-            return
-        uid = message.from_user.id
-        nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
-        if await reply_if_banned(message, uid, l10n):
             return
         else:
             logging.info("%s", message)
@@ -50,12 +46,12 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
 @router.message(F.content_type.in_({'animation'}))
 async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
     logging.info("%s", message)
+    uid = message.from_user.id
+    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
+    if await reply_if_banned(message, uid, l10n):
+        return
     if message.chat.is_forum is True:
         if message.chat.id != state.active_chat or message.message_thread_id != state.thread_id:
-            return
-        uid = message.from_user.id
-        nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
-        if await reply_if_banned(message, uid, l10n):
             return
         else:
             logging.info("%s", message)
@@ -66,10 +62,6 @@ async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot:
                 await client.send_request(nickname, file_url)
     else:
         if message.chat.id != state.active_chat:
-            return
-        uid = message.from_user.id
-        nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
-        if await reply_if_banned(message, uid, l10n):
             return
         else:
             logging.info("%s", message)
@@ -82,12 +74,12 @@ async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot:
 
 @router.message(F.content_type.in_({'sticker'}))
 async def process_obs_sticker(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
+    uid = message.from_user.id
+    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
+    if await reply_if_banned(message, uid, l10n):
+        return
     if message.chat.is_forum is True:
         if message.chat.id != state.active_chat or message.message_thread_id != state.thread_id:
-            return
-        uid = message.from_user.id
-        nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
-        if await reply_if_banned(message, uid, l10n):
             return
         else:
             logging.info("%s", message)
@@ -98,10 +90,6 @@ async def process_obs_sticker(message: types.Message, l10n: FluentLocalization, 
                 await client.send_request(nickname, file_url)
     else:
         if message.chat.id != state.active_chat:
-            return
-        uid = message.from_user.id
-        nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
-        if await reply_if_banned(message, uid, l10n):
             return
         else:
             logging.info("%s", message)
@@ -114,12 +102,12 @@ async def process_obs_sticker(message: types.Message, l10n: FluentLocalization, 
 
 @router.message(F.content_type.in_({'photo'}))
 async def process_obs_image(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
+    uid = message.from_user.id
+    nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
+    if await reply_if_banned(message, uid, l10n):
+        return
     if message.chat.is_forum is True:
         if message.chat.id != state.active_chat or message.message_thread_id != state.thread_id:
-            return
-        uid = message.from_user.id
-        nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
-        if await reply_if_banned(message, uid, l10n):
             return
         else:
             logging.info("%s", message)
@@ -130,10 +118,6 @@ async def process_obs_image(message: types.Message, l10n: FluentLocalization, bo
                 await client.send_request(nickname, file_url)
     else:
         if message.chat.id != state.active_chat:
-            return
-        uid = message.from_user.id
-        nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
-        if await reply_if_banned(message, uid, l10n):
             return
         else:
             logging.info("%s", message)
