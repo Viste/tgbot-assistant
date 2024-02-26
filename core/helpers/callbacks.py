@@ -1,10 +1,8 @@
 import logging
 
-from aiogram import types, Router, F, Bot
+from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
-from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from database.models import CourseParticipant
 
 from main import paper
 from tools.states import Payment
@@ -54,11 +52,14 @@ async def process_sender(callback: types.CallbackQuery):
         state.active_chat = -1001961684542
         state.thread_id = 4048
         logging.info('state changed to NEURO %s', state.active_chat)
+    elif callback.data == "nerve":
+        state.active_chat = -1002094481198
+        state.thread_id = 12
     await callback.answer()
 
 
 @router.callback_query(lambda c: c.data.startswith("course_"))
-async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, bot: Bot):
+async def process_catcher(callback: types.CallbackQuery, session: AsyncSession):
     logger.info("Callback query received: %s", callback.data)
     course_name = None
     manager = UserManager(session)
@@ -78,7 +79,6 @@ async def process_catcher(callback: types.CallbackQuery, session: AsyncSession, 
             course_name = "НЕЙРОФАНК КУРС #1"
 
         if course_name:
-            manager = UserManager(session)
             emails = await manager.get_emails_by_course(course_name=course_name)
             if emails:
                 email_list = "\n".join(emails)
