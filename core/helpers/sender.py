@@ -33,13 +33,13 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
             async with ClientOBS() as client:
                 await client.send_request(nickname, text)
     else:
-        if message.chat.id != state.active_chat:
-            return
-        else:
+        if message.chat.id == state.active_chat:
             logging.info("%s", message)
             text = html.escape(message.text)
             async with ClientOBS() as client:
                 await client.send_request(nickname, text)
+        else:
+            return
 
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
@@ -61,15 +61,15 @@ async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot:
             async with ClientOBS() as client:
                 await client.send_request(nickname, file_url)
     else:
-        if message.chat.id != state.active_chat:
-            return
-        else:
+        if message.chat.id == state.active_chat:
             logging.info("%s", message)
             file_id = message.animation.file_id
             file_info = await bot.get_file(file_id)
             file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
             async with ClientOBS() as client:
                 await client.send_request(nickname, file_url)
+        else:
+            return
 
 
 @router.message(F.content_type.in_({'sticker'}))
@@ -89,15 +89,15 @@ async def process_obs_sticker(message: types.Message, l10n: FluentLocalization, 
             async with ClientOBS() as client:
                 await client.send_request(nickname, file_url)
     else:
-        if message.chat.id != state.active_chat:
-            return
-        else:
+        if message.chat.id == state.active_chat:
             logging.info("%s", message)
             file_id = message.sticker.thumbnail.file_id
             file_info = await bot.get_file(file_id)
             file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
             async with ClientOBS() as client:
                 await client.send_request(nickname, file_url)
+        else:
+            return
 
 
 @router.message(F.content_type.in_({'photo'}))
@@ -117,12 +117,12 @@ async def process_obs_image(message: types.Message, l10n: FluentLocalization, bo
             async with ClientOBS() as client:
                 await client.send_request(nickname, file_url)
     else:
-        if message.chat.id != state.active_chat:
-            return
-        else:
+        if message.chat.id == state.active_chat:
             logging.info("%s", message)
             file_id = message.photo[-1].file_id
             file_info = await bot.get_file(file_id)
             file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
             async with ClientOBS() as client:
                 await client.send_request(nickname, file_url)
+        else:
+            return
