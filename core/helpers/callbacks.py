@@ -54,7 +54,7 @@ async def process_sender(callback: types.CallbackQuery):
         logging.info('state changed to NEURO %s', state.active_chat)
     elif callback.data == "nerve":
         state.active_chat = -1002094481198
-        state.thread_id = 12
+        state.thread_id = 72
     await callback.answer()
 
 
