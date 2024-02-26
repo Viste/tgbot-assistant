@@ -19,6 +19,7 @@ state = EmailChatState()
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
 @router.message(F.content_type.in_({'text'}))
 async def process_new_email(message: types.Message, l10n: FluentLocalization, session: AsyncSession) -> None:
+    logging.info("%s", message)
     manager = UserManager(session)
     uid = message.from_user.id
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")

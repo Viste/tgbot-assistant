@@ -49,6 +49,7 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
 @router.message(F.content_type.in_({'animation'}))
 async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
+    logging.info("%s", message)
     if message.chat.is_forum is True:
         if message.chat.id != state.active_chat or message.message_thread_id != state.thread_id:
             return

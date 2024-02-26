@@ -77,6 +77,8 @@ async def process_catcher(callback: types.CallbackQuery, session: AsyncSession):
             course_name = "SUPER PRO#1 (DNB)"
         elif callback.data == "course_neuro":
             course_name = "НЕЙРОФАНК КУРС #1"
+        elif callback.data == "course_nerve":
+            course_name = "NERV3 Продуктивность Level 99 #1"
 
         if course_name:
             emails = await manager.get_emails_by_course(course_name=course_name)
