@@ -58,9 +58,11 @@ async def process_cmd(message: types.Message, state: FSMContext, bot: Bot, l10n:
     file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
 
     replay_text = await openai.get_vision(file_url)
-    await message.reply(replay_text)
-    #await message.reply("Спасибо, теперь пришли мне свой email(с сервиса gmail), чтобы я предоставил тебе доступ к стриму")
-    await state.set_state(Demo.process)
+    if "yes" in replay_text.lower():
+        await message.reply("Спасибо, теперь пришли мне свой email(с сервиса gmail), чтобы я предоставил тебе доступ к стриму")
+        await state.set_state(Demo.process)
+    else:
+        await message.answer(f"Натяни нос клоуна и бахни селфи, не стесняйся!")
 
 
 @router.message(Demo.process)
