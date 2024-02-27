@@ -49,7 +49,7 @@ class OpenAIVision:
                       "content": [
                           {
                             "type": "text",
-                            "text": "Is there a person with a clown nose in this image?"},
+                            "text": "If there is a man or woman with a clown nose in the image, just answer yes! If not, then no accordingly."},
                           {
                             "type": "image_url",
                             "image_url":
