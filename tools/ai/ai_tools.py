@@ -554,18 +554,8 @@ class OpenAIDialogue:
         while self.retries < self.max_retries:
             try:
                 result = await self.client.images.generate(model="dall-e-3", prompt=data + "4k resolution", n=1, size="1024x1024")
+                logging.info("RESULT OF DALLE3: %s", result)
                 return result.url
-
-            except await self.client.error.RateLimitError as e:
-                self.retries += 1
-                if self.retries == self.max_retries:
-                    raise Exception(f'⚠️ OpenAI: Превышены лимиты ⚠️\n{str(e)}') from e
-
-            except await self.client.error.InvalidRequestError as e:
-                self.retries += 1
-                if self.retries == self.max_retries:
-                    raise Exception(f'⚠️ OpenAI: кривой запрос ⚠️\n{str(e)}') from e
-
             except Exception as e:
                 self.retries += 1
                 if self.retries == self.max_retries:
