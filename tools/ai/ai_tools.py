@@ -555,7 +555,7 @@ class OpenAIDialogue:
             try:
                 result = await self.client.images.generate(model="dall-e-3", prompt=data + "4k resolution", n=1, size="1024x1024")
                 logging.info("RESULT OF DALLE3: %s", result)
-                return result.url
+                return result.data[0].url
             except Exception as e:
                 self.retries += 1
                 if self.retries == self.max_retries:
