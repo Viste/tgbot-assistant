@@ -14,6 +14,7 @@ from database.models import Calendar, StreamEmails
 from core.helpers.tools import reply_if_banned
 from tools.states import Demo
 from tools.utils import config, check_bit_rate, email_patt, check
+from tools.ai.vision import OpenAIVision
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
     if close_date is not None:
         if close_date.end_time is not None or now < close_date.end_time:
             await message.answer(f"Привет {first_name}!\nЯ принимаю демки на эфиры Нейропанк академии\n"
-                                 f"Для начала напиши мне свой email, чтобы я предоставил тебе доступ к стриму")
+                                 f"Для начала пришли мне свое фото с клоунским носом, затем продолжим")
             await state.set_state(Demo.start)
         else:
             await message.answer(f"Привет {first_name}!\nСейчас не время присылать демки, попробуй позже")
@@ -49,6 +50,20 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
 
 
 @router.message(Demo.start)
+@flags.chat_action("typing")
+async def process_cmd(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
+    openai = OpenAIVision()
+    file_id = message.photo[-1].file_id
+    file_info = await bot.get_file(file_id)
+    file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
+
+    replay_text = await openai.get_vision(file_url)
+    await message.reply(replay_text)
+    #await message.reply("Спасибо, теперь пришли мне свой email(с сервиса gmail), чтобы я предоставил тебе доступ к стриму")
+    await state.set_state(Demo.process)
+
+
+@router.message(Demo.process)
 @flags.chat_action("typing")
 async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
     email = message.text

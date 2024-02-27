@@ -13,6 +13,7 @@ class Dialogue(StatesGroup):
 
 class Demo(StatesGroup):
     start = State()
+    process = State()
     get = State()
 
 

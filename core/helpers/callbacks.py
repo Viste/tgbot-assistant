@@ -34,7 +34,7 @@ async def process_sender(callback: types.CallbackQuery):
         logging.info('state changed to academy %s', state.active_chat)
     elif callback.data == "np_pro":
         state.active_chat = -1001814931266
-        state.thread_id = 12
+        state.thread_id = 5146
         logging.info('state changed to pro %s', state.active_chat)
     elif callback.data == "np_basic":
         state.active_chat = -1001922960346

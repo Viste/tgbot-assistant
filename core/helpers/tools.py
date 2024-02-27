@@ -16,13 +16,14 @@ banned = set(config.banned_user_ids)
 shadowbanned = set(config.shadowbanned_user_ids)
 
 
-active_chats = {-1001647523732: 0, -1001814931266: 12, -1001922960346: 34, -1001999768206: 4, -1002040950538: 2, -1001961684542: 2450, -1002094481198: 2}
+active_chats = {-1001647523732: 0, -1001814931266: 5146, -1001922960346: 34, -1001999768206: 4, -1002040950538: 2, -1001961684542: 2450, -1002094481198: 2}
 # academy, neuropunk pro, neuropunk basic, liquid, SUPER PRO, neurofunk, nerve
 
 robokassa_payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx?'
 bad_response = "bad sign"
 success_payment = "Thank you for using our service"
 is_test = 0
+
 
 class ChatState:
     _instance = None
