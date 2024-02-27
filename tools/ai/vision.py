@@ -20,7 +20,7 @@ class OpenAIVision:
         self.retries = 0
         self.show_tokens = False
         self.client = AsyncOpenAI(api_key=config.api_key, base_url='http://176.222.52.92:9000/v1')
-        self.args = {"temperature": 0.1, "max_tokens": 1024, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None}
+        self.args = {"max_tokens": 1024}
 
     async def get_vision(self, img: str):
         response = await self._query_gpt(img)
@@ -43,12 +43,18 @@ class OpenAIVision:
         while self.retries < self.max_retries:
             try:
 
-                return await self.client.chat.completions.create(model=self.model, messages=[{
-                    "role": "user", "content": [{
-                        "type": "text", "text": "Is there a person with a clown nose in this image?"}, {
-                        "type": "image_url",
-                        "image_url": {
-                          "url": f"{img}", }, }, ], }, ], **self.args)
+                return await self.client.chat.completions.create(model=self.model, messages=[
+                    {
+                      "role": "user",
+                      "content": [
+                          {
+                            "type": "text",
+                            "text": "Is there a person with a clown nose in this image?"},
+                          {
+                            "type": "image_url",
+                            "image_url":
+                            {
+                              "url": f"{img}", }, }, ], }, ], **self.args)
 
             except Exception as err:
                 self.retries += 1
