@@ -77,7 +77,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
             session.add(new_email)
             await session.commit()
         await message.reply(f"{first_name}, записал твой Email! Самое время прислать демку!\n"
-                            """Пожалуйста, убедись что отправляешь 320 mp3 длиной не менее 2 минут, с полностью
+                            """Пожалуйста, убедись что отправляешь 320 mp3 длиной не менее 2 минут,'\n с полностью
                             прописанными тегами\n и названием файла в виде "Автор - Трек".\n""")
         await state.set_state(Demo.get)
     else:
