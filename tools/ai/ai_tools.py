@@ -550,6 +550,27 @@ class OpenAIDialogue:
         num_tokens += 3
         return num_tokens
 
+    async def send_dalle(self, data):
+        while self.retries < self.max_retries:
+            try:
+                result = await self.client.images.generate(model="dall-e-3", prompt=data + "4k resolution", n=1, size="1024x1024")
+                return result.url
+
+            except await self.client.error.RateLimitError as e:
+                self.retries += 1
+                if self.retries == self.max_retries:
+                    raise Exception(f'⚠️ OpenAI: Превышены лимиты ⚠️\n{str(e)}') from e
+
+            except await self.client.error.InvalidRequestError as e:
+                self.retries += 1
+                if self.retries == self.max_retries:
+                    raise Exception(f'⚠️ OpenAI: кривой запрос ⚠️\n{str(e)}') from e
+
+            except Exception as e:
+                self.retries += 1
+                if self.retries == self.max_retries:
+                    raise Exception(f'⚠️ Ошибочка вышла ⚠️\n{str(e)}') from e
+
 
 class UsageObserver:
     def __init__(self, user_id: int, session: AsyncSession):

@@ -24,3 +24,7 @@ class Payment(StatesGroup):
 
 class Mail(StatesGroup):
     start = State()
+
+class DAImage(StatesGroup):
+    get = State()
+    result = State()

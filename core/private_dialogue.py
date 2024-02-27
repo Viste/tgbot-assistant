@@ -11,8 +11,8 @@ from fluent.runtime import FluentLocalization
 from core.helpers.tools import send_reply, reply_if_banned
 from database.models import User
 from tools.ai.ai_tools import OpenAIDialogue
-from tools.states import Dialogue
-from tools.utils import split_into_chunks
+from tools.states import Dialogue, DAImage
+from tools.utils import split_into_chunks, config
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -73,3 +73,39 @@ async def process_dialogue(message: types.Message, session: AsyncSession, l10n: 
         for index, chunk in enumerate(chunks):
             if index == 0:
                 await send_reply(message, chunk)
+
+
+@router.message(F.text.startswith("нарисуй, "), F.from_user.id.in_(config.admins))
+async def paint(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
+    uid = message.from_user.id
+    if await reply_if_banned(message, uid, l10n):
+        return
+    else:
+        logger.info("Message: %s", message)
+        await state.set_state(DAImage.get)
+
+        text = html.escape(message.text)
+        escaped_text = text.strip('нарисуй, ')
+        result = await openai.send_dalle(escaped_text)
+
+        logger.info("Response from DaLLe: %s", result)
+        try:
+            photo = result
+            await message.reply_photo(types.URLInputFile(photo))
+        except Exception as err:
+            await handle_exception(message, err, logger)
+
+
+@router.message(DAImage.get)
+async def process_paint(message: types.Message, state: FSMContext) -> None:
+    await state.set_state(DAImage.result)
+    logger.info("%s", message)
+
+
+async def handle_exception(message: types.Message, err: Exception, logger: logging.Logger, error_message: str = "Не удалось получить картинку. Попробуйте еще раз.\n "):
+    try:
+        logger.info('From exception in Picture: %s', err)
+        await message.reply(error_message, parse_mode=None)
+    except Exception as error:
+        logger.info('Last exception from Picture: %s', error)
+        await message.reply(str(error), parse_mode=None)
