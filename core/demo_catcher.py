@@ -51,7 +51,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
 
 @router.message(Demo.start)
 @flags.chat_action("typing")
-async def process_cmd(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
+async def process_cmd(message: types.Message, state: FSMContext, bot: Bot, l10n: FluentLocalization):
     openai = OpenAIVision()
     file_id = message.photo[-1].file_id
     file_info = await bot.get_file(file_id)
