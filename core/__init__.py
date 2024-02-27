@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 def setup_routers() -> Router:
     from . import chat_dialogue, demo_catcher, email_catcher, demo_listener, forum_dialogue, private_dialogue
     from core.helpers import sender, catcher
-    from core.helpers import admin_manager, callbacks, payment, unsupported_manager
+    from core.helpers import admin_manager, callbacks, unsupported_manager
 
     router = Router()
 

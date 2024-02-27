@@ -1,6 +1,8 @@
 import logging
 import json
 import os
+import decimal
+import hashlib
 
 from aiogram import types
 from fluent.runtime import FluentLocalization
@@ -17,6 +19,10 @@ shadowbanned = set(config.shadowbanned_user_ids)
 active_chats = {-1001647523732: 0, -1001814931266: 12, -1001922960346: 34, -1001999768206: 4, -1002040950538: 2, -1001961684542: 2450, -1002094481198: 2}
 # academy, neuropunk pro, neuropunk basic, liquid, SUPER PRO, neurofunk, nerve
 
+robokassa_payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx?'
+bad_response = "bad sign"
+success_payment = "Thank you for using our service"
+is_test = 0
 
 class ChatState:
     _instance = None
@@ -63,3 +69,31 @@ def update_config():
     config.shadowbanned_user_ids = list(shadowbanned)
     with open(os.path.join(os.path.dirname(__file__), 'config.json'), 'w', encoding='utf8') as cfg_file:
         json.dump(config, cfg_file, default=lambda o: o.__dict__)
+
+
+def calculate_signature(*args) -> str:
+    """Create signature MD5.
+    """
+    return hashlib.md5(':'.join(str(arg) for arg in args).encode()).hexdigest()
+
+
+def parse_response(request: str) -> dict:
+    """
+    :param request: Link.
+    :return: Dictionary.
+    """
+    from urllib.parse import urlparse
+    params = {}
+
+    for item in urlparse(request).query.split('&'):
+        key, value = item.split('=')
+        params[key] = value
+    return params
+
+
+def check_signature_result(order_number: int, received_sum: decimal, received_signature: hex, password: str) -> bool:
+    signature = calculate_signature(received_sum, order_number, password)
+    if signature.lower() == received_signature.lower():
+        return True
+    logger.error(f'{signature.lower()} != {received_signature.lower()}')
+    return False

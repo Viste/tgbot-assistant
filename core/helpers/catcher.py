@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.helpers.tools import reply_if_banned
 from database.manager import UserManager
 from core.helpers.tools import EmailChatState
-from tools.utils import gmail_patt, check
+from tools.utils import check
 from core.helpers.tools import active_chats
 
 router = Router()
@@ -17,7 +17,7 @@ state = EmailChatState()
 
 
 @flags.chat_action(action="typing", interval=1, initial_sleep=2)
-@router.message(F.content_type.in_({'text'}))
+@router.message(F.content_type.in_({'text'}), F.text.regexp(r"^[a-zA-Z0-9._%+-]+?@gmail\.com"))
 async def process_new_email(message: types.Message, l10n: FluentLocalization, session: AsyncSession) -> None:
     logging.info("%s", message)
     manager = UserManager(session)
@@ -28,14 +28,12 @@ async def process_new_email(message: types.Message, l10n: FluentLocalization, se
         return
     if message.chat.is_forum is True:
         if message.chat.id in active_chats and message.message_thread_id == active_chats[message.chat.id]:
-            if check(email, gmail_patt):
-                await manager.add_course_participant(email=email, course_name=message.chat.title, telegram_nickname=nickname)
+            await manager.add_course_participant(email=email, course_name=message.chat.title, telegram_nickname=nickname)
         else:
             return
 
     else:
         if message.chat.id in active_chats:
-            if check(email, gmail_patt):
-                await manager.add_course_participant(email=email, course_name=message.chat.title, telegram_nickname=nickname)
+            await manager.add_course_participant(email=email, course_name=message.chat.title, telegram_nickname=nickname)
         else:
             return
