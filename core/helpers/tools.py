@@ -19,6 +19,17 @@ shadowbanned = set(config.shadowbanned_user_ids)
 active_chats = {-1001647523732: 0, -1001814931266: 5146, -1001922960346: 34, -1001999768206: 4, -1002040950538: 2, -1001961684542: 2450, -1002094481198: 2, -1001921488615: 9076}
 # academy, neuropunk pro, neuropunk basic, liquid, SUPER PRO, neurofunk, nerve, girls
 
+chat_settings = {
+    "academy_chat": {"active_chat": -1001647523732, "thread_id": None},
+    "np_pro": {"active_chat": -1001814931266, "thread_id": 5146},
+    "np_basic": {"active_chat": -1001922960346, "thread_id": 25503},
+    "liquid_chat": {"active_chat": -1001999768206, "thread_id": 4284},
+    "super_pro": {"active_chat": -1002040950538, "thread_id": 293},
+    "neuro": {"active_chat": -1001961684542, "thread_id": 4048},
+    "nerve": {"active_chat": -1002094481198, "thread_id": 72},
+    "girls": {"active_chat": -1001921488615, "thread_id": 9075},
+}
+
 robokassa_payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx?'
 bad_response = "bad sign"
 success_payment = "Thank you for using our service"

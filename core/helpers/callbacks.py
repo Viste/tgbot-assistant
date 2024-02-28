@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from main import paper
 from tools.states import Payment
 from core.helpers.tools import ChatState
+from core.helpers.tools import chat_settings
 from database.manager import UserManager
 
 router = Router()
@@ -26,38 +27,14 @@ async def get_sub(callback: types.CallbackQuery, pay_state: FSMContext):
     await callback.answer()
 
 
-@router.callback_query(lambda c: c.data in ["academy_chat", "np_pro", "np_basic", "liquid_chat", "super_pro", "neuro"])
+@router.callback_query(lambda c: c.data in chat_settings)
 async def process_sender(callback: types.CallbackQuery):
     logger.info("Callback query received: %s", callback.data)
-    if callback.data == "academy_chat":
-        state.active_chat = -1001647523732
-        logging.info('state changed to academy %s', state.active_chat)
-    elif callback.data == "np_pro":
-        state.active_chat = -1001814931266
-        state.thread_id = 5146
-        logging.info('state changed to pro %s', state.active_chat)
-    elif callback.data == "np_basic":
-        state.active_chat = -1001922960346
-        state.thread_id = 25503
-        logging.info('state changed to basic %s', state.active_chat)
-    elif callback.data == "liquid_chat":
-        state.active_chat = -1001999768206
-        state.thread_id = 4284
-        logging.info('state changed to liquid %s', state.active_chat)
-    elif callback.data == "super_pro":
-        state.active_chat = -1002040950538
-        state.thread_id = 293
-        logging.info('state changed to SUPER PRO %s', state.active_chat)
-    elif callback.data == "neuro":
-        state.active_chat = -1001961684542
-        state.thread_id = 4048
-        logging.info('state changed to NEURO %s', state.active_chat)
-    elif callback.data == "nerve":
-        state.active_chat = -1002094481198
-        state.thread_id = 72
-    elif callback.data == "girls":
-        state.active_chat = -1001921488615
-        state.thread_id = 9075
+    settings = chat_settings[callback.data]
+    state.active_chat = settings["active_chat"]
+    if "thread_id" in settings:
+        state.thread_id = settings["thread_id"]
+    logging.info('State changed: active_chat=%s, thread_id=%s', state.active_chat, state.thread_id)
     await callback.answer()
 
 
