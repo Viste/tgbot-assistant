@@ -12,18 +12,18 @@ from database.manager import UserManager
 
 router = Router()
 logger = logging.getLogger(__name__)
-state = ChatState()
+chat_state = ChatState()
 
 
 @router.callback_query(F.data == "buy_subscription")
-async def get_sub(callback: types.CallbackQuery, pay_state: FSMContext):
-    data = await pay_state.get_data()
+async def get_sub(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    logging.info("current state data %s", data)
     user_id = data['chatid']
-    await paper.send_message(user_id,
-                             "Привет!\nДля оформления подписки подтверди свое согласие - напиши да, или любое сообщение в ответ.")
-    current_state = await pay_state.get_state()
+    await paper.send_message(user_id, "Привет!\nДля оформления подписки подтверди свое согласие - напиши да, или любое сообщение в ответ.")
+    await state.set_state(Payment.process)
+    current_state = await state.get_state()
     logging.info("current state %r", current_state)
-    await pay_state.set_state(Payment.process)
     await callback.answer()
 
 
@@ -31,10 +31,10 @@ async def get_sub(callback: types.CallbackQuery, pay_state: FSMContext):
 async def process_sender(callback: types.CallbackQuery):
     logger.info("Callback query received: %s", callback.data)
     settings = chat_settings[callback.data]
-    state.active_chat = settings["active_chat"]
+    chat_state.active_chat = settings["active_chat"]
     if "thread_id" in settings:
-        state.thread_id = settings["thread_id"]
-    logging.info('State changed: active_chat=%s, thread_id=%s', state.active_chat, state.thread_id)
+        chat_state.thread_id = settings["thread_id"]
+    logging.info('State changed: active_chat=%s, thread_id=%s', chat_state.active_chat, chat_state.thread_id)
     await callback.answer()
 
 

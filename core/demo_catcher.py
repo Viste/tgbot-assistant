@@ -100,7 +100,7 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
     title = message.audio.title
     data = await state.get_data()
     email = data['email']
-    file_id = data['file_id']
+    file_id = data['photo']
 
     logging.info('Full message info: %s', message)
     logging.info('username: %s, duration: %s, artist: %s , title: %s, file_name: %s', message.chat.username,

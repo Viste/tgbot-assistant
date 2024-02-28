@@ -3,6 +3,8 @@ import json
 import os
 import decimal
 import hashlib
+import aiohttp
+import xml.etree.ElementTree as Elements
 
 from aiogram import types
 from fluent.runtime import FluentLocalization
@@ -15,9 +17,10 @@ logger = logging.getLogger(__name__)
 banned = set(config.banned_user_ids)
 shadowbanned = set(config.shadowbanned_user_ids)
 
-
-active_chats = {-1001647523732: 0, -1001814931266: 5146, -1001922960346: 34, -1001999768206: 4, -1002040950538: 2, -1001961684542: 2450, -1002094481198: 2, -1001921488615: 9076}
 # academy, neuropunk pro, neuropunk basic, liquid, SUPER PRO, neurofunk, nerve, girls
+active_chats = {-1001647523732: 0, -1001814931266: 5146, -1001922960346: 34,
+                -1001999768206: 4, -1002040950538: 2, -1001961684542: 2450,
+                -1002094481198: 2, -1001921488615: 9076}
 
 chat_settings = {
     "academy_chat": {"active_chat": -1001647523732, "thread_id": None},
@@ -27,12 +30,10 @@ chat_settings = {
     "super_pro": {"active_chat": -1002040950538, "thread_id": 293},
     "neuro": {"active_chat": -1001961684542, "thread_id": 4048},
     "nerve": {"active_chat": -1002094481198, "thread_id": 72},
-    "girls": {"active_chat": -1001921488615, "thread_id": 9075},
-}
+    "girls": {"active_chat": -1001921488615, "thread_id": 9075}, }
 
-robokassa_payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx?'
-bad_response = "bad sign"
-success_payment = "Thank you for using our service"
+robokassa_payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx'
+robokassa_check_url = 'https://auth.robokassa.ru/Merchant/WebService/Service.asmx/OpStateExt'
 is_test = 0
 
 
@@ -84,28 +85,50 @@ def update_config():
 
 
 def calculate_signature(*args) -> str:
-    """Create signature MD5.
-    """
     return hashlib.md5(':'.join(str(arg) for arg in args).encode()).hexdigest()
 
 
-def parse_response(request: str) -> dict:
-    """
-    :param request: Link.
-    :return: Dictionary.
-    """
-    from urllib.parse import urlparse
-    params = {}
-
-    for item in urlparse(request).query.split('&'):
-        key, value = item.split('=')
-        params[key] = value
-    return params
+async def parse_response(request: str) -> dict:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(request) as response:
+            text = await response.text()
+            params = {}
+            for item in text.split('&'):
+                key, value = item.split('=')
+                params[key] = value
+            return params
 
 
-def check_signature_result(order_number: int, received_sum: decimal, received_signature: hex, password: str) -> bool:
-    signature = calculate_signature(received_sum, order_number, password)
-    if signature.lower() == received_signature.lower():
-        return True
-    logger.error(f'{signature.lower()} != {received_signature.lower()}')
-    return False
+def parse_xml_response(xml_data: str):
+    root = Elements.fromstring(xml_data)
+    result = {
+        "Result": {}, "State": {}, "Info": {}, "UserField": []
+        }
+    result_section = root.find(".//Result")
+    if result_section is not None:
+        result["Result"]["Code"] = result_section.find("Code").text
+        result["Result"]["Description"] = result_section.find("Description").text
+    state_section = root.find(".//State")
+    if state_section is not None:
+        result["State"]["Code"] = state_section.find("Code").text
+        result["State"]["RequestDate"] = state_section.find("RequestDate").text
+        result["State"]["StateDate"] = state_section.find("StateDate").text
+    info_section = root.find(".//Info")
+    if info_section is not None:
+        result["Info"]["IncCurrLabel"] = info_section.find("IncCurrLabel").text
+        result["Info"]["IncSum"] = info_section.find("IncSum").text
+        result["Info"]["IncAccount"] = info_section.find("IncAccount").text
+    user_field_section = root.findall(".//UserField/Field")
+    for field in user_field_section:
+        name = field.find("Name").text
+        value = field.find("Value").text
+        result["UserField"].append({"Name": name, "Value": value})
+    return result
+
+
+async def generate_robokassa_link(merchant_login: str, invoice_id: int, password2: str) -> str:
+    base_url = robokassa_check_url
+    signature_string = f"{merchant_login}:{invoice_id}:{password2}"
+    signature = hashlib.md5(signature_string.encode()).hexdigest()
+    url = f"{base_url}?MerchantLogin={merchant_login}&InvoiceID={invoice_id}&Signature={signature}"
+    return url

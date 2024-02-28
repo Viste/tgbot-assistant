@@ -20,10 +20,13 @@ class Demo(StatesGroup):
 class Payment(StatesGroup):
     start = State()
     process = State()
+    check = State()
+    end = State()
 
 
 class Mail(StatesGroup):
     start = State()
+
 
 class DAImage(StatesGroup):
     get = State()
