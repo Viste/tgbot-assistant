@@ -58,6 +58,7 @@ async def process_cmd(message: types.Message, state: FSMContext, bot: Bot, l10n:
     file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
 
     replay_text = await openai.get_vision(file_url)
+    await state.update_data(photo=str(file_id))
     if "yes" in replay_text.lower():
         await message.reply("Спасибо, теперь пришли мне свой email(с сервиса gmail), чтобы я предоставил тебе доступ к стриму")
         await state.set_state(Demo.process)
@@ -77,8 +78,9 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
             session.add(new_email)
             await session.commit()
         await message.reply(f"{first_name}, записал твой Email! Самое время прислать демку!\n"
-                            """Пожалуйста, убедись что отправляешь 320 mp3 длиной не менее 2 минут,'\n с полностью
-                            прописанными тегами\n и названием файла в виде "Автор - Трек".\n""")
+                            "Пожалуйста, убедись что отправляешь 320 mp3 длиной не менее 2 минут,'\n"
+                            "с полностью прописанными тегами\n"
+                            """и названием файла в виде "Автор - Трек".\n""")
         await state.set_state(Demo.get)
     else:
         await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
@@ -98,6 +100,7 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
     title = message.audio.title
     data = await state.get_data()
     email = data['email']
+    file_id = data['file_id']
 
     logging.info('Full message info: %s', message)
     logging.info('username: %s, duration: %s, artist: %s , title: %s, file_name: %s', message.chat.username,
@@ -128,6 +131,7 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
                f"Длина файла: {duration} секунды\n" \
                f"title: {title}\n" \
                f"Artist: {artist}"
+        await bot.send_photo(config.channel, caption=text, photo=file_id)
         await bot.send_audio(config.channel, audio=track, caption=text)
         await message.reply("Спасибо за демку! Если захочешь прислать еще один, просто снова напиши /demo и помни "
                             "про требования к треку.\n320 mp3 длиной не менее 2 минут, с полностью прописанными "
