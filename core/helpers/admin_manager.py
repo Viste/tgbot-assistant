@@ -147,7 +147,7 @@ async def stream_cmd(message: types.Message):
     kb.add(InlineKeyboardButton(text="SUPER PRO#1 (DNB)", callback_data="super_pro"))
     kb.add(InlineKeyboardButton(text="НЕЙРОФАНК КУРС ", callback_data="neuro"))
     kb.add(InlineKeyboardButton(text="NERV3 Продуктивность Level 99 #1", callback_data="nerve"))
-    kb.add(InlineKeyboardButton(text="DNB Курс - только девушки! 🤖🤖🤖", callback_data="girls"))
+    kb.add(InlineKeyboardButton(text="DNB Курс - только девушки!", callback_data="girls"))
     kb.adjust(2)
 
     await message.reply("Надо чат выбрать:", reply_markup=kb.as_markup(resize_keyboard=True))
@@ -165,7 +165,7 @@ async def stream_cmd(message: types.Message, state: FSMContext):
     kb.add(InlineKeyboardButton(text="SUPER PRO#1 (DNB)", callback_data="course_super_pro"))
     kb.add(InlineKeyboardButton(text="НЕЙРОФАНК КУРС ", callback_data="course_neuro"))
     kb.add(InlineKeyboardButton(text="NERV3 Продуктивность Level 99 #1", callback_data="course_nerve"))
-    kb.add(InlineKeyboardButton(text="DNB Курс - только девушки! 🤖🤖🤖", callback_data="course_girls"))
+    kb.add(InlineKeyboardButton(text="DNB Курс - только девушки!", callback_data="course_girls"))
     kb.adjust(2)
 
     await message.reply("С какого курса тебе дать почты?", reply_markup=kb.as_markup(resize_keyboard=True))

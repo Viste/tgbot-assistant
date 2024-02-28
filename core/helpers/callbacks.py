@@ -57,7 +57,7 @@ async def process_sender(callback: types.CallbackQuery):
         state.thread_id = 72
     elif callback.data == "girls":
         state.active_chat = -1001921488615
-        state.thread_id = 0
+        state.thread_id = 9075
     await callback.answer()
 
 
