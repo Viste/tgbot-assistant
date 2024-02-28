@@ -55,6 +55,9 @@ async def process_sender(callback: types.CallbackQuery):
     elif callback.data == "nerve":
         state.active_chat = -1002094481198
         state.thread_id = 72
+    elif callback.data == "girls":
+        state.active_chat = -1001921488615
+        state.thread_id = 0
     await callback.answer()
 
 
@@ -79,6 +82,8 @@ async def process_catcher(callback: types.CallbackQuery, session: AsyncSession):
             course_name = "НЕЙРОФАНК КУРС #1"
         elif callback.data == "course_nerve":
             course_name = "NERV3 Продуктивность Level 99 #1"
+        elif callback.data == "course_girls":
+            course_name = "DNB Курс - только девушки! 🤖🤖🤖"
 
         if course_name:
             emails = await manager.get_emails_by_course(course_name=course_name)
