@@ -1,4 +1,5 @@
 import aiohttp
+import logging
 from urllib import parse
 
 from core.helpers.model.scheme import Merchant, Order
@@ -10,6 +11,7 @@ async def check_payment(url) -> str:
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             xml_data = await response.text()
+            logging.info("RESPONSE %s", xml_data)
             parsed_response = parse_xml_response(xml_data)
             return parsed_response
 
