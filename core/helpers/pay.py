@@ -41,3 +41,4 @@ async def pay_sub(message: types.Message, state: FSMContext):
     logging.info("Current robokassa check link %s", check_link)
     result = await check_payment(check_link)
     logging.info("RESULT OF PAYMENT %s", result)
+    await message.answer(result)
