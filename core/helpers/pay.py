@@ -30,7 +30,7 @@ async def pay_sub(message: types.Message, state: FSMContext):
         [types.InlineKeyboardButton(text="Оплатить 500 рублей за подписку", url=link)],
         ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-    await message.answer("Дя оплаты нажми на кнопку ниже. А после оплаты напиши 'оплатил', а я проверю ;)", reply_markup=keyboard)
+    await message.answer("Для оплаты нажми на кнопку ниже. А после оплаты напиши 'оплатил', а я проверю ;)", reply_markup=keyboard)
     await state.set_state(Payment.end)
 
 

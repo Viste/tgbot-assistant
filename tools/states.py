@@ -20,7 +20,6 @@ class Demo(StatesGroup):
 class Payment(StatesGroup):
     start = State()
     process = State()
-    check = State()
     end = State()
 
 

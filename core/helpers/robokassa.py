@@ -10,10 +10,8 @@ async def check_payment(url) -> str:
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             xml_data = await response.text()
-
-    parsed_response = parse_xml_response(xml_data)
-
-    return parsed_response
+            parsed_response = parse_xml_response(xml_data)
+            return parsed_response
 
 
 class Robokassa:
