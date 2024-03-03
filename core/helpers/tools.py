@@ -17,19 +17,15 @@ banned = set(config.banned_user_ids)
 shadowbanned = set(config.shadowbanned_user_ids)
 
 # academy, neuropunk pro, neuropunk basic, liquid, SUPER PRO, neurofunk, nerve, girls
-active_chats = {-1001647523732: 0, -1001814931266: 5146, -1001922960346: 34,
-                -1001999768206: 4, -1002040950538: 2, -1001961684542: 2450,
-                -1002094481198: 2, -1001921488615: 9076}
+active_chats = {
+    -1001647523732: 0, -1001814931266: 5146, -1001922960346: 34, -1001999768206: 4, -1002040950538: 2, -1001961684542: 2450, -1002094481198: 2, -1001921488615: 9076
+    }
 
 chat_settings = {
-    "academy_chat": {"active_chat": -1001647523732, "thread_id": None},
-    "np_pro": {"active_chat": -1001814931266, "thread_id": 5146},
-    "np_basic": {"active_chat": -1001922960346, "thread_id": 25503},
-    "liquid_chat": {"active_chat": -1001999768206, "thread_id": 4284},
-    "super_pro": {"active_chat": -1002040950538, "thread_id": 293},
-    "neuro": {"active_chat": -1001961684542, "thread_id": 4048},
-    "nerve": {"active_chat": -1002094481198, "thread_id": 72},
-    "girls": {"active_chat": -1001921488615, "thread_id": 9075}, }
+    "academy_chat": {"active_chat": -1001647523732, "thread_id": None}, "np_pro": {"active_chat": -1001814931266, "thread_id": 5146}, "np_basic": {"active_chat": -1001922960346, "thread_id": 25503},
+    "liquid_chat": {"active_chat": -1001999768206, "thread_id": 4284}, "super_pro": {"active_chat": -1002040950538, "thread_id": 293}, "neuro": {"active_chat": -1001961684542, "thread_id": 4048},
+    "nerve": {"active_chat": -1002094481198, "thread_id": 72}, "girls": {"active_chat": -1001921488615, "thread_id": 9075},
+    }
 
 robokassa_payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx'
 robokassa_check_url = 'https://auth.robokassa.ru/Merchant/WebService/Service.asmx/OpStateExt'
@@ -99,7 +95,7 @@ async def parse_response(request: str) -> dict:
 
 
 def parse_xml_response(xml_data: str):
-    ns = {'ns': 'http://auth.robokassa.ru/Merchant/WebService/'}
+    ns = {'ns': 'http://merchant.roboxchange.com/WebService/'}
     root = fromstring(xml_data)
     result = {
         "Result": {}, "State": {}, "Info": {}, "UserField": []
@@ -107,22 +103,28 @@ def parse_xml_response(xml_data: str):
     result_section = root.find(".//ns:Result", ns)
     if result_section is not None:
         result["Result"]["Code"] = result_section.find("ns:Code", ns).text
-        result["Result"]["Description"] = result_section.find("ns:Description", ns).text
+        description = result_section.find("ns:Description", ns)
+        if description is not None:
+            result["Result"]["Description"] = description.text
+
     state_section = root.find(".//ns:State", ns)
     if state_section is not None:
         result["State"]["Code"] = state_section.find("ns:Code", ns).text
         result["State"]["RequestDate"] = state_section.find("ns:RequestDate", ns).text
         result["State"]["StateDate"] = state_section.find("ns:StateDate", ns).text
+
     info_section = root.find(".//ns:Info", ns)
     if info_section is not None:
         result["Info"]["IncCurrLabel"] = info_section.find("ns:IncCurrLabel", ns).text
         result["Info"]["IncSum"] = info_section.find("ns:IncSum", ns).text
         result["Info"]["IncAccount"] = info_section.find("ns:IncAccount", ns).text
+
     user_field_section = root.findall(".//ns:UserField/ns:Field", ns)
     for field in user_field_section:
         name = field.find("ns:Name", ns).text
         value = field.find("ns:Value", ns).text
         result["UserField"].append({"Name": name, "Value": value})
+
     return result
 
 
