@@ -1,5 +1,6 @@
 import logging
 import uuid
+import json
 
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
@@ -8,7 +9,7 @@ from tools.utils import config
 from tools.states import Payment
 from core.helpers.model.scheme import Merchant, Order
 from core.helpers.robokassa import Robokassa, check_payment
-from core.helpers.tools import generate_robokassa_link
+from core.helpers.tools import generate_robokassa_link, get_payment_status_message
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -39,6 +40,13 @@ async def pay_sub(message: types.Message, state: FSMContext):
     data = await state.get_data()
     check_link = data['check_link']
     logging.info("Current robokassa check link %s", check_link)
-    result = await check_payment(check_link)
-    logging.info("RESULT OF PAYMENT %s", result)
-    await message.answer(result)
+    result_str = await check_payment(check_link)
+    logging.info("RESULT OF PAYMENT %s", result_str)
+    try:
+        result = json.loads(result_str)
+    except json.JSONDecodeError:
+        await message.answer("Произошла ошибка при обработке ответа от сервиса. Пожалуйста, попробуйте позже или обратитесь в поддержку.")
+        return
+
+    status_message = get_payment_status_message(result)
+    await message.answer(status_message)

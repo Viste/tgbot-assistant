@@ -128,6 +128,21 @@ def parse_xml_response(xml_data: str):
     return result
 
 
+def get_payment_status_message(result: dict) -> str:
+    # Получаем код результата
+    result_code = int(result.get("Result", {}).get("Code", "-1"))
+
+    # Словарь с описаниями статусов
+    status_messages = {
+        0: "Запрос обработан успешно.", 1: "Неверная цифровая подпись запроса.", 2: "Информация о магазине с таким MerchantLogin не найдена или магазин не активирован.",
+        3: "Информация об операции с таким InvoiceID не найдена.", 4: "Найдено две операции с таким InvoiceID. Такая ошибка возникает, когда есть тестовая оплата с тем же InvoiceID.",
+        1000: "Внутренняя ошибка сервиса.",
+        }
+
+    # Получаем сообщение по коду результата, если код неизвестен, возвращаем сообщение об ошибке
+    return status_messages.get(result_code, "Неизвестный код результата. Пожалуйста, попробуйте позже или обратитесь в поддержку.")
+
+
 async def generate_robokassa_link(merchant_login: str, invoice_id: int, password2: str) -> str:
     base_url = robokassa_check_url
     signature_string = f"{merchant_login}:{invoice_id}:{password2}"
