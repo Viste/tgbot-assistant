@@ -1,10 +1,9 @@
 import logging
 import json
 import os
-import decimal
 import hashlib
 import aiohttp
-import xml.etree.ElementTree as Elements
+from xml.etree.ElementTree import fromstring
 
 from aiogram import types
 from fluent.runtime import FluentLocalization
@@ -100,28 +99,29 @@ async def parse_response(request: str) -> dict:
 
 
 def parse_xml_response(xml_data: str):
-    root = Elements.fromstring(xml_data)
+    ns = {'ns': 'http://auth.robokassa.ru/Merchant/WebService/'}
+    root = fromstring(xml_data)
     result = {
         "Result": {}, "State": {}, "Info": {}, "UserField": []
         }
-    result_section = root.find(".//Result")
+    result_section = root.find(".//ns:Result", ns)
     if result_section is not None:
-        result["Result"]["Code"] = result_section.find("Code").text
-        result["Result"]["Description"] = result_section.find("Description").text
-    state_section = root.find(".//State")
+        result["Result"]["Code"] = result_section.find("ns:Code", ns).text
+        result["Result"]["Description"] = result_section.find("ns:Description", ns).text
+    state_section = root.find(".//ns:State", ns)
     if state_section is not None:
-        result["State"]["Code"] = state_section.find("Code").text
-        result["State"]["RequestDate"] = state_section.find("RequestDate").text
-        result["State"]["StateDate"] = state_section.find("StateDate").text
-    info_section = root.find(".//Info")
+        result["State"]["Code"] = state_section.find("ns:Code", ns).text
+        result["State"]["RequestDate"] = state_section.find("ns:RequestDate", ns).text
+        result["State"]["StateDate"] = state_section.find("ns:StateDate", ns).text
+    info_section = root.find(".//ns:Info", ns)
     if info_section is not None:
-        result["Info"]["IncCurrLabel"] = info_section.find("IncCurrLabel").text
-        result["Info"]["IncSum"] = info_section.find("IncSum").text
-        result["Info"]["IncAccount"] = info_section.find("IncAccount").text
-    user_field_section = root.findall(".//UserField/Field")
+        result["Info"]["IncCurrLabel"] = info_section.find("ns:IncCurrLabel", ns).text
+        result["Info"]["IncSum"] = info_section.find("ns:IncSum", ns).text
+        result["Info"]["IncAccount"] = info_section.find("ns:IncAccount", ns).text
+    user_field_section = root.findall(".//ns:UserField/ns:Field", ns)
     for field in user_field_section:
-        name = field.find("Name").text
-        value = field.find("Value").text
+        name = field.find("ns:Name", ns).text
+        value = field.find("ns:Value", ns).text
         result["UserField"].append({"Name": name, "Value": value})
     return result
 
