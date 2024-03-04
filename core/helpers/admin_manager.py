@@ -3,15 +3,14 @@ import logging
 from aiogram import types, Router, F, flags
 from aiogram.filters.command import Command, CommandObject
 from aiogram.fsm.context import FSMContext
-from fluent.runtime import FluentLocalization
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from fluent.runtime import FluentLocalization
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import private_filter
 from database.models import Calendar, StreamEmails
-from tools.ai.ai_tools import OpenAI
 from tools.utils import config, get_dt
 
 router = Router()
