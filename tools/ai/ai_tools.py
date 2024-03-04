@@ -1,18 +1,12 @@
-import json
 import logging
-from calendar import monthrange
-from datetime import date
 
-import requests
 import tiktoken
 from openai import AsyncOpenAI
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.models import User
 from tools.utils import config
 
 logger = logging.getLogger(__name__)
+
 
 class UserHistoryManager:
     _instance = None
@@ -256,6 +250,7 @@ class UserHistoryManager:
     "description": "Hello! We are PPRFNK TECH, a team of enthusiasts from Russia who are passionate about music and technology. Our main goal is to create high-quality and innovative plugins that will help music producers all over the world to achieve the best sound in their tracks. We believe that music is a universal language that unites people, and we want to contribute to this global community by providing tools that will make music production easier and more enjoyable for everyone. Our team consists of experienced professionals in the fields of music production, software development, and design. We are constantly working on new projects and improving our existing products to meet the needs of our users. Thank you for your support!"
   }
 }"""
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(UserHistoryManager, cls).__new__(cls)
@@ -301,7 +296,7 @@ class OpenAI:
     async def reset_history(self, user_id, content=''):
         await self.history.reset_history(user_id, content)
 
-    async def get_resp(self, query: str, chat_id: int) -> tuple[str, str]:
+    async def get_resp(self, query: str, chat_id: int) -> str:
         response = await self._query_gpt(chat_id, query)
         answer = ''
 
@@ -321,14 +316,7 @@ class OpenAI:
             answer = response.choices[0].message.content.strip()
             await self.add_to_history(chat_id, role="assistant", content=answer)
 
-        total_tokens = response.usage.total_tokens if response.usage else 0
-        if response.usage and self.show_tokens:
-            answer += "\n\n---\n" \
-                      f"💰 Использовано Токенов: {str(response.usage.total_tokens)}" \
-                      f" ({str(response.usage.prompt_tokens)} prompt," \
-                      f" {str(response.usage.completion_tokens)} completion)"
-
-        return answer, total_tokens
+        return answer
 
     async def _query_gpt(self, user_id, query):
         while self.retries < self.max_retries:
@@ -358,18 +346,6 @@ class OpenAI:
 
                 return await self.client.chat.completions.create(model=self.model, messages=self.history.user_dialogs[user_id], **self.args)
 
-            except self.client.error.RateLimitError as e:
-                self.retries += 1
-                logging.info("Dialog From Ratelim: %s", self.history.user_dialogs[user_id])
-                if self.retries == self.max_retries:
-                    return f'⚠️OpenAI: Превышены лимиты ⚠️\n{str(e)}'
-
-            except self.client.error.InvalidRequestError as er:
-                self.retries += 1
-                logging.info("Dialog From bad req: %s", self.history.user_dialogs[user_id])
-                if self.retries == self.max_retries:
-                    return f'⚠️OpenAI: кривой запрос ⚠️\n{str(er)}'
-
             except Exception as err:
                 self.retries += 1
                 logging.info("Dialog From custom exception: %s", self.history.user_dialogs[user_id])
@@ -378,7 +354,7 @@ class OpenAI:
 
     async def _summarise(self, conversation) -> str:
         messages = [{"role": "assistant", "content": "Summarize this conversation in 700 characters or less"}, {"role": "user", "content": str(conversation)}]
-        response =  await self.client.chat.completions.create(model=self.model, messages=messages, temperature=0.1)
+        response = await self.client.chat.completions.create(model=self.model, messages=messages, temperature=0.1)
         return response.choices[0].message.content
 
     def _count_tokens(self, messages) -> int:
@@ -386,7 +362,7 @@ class OpenAI:
             model = self.model
             encoding = tiktoken.encoding_for_model(model)
         except KeyError:
-            encoding = tiktoken.get_encoding("gpt-3.5-turbo-16k")
+            encoding = tiktoken.get_encoding("gpt-4-turbo-preview")
 
         tokens_per_message = 3
         tokens_per_name = -1
@@ -400,23 +376,6 @@ class OpenAI:
                     num_tokens += tokens_per_name
         num_tokens += 3
         return num_tokens
-
-    @staticmethod
-    def get_money():
-        headers = {
-            "Authorization": f"Bearer {openai.api_key}"
-            }
-        today = date.today()
-        first_day = date(today.year, today.month, 1)
-        _, last_day_of_month = monthrange(today.year, today.month)
-        last_day = date(today.year, today.month, last_day_of_month)
-        params = {
-            "start_date": first_day, "end_date": last_day
-            }
-        response = requests.get("https://api.openai.com/dashboard/billing/usage", headers=headers, params=params)
-        billing_data = json.loads(response.text)
-        usage_month = billing_data["total_usage"] / 100
-        return usage_month
 
 
 class OpenAIDialogue:
@@ -442,9 +401,9 @@ class OpenAIDialogue:
     async def reset_history(self, user_id, content=''):
         await self.history.reset_history(user_id, content)
 
-    async def get_resp(self, query: str, chat_id: int, session: AsyncSession) -> tuple[str, str]:
+    async def get_resp(self, query: str, chat_id: int) -> str:
         response = await self._query_gpt(chat_id, query)
-        usage_observer = UsageObserver(chat_id, session)
+        # usage_observer = UsageObserver(chat_id, session)
         answer = ''
 
         if response.choices and len(response.choices) > 1 and self.n_choices > 1:
@@ -462,17 +421,7 @@ class OpenAIDialogue:
             answer = response.choices[0].message.content.strip()
             await self.add_to_history(chat_id, role="assistant", content=answer)
 
-        total_tokens = response.usage.total_tokens if response.usage else 0
-        if response.usage and self.show_tokens:
-            await usage_observer.add_chat_tokens(int(response.usage.completion_tokens), message_type='user')
-            answer += "\n\n---\n" \
-                      f"💰 Использовано Токенов: {str(response.usage['total_tokens'])}" \
-                      f" ({str(response.usage.prompt_tokens)} prompt," \
-                      f" {str(response.usage.completion_tokens)} completion)"
-        elif chat_id == -1001647523732:
-            pass
-
-        return answer, total_tokens
+        return answer
 
     async def _query_gpt(self, user_id, query):
         while self.retries < self.max_retries:
@@ -502,18 +451,6 @@ class OpenAIDialogue:
 
                 return await self.client.chat.completions.create(model=self.model, messages=self.history.user_dialogs[user_id], **self.args)
 
-            except self.client.error.RateLimitError as e:
-                self.retries += 1
-                logging.info("Dialog From Ratelim: %s", self.history.user_dialogs[user_id])
-                if self.retries == self.max_retries:
-                    return f'⚠️OpenAI: Превышены лимиты ⚠️\n{str(e)}'
-
-            except self.client.error.InvalidRequestError as er:
-                self.retries += 1
-                logging.info("Dialog From bad req: %s", self.history.user_dialogs[user_id])
-                if self.retries == self.max_retries:
-                    return f'⚠️OpenAI: кривой запрос ⚠️\n{str(er)}'
-
             except Exception as err:
                 self.retries += 1
                 logging.info("Dialog From custom exception: %s", self.history.user_dialogs[user_id])
@@ -527,7 +464,7 @@ class OpenAIDialogue:
 
     async def _summarise(self, conversation) -> str:
         messages = [{"role": "assistant", "content": "Summarize this conversation in 700 characters or less"}, {"role": "user", "content": str(conversation)}]
-        response = await self.client.ChatCompletion.create(model=self.model, messages=messages, temperature=0.1)
+        response = await self.client.chat.completions.create(model=self.model, messages=messages, temperature=0.1)
         return response.choices[0].message.content
 
     def _count_tokens(self, messages) -> int:
@@ -560,54 +497,3 @@ class OpenAIDialogue:
                 self.retries += 1
                 if self.retries == self.max_retries:
                     raise Exception(f'⚠️ Ошибочка вышла ⚠️\n{str(e)}') from e
-
-
-class UsageObserver:
-    def __init__(self, user_id: int, session: AsyncSession):
-        self.user_id = user_id
-        self.session = session
-
-    async def add_chat_tokens(self, tokens, message_type):
-        if message_type not in ['user', 'assistant']:
-            return
-
-        result = await self.session.execute(select(User).filter(User.telegram_id == self.user_id))
-        user = result.scalars().one_or_none()
-
-        if user:
-            token_cost = round(tokens * user.price_per_token / 1000, 6)
-            user.current_tokens += tokens
-
-            await self.session.commit()
-            await self.add_current_costs(token_cost)
-
-    async def get_current_token_usage(self):
-        today = date.today()
-        month = str(today)[:7]  # year-month as string
-
-        usage_day = await self.session.query(func.sum(User.current_tokens)).filter(User.telegram_id == self.user_id, func.date(User.updated_at) == today).scalar()
-
-        usage_month = await self.session.query(func.sum(User.current_tokens)).filter(User.telegram_id == self.user_id, func.date(func.strftime('%Y-%m', User.updated_at)) == month).scalar()
-
-        return usage_day or 0, usage_month or 0
-
-    async def add_current_costs(self, request_cost):
-        today = date.today()
-
-        result = await self.session.execute(select(User).filter(User.telegram_id == self.user_id))
-        user = result.scalars().one_or_none()
-
-        if user:
-            user.balance_amount -= request_cost
-            user.updated_at = today
-
-            await self.session.commit()
-
-    async def get_current_cost(self):
-        today = date.today()
-
-        cost_day = await self.session.query(func.sum(User.balance_amount)).filter(User.telegram_id == self.user_id, func.date(User.updated_at) == today).scalar()
-        cost_month = await self.session.query(func.sum(User.balance_amount)).filter(User.telegram_id == self.user_id, func.date(func.strftime('%Y-%m', User.updated_at)) == str(today)[:7]).scalar()
-        cost_all_time = await self.session.query(func.sum(User.balance_amount)).filter(User.telegram_id == self.user_id).scalar()
-
-        return {"cost_today": cost_day or 0.0, "cost_month": cost_month or 0.0, "cost_all_time": cost_all_time or 0.0}

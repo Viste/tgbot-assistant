@@ -104,7 +104,7 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
         if not await user_manager.is_subscription_active(uid):
             kb = [[types.InlineKeyboardButton(text="Купить подписку", callback_data="buy_subscription")], ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-            await message.answer("Ваша подписка не активна. Пожалуйста, купите подписку, чтобы продолжить.", reply_markup=keyboard)
+            await message.answer(l10n.format_value("error-sub-not-active"), reply_markup=keyboard)
             current_state = await state.get_state()
             logging.info("current state %r", current_state)
             return
@@ -114,7 +114,7 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
         escaped_text = text.strip('киберпапер ')
 
         await state.set_state(Dialogue.get)
-        replay_text, total_tokens = await openai_dialogue.get_resp(escaped_text, uid, session)
+        replay_text = await openai_dialogue.get_resp(escaped_text, uid)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             if index == 0:
@@ -122,15 +122,14 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
 
 
 @router.message(private_filter, Dialogue.get, F.text)
-async def process_dialogue(message: types.Message, session: AsyncSession, l10n: FluentLocalization) -> None:
+async def process_dialogue(message: types.Message, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):
         return
     else:
         logging.info("%s", message)
         text = html.escape(message.text)
-
-        replay_text, total_tokens = await openai_dialogue.get_resp(text, uid, session)
+        replay_text = await openai_dialogue.get_resp(text, uid)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             if index == 0:
@@ -145,11 +144,9 @@ async def paint(message: types.Message, state: FSMContext, l10n: FluentLocalizat
     else:
         logger.info("Message: %s", message)
         await state.set_state(DAImage.get)
-
         text = html.escape(message.text)
         escaped_text = text.strip('нарисуй, ')
         result = await openai_dialogue.send_dalle(escaped_text)
-
         logger.info("Response from DaLLe: %s", result)
         try:
             photo = result
@@ -176,7 +173,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
     if not await user_manager.is_subscription_active(uid):
         kb = [[types.InlineKeyboardButton(text="Купить подписку", callback_data="buy_subscription")], ]
         keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-        await message.answer("Ваша подписка не активна. Пожалуйста, купите подписку, чтобы продолжить.", reply_markup=keyboard)
+        await message.answer(l10n.format_value("error-sub-not-active"), reply_markup=keyboard)
         return
 
     file_path = f"/app/tmp/{str(uid)}.mp3"
@@ -222,7 +219,7 @@ async def reg_course(message: types.Message, state: FSMContext, session: AsyncSe
         escaped_text = text.strip('киберпапер ')
 
         await state.set_state(Dialogue.get)
-        replay_text, total_tokens = await openai_dialogue.get_resp(escaped_text, uid, session)
+        replay_text = await openai_dialogue.get_resp(escaped_text, uid)
         chunks = split_into_chunks(replay_text)
         for index, chunk in enumerate(chunks):
             if index == 0:

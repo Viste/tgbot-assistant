@@ -2,6 +2,7 @@ import logging
 
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
+from fluent.runtime import FluentLocalization
 
 from core.helpers.tools import ChatState
 from core.helpers.tools import chat_settings
@@ -17,11 +18,11 @@ chat_state = ChatState()
 
 
 @router.callback_query(F.data == "buy_subscription")
-async def get_sub(callback: types.CallbackQuery, state: FSMContext):
+async def get_sub(callback: types.CallbackQuery, state: FSMContext, l10n: FluentLocalization):
     data = await state.get_data()
     logging.info("current state data %s", data)
     user_id = data['chatid']
-    await paper.send_message(user_id, "Привет!\nДля оформления подписки подтверди свое согласие - напиши да, или любое сообщение в ответ.")
+    await paper.send_message(user_id, l10n.format_value("sub-agreement"))
     await state.set_state(Payment.process)
     current_state = await state.get_state()
     logging.info("current state %r", current_state)
@@ -29,11 +30,11 @@ async def get_sub(callback: types.CallbackQuery, state: FSMContext):
 
 
 @router.callback_query(F.data == "buy_course")
-async def get_course(callback: types.CallbackQuery, state: FSMContext):
+async def get_course(callback: types.CallbackQuery, state: FSMContext, l10n: FluentLocalization):
     data = await state.get_data()
     logging.info("current state data %s", data)
     user_id = data['chatid']
-    await paper.send_message(user_id, "Привет!\nДля оформления подписки отправь свою почту(gmail) в ответном сообщении")
+    await paper.send_message(user_id, l10n.format_value("ask-sub-mail"))
     await state.set_state(CoursePayment.process)
     current_state = await state.get_state()
     logging.info("current state %r", current_state)

@@ -48,7 +48,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
 
 
 @router.message(private_filter, Demo.start)
-async def process_cmd(message: types.Message, state: FSMContext, bot: Bot):
+async def process_cmd(message: types.Message, state: FSMContext, bot: Bot, l10n: FluentLocalization):
     openai = OpenAIVision()
     file_id = message.photo[-1].file_id
     file_info = await bot.get_file(file_id)
@@ -57,7 +57,7 @@ async def process_cmd(message: types.Message, state: FSMContext, bot: Bot):
     replay_text = await openai.get_vision(file_url)
     await state.update_data(photo=str(file_id))
     if "yes" in replay_text.lower():
-        await message.reply("Спасибо, теперь пришли мне свой email(с сервиса gmail), чтобы я предоставил тебе доступ к стриму")
+        await message.reply(l10n.format_value("ask-email"))
         await state.set_state(Demo.process)
     else:
         await message.answer(f"Натяни нос клоуна и бахни селфи, не стесняйся!")
@@ -104,20 +104,17 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
     file_info = await bot.get_file(track)
     file_data = file_info.file_path
     await bot.download_file(file_data, f"{str(uid)}.mp3")
+
     if username is None:
-        await message.reply(
-            "Пожалуйста, заполни username в настройках телеграм.\nЭто нужно для последующей связи с тобой")
+        await message.reply(l10n.format_value("empty-name-error"))
     elif duration <= 119:
-        await message.reply(
-            "Длина присланного трека менее двух минут, не могу его принять.\nПожалуйста исправь и отправь еще раз.")
+        await message.reply(l10n.format_value("short-demo-error"))
     elif title is None:
-        await message.reply(
-            "Тег title в треке не заполнен, не могу его принять.\nПожалуйста исправь и отправь еще раз.")
+        await message.reply(l10n.format_value("empty-title-tag-error"))
     elif artist is None:
-        await message.reply(
-            "Тег artist в треке не заполнен, не могу его принять.\nПожалуйста исправь и отправь еще раз.")
+        await message.reply(l10n.format_value("empty-artist-tag-error"))
     elif check_bit_rate(f"{str(uid)}.mp3") is False:
-        await message.reply('Битрейт mp3 файла менее 320.')
+        await message.reply(l10n.format_value("bad-bitrate"))
         os.remove(f"{str(uid)}.mp3")
     else:
         text = f"Пришел трек.\n" \
@@ -128,8 +125,7 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
                f"Artist: {artist}"
         await bot.send_photo(config.channel, caption=text, photo=file_id)
         await bot.send_audio(config.channel, audio=track, caption=text)
-        await message.reply("Спасибо за демку! Если захочешь прислать еще один, просто снова напиши /demo и помни "
-                            "про требования к треку.\n320 mp3 длиной не менее 2 минут, с полностью прописанными "
-                            "тегами и названием файла в виде 'Автор - Трек'")
+
+        await message.reply(l10n.format_value("demo-thanks-message"))
         os.remove(f"{str(uid)}.mp3")
         await state.clear()

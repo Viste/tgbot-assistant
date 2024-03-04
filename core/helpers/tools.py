@@ -9,8 +9,7 @@ from aiogram import types, F
 from aiogram.enums import ParseMode
 from fluent.runtime import FluentLocalization
 
-from tools.scheme import Merchant, Order
-from tools.utils import config
+from tools.utils import config, Merchant, Order
 
 logger = logging.getLogger(__name__)
 
@@ -117,15 +116,11 @@ async def parse_response(request: str) -> dict:
             return params
 
 
-def get_payment_status_message(result: dict) -> str:
-    # Получаем код результата
+def get_payment_status_message(result: dict, l10n: FluentLocalization) -> str:
     result_code = int(result.get("Result", {}).get("Code", "-1"))
-
-    # Словарь с описаниями статусов
     status_messages = {
-        0: "Запрос обработан успешно.", 1: "Неверная цифровая подпись запроса.", 2: "Информация о магазине с таким MerchantLogin не найдена или магазин не активирован.",
-        3: "Информация об операции с таким InvoiceID не найдена.", 4: "Найдено две операции с таким InvoiceID. Такая ошибка возникает, когда есть тестовая оплата с тем же InvoiceID.",
-        1000: "Внутренняя ошибка сервиса.",
+        0: l10n.format_value("check-pay-answer"), 1: l10n.format_value("wrong-sing-error"), 2: l10n.format_value("wrong-merchant-name-error"),
+        3: l10n.format_value("wrong-invoice-error"), 4: l10n.format_value("duplicate-invoice-error"), 1000: l10n.format_value("service-error"),
         }
 
     # Получаем сообщение по коду результата, если код неизвестен, возвращаем сообщение об ошибке

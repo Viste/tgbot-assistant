@@ -1,7 +1,9 @@
+import decimal
 import json
 import logging
 import os
 import re
+from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 from xml.etree.ElementTree import fromstring
@@ -14,6 +16,22 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import User
 
 logger = logging.getLogger(__name__)
+email_patt = re.compile("^(\w+?|\w+?\.\w+?|\w+?\.\w+?\.\w+?)@\w+?\.\w{2,12}$")
+gmail_patt = re.compile("^[a-zA-Z0-9._%+-]+?@gmail\.com")
+
+
+@dataclass
+class Merchant:
+    login: str
+    password1: str
+    password2: str
+
+
+@dataclass
+class Order:
+    number: int
+    description: str
+    cost: decimal
 
 
 class JSONObject:
@@ -23,8 +41,6 @@ class JSONObject:
 
 cfg_file = open(os.path.join(os.path.dirname(__file__), 'config.json'), 'r', encoding='utf8')
 config = json.loads(cfg_file.read(), object_hook=JSONObject)
-email_patt = re.compile("^(\w+?|\w+?\.\w+?|\w+?\.\w+?\.\w+?)@\w+?\.\w{2,12}$")
-gmail_patt = re.compile("^[a-zA-Z0-9._%+-]+?@gmail\.com")
 
 
 def split_into_chunks(text: str, chunk_size: int = 4096) -> list[str]:

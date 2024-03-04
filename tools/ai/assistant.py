@@ -24,22 +24,18 @@ class OpenAIAssist:
         self.retries = 0
         self.show_tokens = False
 
-    async def get_resp(self, query: str, chat_id: int, name: str):
-        response = await self._query_gpt(chat_id, query, name)
-        answer = ''
-
-        logger.info('!!!!!Response: %s', response)
-
+    async def get_resp(self, query: str, name: str):
+        response = await self._query_gpt(query, name)
         answer = response
-
+        logger.info('!Response from assistant: %s', response)
         return answer
 
-    async def _query_gpt(self, user_id: int, query: str, name: str):
+    async def _query_gpt(self, query: str, name: str):
         try:
             thread = await self.client.beta.threads.create()
             await self.client.beta.threads.messages.create(role="user", thread_id=thread.id, content=query)
-            run = await self.client.beta.threads.runs.create(thread_id=thread.id, assistant_id=self.assistant_id, instructions=f"ник того с кем ты разговариваешь {name}, обращайся ко всем по "
-                                                                                                                               f"никнейму")
+            run = await self.client.beta.threads.runs.create(thread_id=thread.id, assistant_id=self.assistant_id,
+                                                             instructions=f"ник того с кем ты разговариваешь {name}, обращайся ко всем по никнейму")
 
             await asyncio.sleep(160)
 

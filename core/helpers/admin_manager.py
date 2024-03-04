@@ -3,6 +3,7 @@ import logging
 from aiogram import types, Router, F, flags
 from aiogram.filters.command import Command, CommandObject
 from aiogram.fsm.context import FSMContext
+from fluent.runtime import FluentLocalization
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy import delete, select
@@ -43,26 +44,14 @@ async def offline_cmd(message: types.Message, session: AsyncSession):
 
 @router.message(F.from_user.id.in_(config.admins), Command(commands="help"), private_filter)
 @flags.chat_action("typing")
-async def info(message: types.Message):
+async def info(message: types.Message, l10n: FluentLocalization):
     uid = message.from_user.id
     if uid in config.banned_user_ids:
-        text = "не хочу с тобой разговаривать"
+        text = l10n.format_value("you-were-banned-error")
         await message.reply(text, parse_mode=None)
     else:
-        text = "Для запуска приема демок напиши /online и укажи дату окончания приема демок\n" \
-               "Например: /online 22.04.2023 23:59\n" \
-               "Не забудь потом написать /offline" \
-               "\n" \
-               "© PPRFNK Tech Team"
+        text = l10n.format_value("admin-help")
         await message.reply(text, parse_mode=None)
-
-
-@router.message(Command(commands="money"), F.from_user.id.in_(config.admins), private_filter)
-@flags.chat_action("typing")
-async def usage(message: types.Message):
-    openai = OpenAI()
-    text = openai.get_money()
-    await message.reply(text, parse_mode=None)
 
 
 @router.message(Command(commands="emails"), F.from_user.id.in_(config.admins), private_filter)
