@@ -2,7 +2,7 @@ import logging
 import os
 from datetime import datetime
 
-from aiogram import types, F, Router, flags, Bot
+from aiogram import types, F, Router, Bot
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
 from sqlalchemy import desc, select
@@ -11,19 +11,17 @@ from sqlalchemy.orm.exc import NoResultFound
 from fluent.runtime import FluentLocalization
 
 from database.models import Calendar, StreamEmails
-from core.helpers.tools import reply_if_banned
+from core.helpers.tools import reply_if_banned, private_filter
 from tools.states import Demo
 from tools.utils import config, check_bit_rate, email_patt, check
 from tools.ai.vision import OpenAIVision
 
 router = Router()
 logger = logging.getLogger(__name__)
-router.message.filter(F.chat.type.in_({'private'}))
 channel = config.channel
 
 
-@router.message(Command(commands="demo", ignore_case=True))
-@flags.chat_action("typing")
+@router.message(private_filter & Command(commands="demo", ignore_case=True))
 async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
     uid = message.from_user.id
 
@@ -49,9 +47,8 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
         await message.answer(f"Привет {first_name}!\nСейчас не время присылать демки, попробуй позже")
 
 
-@router.message(Demo.start)
-@flags.chat_action("typing")
-async def process_cmd(message: types.Message, state: FSMContext, bot: Bot, l10n: FluentLocalization):
+@router.message(private_filter & Demo.start)
+async def process_cmd(message: types.Message, state: FSMContext, bot: Bot):
     openai = OpenAIVision()
     file_id = message.photo[-1].file_id
     file_info = await bot.get_file(file_id)
@@ -66,9 +63,8 @@ async def process_cmd(message: types.Message, state: FSMContext, bot: Bot, l10n:
         await message.answer(f"Натяни нос клоуна и бахни селфи, не стесняйся!")
 
 
-@router.message(Demo.process)
-@flags.chat_action("typing")
-async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
+@router.message(private_filter & Demo.process)
+async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession):
     email = message.text
     first_name = message.from_user.first_name
     if check(email, email_patt):
@@ -86,8 +82,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
         await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
 
 
-@router.message(Demo.get, F.content_type.in_({'audio'}))
-@flags.chat_action("typing")
+@router.message(private_filter & Demo.get, F.content_type.in_({'audio'}))
 async def get_and_send_from_state(message: types.Message, state: FSMContext, bot: Bot, l10n: FluentLocalization):
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):

@@ -9,9 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 def setup_routers() -> Router:
-    from . import chat_dialogue, demo_catcher, email_catcher, demo_listener, forum_dialogue, private_dialogue
-    from core.helpers import sender, catcher
-    from core.helpers import admin_manager, callbacks, unsupported_manager, pay
+    from . import demo_catcher, dialogues, obs_processor, subscribe_payment, course_payment
+    from core.helpers import admin_manager, callbacks, unsupported_manager
 
     router = Router()
 
@@ -29,15 +28,11 @@ def setup_routers() -> Router:
 
     router.include_router(admin_manager.router)
     router.include_router(unsupported_manager.router)
-    router.include_router(chat_dialogue.router)
+    router.include_router(dialogues.router)
     router.include_router(callbacks.router)
-    router.include_router(forum_dialogue.router)
-    router.include_router(private_dialogue.router)
-    router.include_router(pay.router)
-    router.include_router(sender.router)
-    router.include_router(catcher.router)
+    router.include_router(obs_processor.router)
+    router.include_router(subscribe_payment.router)
+    router.include_router(course_payment.router)
     router.include_router(demo_catcher.router)
-    router.include_router(email_catcher.router)
-    router.include_router(demo_listener.router)
 
     return router

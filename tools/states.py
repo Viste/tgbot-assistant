@@ -23,6 +23,12 @@ class Payment(StatesGroup):
     end = State()
 
 
+class CoursePayment(StatesGroup):
+    start = State()
+    process = State()
+    end = State()
+
+
 class Mail(StatesGroup):
     start = State()
 

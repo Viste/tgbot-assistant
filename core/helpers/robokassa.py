@@ -2,9 +2,12 @@ import aiohttp
 import logging
 from urllib import parse
 
-from core.helpers.model.scheme import Merchant, Order
+from tools.scheme import Merchant, Order
 from core.helpers.tools import robokassa_payment_url, is_test
 from core.helpers.tools import calculate_signature, parse_xml_response
+
+
+logger = logging.getLogger(__name__)
 
 
 async def check_payment(url) -> str:

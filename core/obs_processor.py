@@ -1,13 +1,13 @@
 import html
 import logging
 
-from aiogram import types, F, Router, flags, Bot
+from aiogram import types, F, Router, Bot
 from fluent.runtime import FluentLocalization
 
-from core.helpers.tools import reply_if_banned
 from tools.utils import config
+from core.helpers.tools import reply_if_banned, ChatState
 from core.helpers.obs import ClientOBS
-from core.helpers.tools import ChatState
+
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -15,7 +15,6 @@ router.message.filter(F.chat.type.in_({'group', 'supergroup'}))
 state = ChatState()
 
 
-@flags.chat_action(action="typing", interval=1, initial_sleep=2)
 @router.message(F.content_type.in_({'text'}))
 async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> None:
     logging.info("State chat %s", state.active_chat)
@@ -41,7 +40,6 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
             return
 
 
-@flags.chat_action(action="typing", interval=1, initial_sleep=2)
 @router.message(F.content_type.in_({'animation'}))
 async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
     logging.info("%s", message)

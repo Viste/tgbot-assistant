@@ -3,12 +3,17 @@ import json
 import os
 import hashlib
 import aiohttp
-from xml.etree.ElementTree import fromstring
 
-from aiogram import types
+from datetime import datetime
+from xml.etree.ElementTree import fromstring
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from aiogram import types, F
 from fluent.runtime import FluentLocalization
 from aiogram.enums import ParseMode
 
+from database.models import User
 from tools.utils import config
 
 logger = logging.getLogger(__name__)
@@ -16,16 +21,21 @@ logger = logging.getLogger(__name__)
 banned = set(config.banned_user_ids)
 shadowbanned = set(config.shadowbanned_user_ids)
 
-# academy, neuropunk pro, neuropunk basic, liquid, SUPER PRO, neurofunk, nerve, girls
-active_chats = {
-    -1001647523732: 0, -1001814931266: 5146, -1001922960346: 34, -1001999768206: 4, -1002040950538: 2, -1001961684542: 2450, -1002094481198: 2, -1001921488615: 9076
-    }
-
 chat_settings = {
     "academy_chat": {"active_chat": -1001647523732, "thread_id": None}, "np_pro": {"active_chat": -1001814931266, "thread_id": 5146}, "np_basic": {"active_chat": -1001922960346, "thread_id": 25503},
     "liquid_chat": {"active_chat": -1001999768206, "thread_id": 4284}, "super_pro": {"active_chat": -1002040950538, "thread_id": 293}, "neuro": {"active_chat": -1001961684542, "thread_id": 4048},
     "nerve": {"active_chat": -1002094481198, "thread_id": 72}, "girls": {"active_chat": -1001921488615, "thread_id": 9075},
     }
+
+forum_filter = (
+    F.chat.type.in_({'group', 'supergroup'}) &
+    (
+        (F.chat.id == -1001922960346 & F.message_thread_id == 12842) |
+        (F.chat.id == -1002040950538 & F.message_thread_id == 305) |
+        (F.chat.id == -1002094481198 & F.message_thread_id == 58) |
+        (F.chat.id == -1001921488615 & F.message_thread_id == 9078)))
+chat_filter = F.chat.type.in_({'group', 'supergroup'}) & F.chat.id.in_(config.allowed_groups)
+private_filter = F.chat.type == 'private'
 
 robokassa_payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx'
 robokassa_check_url = 'https://auth.robokassa.ru/Merchant/WebService/Service.asmx/OpStateExt'
@@ -149,3 +159,23 @@ async def generate_robokassa_link(merchant_login: str, invoice_id: int, password
     signature = hashlib.md5(signature_string.encode()).hexdigest()
     url = f"{base_url}?MerchantLogin={merchant_login}&InvoiceID={invoice_id}&Signature={signature}"
     return url
+
+
+async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
+    result = await session.execute(select(User).filter(User.telegram_id == user_id))
+    subscription = result.scalars().one_or_none()
+
+    if subscription and subscription.subscription_status == 'active' and subscription.subscription_start and subscription.subscription_end:
+        now = datetime.now()
+        if subscription.subscription_start <= now <= subscription.subscription_end:
+            return True
+    return False
+
+
+async def handle_exception(message: types.Message, err: Exception, error_message: str = "Не удалось получить картинку. Попробуйте еще раз.\n "):
+    try:
+        logging.info('From exception in Picture: %s', err)
+        await message.reply(error_message, parse_mode=None)
+    except Exception as error:
+        logging.info('Last exception from Picture: %s', error)
+        await message.reply(str(error), parse_mode=None)

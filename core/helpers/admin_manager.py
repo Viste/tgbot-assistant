@@ -11,70 +11,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from database.models import Calendar, StreamEmails
 from database.manager import UserManager
 from tools.ai.ai_tools import OpenAI
+from core.helpers.tools import private_filter
 from tools.utils import config, get_dt
 
 router = Router()
-router.message.filter(F.chat.type.in_({'private'}))
-
 logger = logging.getLogger(__name__)
 
 
-# def extract_id(message: types.Message) -> int:
-#    entities = message.entities or message.caption_entities
-#    logging.info("entities: %s", entities)
-#    if not entities or entities[-1].type != "hashtag":
-#        raise ValueError("Не удалось извлечь ID для ответа!")
-#    hashtag = entities[-1].extract_from(message.text or message.caption)
-#    logging.info("hashtag: %s", int(hashtag[3:]))
-#    if len(hashtag) < 4 or not hashtag[3:].isdigit():
-#        raise ValueError("Некорректный ID для ответа!")
-#
-#    return int(hashtag[3:])
-
-
-# @router.message(Command(commands=["get", "who"]), F.from_user.id.in_(config.admin_chat_id), F.reply_to_message)
-# async def get_user_info(message: types.Message, bot: Bot, l10n: FluentLocalization):
-#    def get_full_name(chat: types.Chat):
-#        if not chat.first_name:
-#            return ""
-#        if not chat.last_name:
-#            return chat.first_name
-#        return f"{chat.first_name} {chat.last_name}"
-
-#    try:
-#        user_id = extract_id(message.reply_to_message)
-#    except ValueError as ex:
-#        return await message.reply(str(ex))
-
-#    try:
-#        user = await bot.get_chat(user_id)
-#    except TelegramAPIError as ex:
-#        await message.reply(l10n.format_value(msg_id="cannot-get-user-info-error", args={"error": ex.message}))
-#        return
-
-#    u = f"@{user.username}" if user.username else l10n.format_value("no")
-#    await message.reply(l10n.format_value(msg_id="user-info", args={"name": get_full_name(user),
-#                                                                    "id": user.id, "username": u}))
-
-
-# @router.message(F.reply_to_message, F.from_user.id.in_(config.admin_chat_id))
-# async def reply_to_user(message: types.Message, l10n: FluentLocalization):
-#    try:
-#        user_id = extract_id(message.reply_to_message)
-#    except ValueError as ex:
-#        return await message.reply(str(ex))
-
-#    try:
-#        await message.copy_to(user_id)
-#    except TelegramAPIError as ex:
-#        await message.reply(
-#            l10n.format_value(
-#                msg_id="cannot-answer-to-user-error",
-#                args={"error": ex.message})
-#        )
-
-
-@router.message(Command(commands="online", ignore_case=True), F.from_user.id.in_(config.admins))
+@router.message(Command(commands="online", ignore_case=True), F.from_user.id.in_(config.admins), private_filter)
 @flags.chat_action("typing")
 async def online_cmd(message: types.Message, command: CommandObject, session: AsyncSession):
     first_name = message.chat.first_name
@@ -87,7 +31,7 @@ async def online_cmd(message: types.Message, command: CommandObject, session: As
     await message.reply(text)
 
 
-@router.message(Command(commands="offline", ignore_case=True), F.from_user.id.in_(config.admins))
+@router.message(Command(commands="offline", ignore_case=True), F.from_user.id.in_(config.admins), private_filter)
 @flags.chat_action("typing")
 async def offline_cmd(message: types.Message, session: AsyncSession):
     first_name = message.chat.first_name
@@ -98,7 +42,7 @@ async def offline_cmd(message: types.Message, session: AsyncSession):
     await message.reply(text)
 
 
-@router.message(F.from_user.id.in_(config.admins), Command(commands="help"))
+@router.message(F.from_user.id.in_(config.admins), Command(commands="help"), private_filter)
 @flags.chat_action("typing")
 async def info(message: types.Message):
     uid = message.from_user.id
@@ -114,7 +58,7 @@ async def info(message: types.Message):
         await message.reply(text, parse_mode=None)
 
 
-@router.message(Command(commands="money"), F.from_user.id.in_(config.admins))
+@router.message(Command(commands="money"), F.from_user.id.in_(config.admins), private_filter)
 @flags.chat_action("typing")
 async def usage(message: types.Message):
     openai = OpenAI()
@@ -122,7 +66,7 @@ async def usage(message: types.Message):
     await message.reply(text, parse_mode=None)
 
 
-@router.message(Command(commands="emails"), F.from_user.id.in_(config.admins))
+@router.message(Command(commands="emails"), F.from_user.id.in_(config.admins), private_filter)
 @flags.chat_action("typing")
 async def mails_get(message: types.Message, session: AsyncSession):
     stmt = select(StreamEmails.email)
@@ -136,7 +80,7 @@ async def mails_get(message: types.Message, session: AsyncSession):
         await message.reply("Нет записей", parse_mode=None)
 
 
-@router.message(Command(commands="stream", ignore_case=True), F.from_user.id.in_(config.admins))
+@router.message(Command(commands="stream", ignore_case=True), F.from_user.id.in_(config.admins), private_filter)
 @flags.chat_action("typing")
 async def stream_cmd(message: types.Message):
     kb = InlineKeyboardBuilder()
@@ -153,7 +97,7 @@ async def stream_cmd(message: types.Message):
     await message.reply("Надо чат выбрать:", reply_markup=kb.as_markup(resize_keyboard=True))
 
 
-@router.message(Command(commands="getmail", ignore_case=True), F.from_user.id.in_(config.admins))
+@router.message(Command(commands="getmail", ignore_case=True), F.from_user.id.in_(config.admins), private_filter)
 @flags.chat_action("typing")
 async def stream_cmd(message: types.Message, state: FSMContext):
     await state.update_data(chatid=message.chat.id)
@@ -171,7 +115,7 @@ async def stream_cmd(message: types.Message, state: FSMContext):
     await message.reply("С какого курса тебе дать почты?", reply_markup=kb.as_markup(resize_keyboard=True))
 
 
-@router.message(Command(commands=['delete_email'], ignore_case=True), F.from_user.id.in_(config.admins))
+@router.message(Command(commands=['delete_email'], ignore_case=True), F.from_user.id.in_(config.admins), private_filter)
 async def delete_email_command(message: types.Message, session: AsyncSession):
     manager = UserManager(session)
     args_text = message.text.partition(' ')[2]
