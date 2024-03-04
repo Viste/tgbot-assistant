@@ -10,7 +10,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import send_reply, reply_if_banned, has_active_subscription, handle_exception
 from core.helpers.tools import chat_filter, private_filter, forum_filter
-
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
 from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.states import Text, Dialogue, DAImage

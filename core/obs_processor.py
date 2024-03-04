@@ -5,17 +5,16 @@ from aiogram import types, F, Router, Bot
 from fluent.runtime import FluentLocalization
 
 from tools.utils import config
-from core.helpers.tools import reply_if_banned, ChatState
+from core.helpers.tools import reply_if_banned, ChatState, basic_chat_filter
 from core.helpers.obs import ClientOBS
 
 
 router = Router()
 logger = logging.getLogger(__name__)
-router.message.filter(F.chat.type.in_({'group', 'supergroup'}))
 state = ChatState()
 
 
-@router.message(F.content_type.in_({'text'}))
+@router.message(basic_chat_filter, F.content_type.in_({'text'}))
 async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> None:
     logging.info("State chat %s", state.active_chat)
     uid = message.from_user.id
@@ -40,7 +39,7 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
             return
 
 
-@router.message(F.content_type.in_({'animation'}))
+@router.message(basic_chat_filter, F.content_type.in_({'animation'}))
 async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
     logging.info("%s", message)
     uid = message.from_user.id
@@ -69,7 +68,7 @@ async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot:
             return
 
 
-@router.message(F.content_type.in_({'sticker'}))
+@router.message(basic_chat_filter, F.content_type.in_({'sticker'}))
 async def process_obs_sticker(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
     uid = message.from_user.id
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
@@ -97,7 +96,7 @@ async def process_obs_sticker(message: types.Message, l10n: FluentLocalization, 
             return
 
 
-@router.message(F.content_type.in_({'photo'}))
+@router.message(basic_chat_filter, F.content_type.in_({'photo'}))
 async def process_obs_image(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
     uid = message.from_user.id
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
