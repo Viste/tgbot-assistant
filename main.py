@@ -1,18 +1,18 @@
 import asyncio
 import logging
 import sys
+from pathlib import Path
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.fsm.strategy import FSMStrategy
 from aioredis.client import Redis
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from fluent.runtime import FluentLocalization, FluentResourceLoader
-from middlewares.l10n import L10nMiddleware
-from pathlib import Path
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from core import setup_routers
 from middlewares.database import DbSessionMiddleware
+from middlewares.l10n import L10nMiddleware
 from tools.utils import config
 
 redis_client = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db, decode_responses=True)

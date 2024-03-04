@@ -5,16 +5,16 @@ from datetime import datetime
 from aiogram import types, F, Router, Bot
 from aiogram.filters.command import Command
 from aiogram.fsm.context import FSMContext
+from fluent.runtime import FluentLocalization
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm.exc import NoResultFound
-from fluent.runtime import FluentLocalization
 
-from database.models import Calendar, StreamEmails
 from core.helpers.tools import reply_if_banned, private_filter
+from database.models import Calendar, StreamEmails
+from tools.ai.vision import OpenAIVision
 from tools.states import Demo
 from tools.utils import config, check_bit_rate, email_patt, check
-from tools.ai.vision import OpenAIVision
 
 router = Router()
 logger = logging.getLogger(__name__)

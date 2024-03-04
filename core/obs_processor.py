@@ -4,10 +4,9 @@ import logging
 from aiogram import types, F, Router, Bot
 from fluent.runtime import FluentLocalization
 
-from tools.utils import config
-from core.helpers.tools import reply_if_banned, ChatState, basic_chat_filter
 from core.helpers.obs import ClientOBS
-
+from core.helpers.tools import reply_if_banned, ChatState, basic_chat_filter
+from tools.utils import config
 
 router = Router()
 logger = logging.getLogger(__name__)

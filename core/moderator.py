@@ -1,16 +1,8 @@
-import html
-import logging
-
-from aiogram import types, F, Router, flags
 # from sqlalchemy.ext.asyncio import AsyncSession
-from fluent.runtime import FluentLocalization
 
-from core.helpers.tools import reply_if_banned
 # from tools.ai.moderator import Moderator
 # from tools.ai.ai_tools import OpenAIDialogue
 # from tools.utils import split_into_chunks
-from tools.utils import config
-from core.helpers.obs import ClientOBS
 
 
 # router = Router()

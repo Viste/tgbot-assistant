@@ -3,9 +3,9 @@ import logging
 from calendar import monthrange
 from datetime import date
 
-from openai import AsyncOpenAI
 import requests
 import tiktoken
+from openai import AsyncOpenAI
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 

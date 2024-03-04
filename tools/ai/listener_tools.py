@@ -3,9 +3,9 @@ import logging
 import essentia.standard as es
 import numpy as np
 import tiktoken
-
 from openai import AsyncOpenAI
-from tools.ai.ai_tools import OpenAIDialogue, UserHistoryManager
+
+from tools.ai.ai_tools import UserHistoryManager
 from tools.utils import config
 
 logger = logging.getLogger(__name__)

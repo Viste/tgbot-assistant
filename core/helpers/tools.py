@@ -1,18 +1,16 @@
-import logging
-import json
-import os
 import hashlib
-import aiohttp
-
+import json
+import logging
+import os
 from urllib import parse
-from xml.etree.ElementTree import fromstring
 
+import aiohttp
 from aiogram import types, F
-from fluent.runtime import FluentLocalization
 from aiogram.enums import ParseMode
+from fluent.runtime import FluentLocalization
 
-from tools.utils import config
 from tools.scheme import Merchant, Order
+from tools.utils import config
 
 logger = logging.getLogger(__name__)
 
@@ -117,40 +115,6 @@ async def parse_response(request: str) -> dict:
                 key, value = item.split('=')
                 params[key] = value
             return params
-
-
-def parse_xml_response(xml_data: str):
-    ns = {'ns': 'http://merchant.roboxchange.com/WebService/'}
-    root = fromstring(xml_data)
-    result = {
-        "Result": {}, "State": {}, "Info": {}, "UserField": []
-        }
-    result_section = root.find(".//ns:Result", ns)
-    if result_section is not None:
-        result["Result"]["Code"] = result_section.find("ns:Code", ns).text
-        description = result_section.find("ns:Description", ns)
-        if description is not None:
-            result["Result"]["Description"] = description.text
-
-    state_section = root.find(".//ns:State", ns)
-    if state_section is not None:
-        result["State"]["Code"] = state_section.find("ns:Code", ns).text
-        result["State"]["RequestDate"] = state_section.find("ns:RequestDate", ns).text
-        result["State"]["StateDate"] = state_section.find("ns:StateDate", ns).text
-
-    info_section = root.find(".//ns:Info", ns)
-    if info_section is not None:
-        result["Info"]["IncCurrLabel"] = info_section.find("ns:IncCurrLabel", ns).text
-        result["Info"]["IncSum"] = info_section.find("ns:IncSum", ns).text
-        result["Info"]["IncAccount"] = info_section.find("ns:IncAccount", ns).text
-
-    user_field_section = root.findall(".//ns:UserField/ns:Field", ns)
-    for field in user_field_section:
-        name = field.find("ns:Name", ns).text
-        value = field.find("ns:Value", ns).text
-        result["UserField"].append({"Name": name, "Value": value})
-
-    return result
 
 
 def get_payment_status_message(result: dict) -> str:

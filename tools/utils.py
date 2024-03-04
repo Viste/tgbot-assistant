@@ -1,18 +1,17 @@
 import json
+import logging
 import os
 import re
-import logging
-import aiohttp
-
 from datetime import datetime
 from typing import List
+from xml.etree.ElementTree import fromstring
 
+import aiohttp
 import mutagen
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
-from core.helpers.tools import parse_xml_response
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +29,40 @@ gmail_patt = re.compile("^[a-zA-Z0-9._%+-]+?@gmail\.com")
 
 def split_into_chunks(text: str, chunk_size: int = 4096) -> list[str]:
     return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+
+
+def parse_xml_response(xml_data: str):
+    ns = {'ns': 'http://merchant.roboxchange.com/WebService/'}
+    root = fromstring(xml_data)
+    result = {
+        "Result": {}, "State": {}, "Info": {}, "UserField": []
+        }
+    result_section = root.find(".//ns:Result", ns)
+    if result_section is not None:
+        result["Result"]["Code"] = result_section.find("ns:Code", ns).text
+        description = result_section.find("ns:Description", ns)
+        if description is not None:
+            result["Result"]["Description"] = description.text
+
+    state_section = root.find(".//ns:State", ns)
+    if state_section is not None:
+        result["State"]["Code"] = state_section.find("ns:Code", ns).text
+        result["State"]["RequestDate"] = state_section.find("ns:RequestDate", ns).text
+        result["State"]["StateDate"] = state_section.find("ns:StateDate", ns).text
+
+    info_section = root.find(".//ns:Info", ns)
+    if info_section is not None:
+        result["Info"]["IncCurrLabel"] = info_section.find("ns:IncCurrLabel", ns).text
+        result["Info"]["IncSum"] = info_section.find("ns:IncSum", ns).text
+        result["Info"]["IncAccount"] = info_section.find("ns:IncAccount", ns).text
+
+    user_field_section = root.findall(".//ns:UserField/ns:Field", ns)
+    for field in user_field_section:
+        name = field.find("ns:Name", ns).text
+        value = field.find("ns:Value", ns).text
+        result["UserField"].append({"Name": name, "Value": value})
+
+    return result
 
 
 async def check_payment(url) -> str:

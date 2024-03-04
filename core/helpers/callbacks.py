@@ -2,12 +2,13 @@ import logging
 
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
-# from sqlalchemy.ext.asyncio import AsyncSession
 
-from main import paper
-from tools.states import Payment, CoursePayment
 from core.helpers.tools import ChatState
 from core.helpers.tools import chat_settings
+from main import paper
+from tools.states import Payment, CoursePayment
+
+# from sqlalchemy.ext.asyncio import AsyncSession
 # from database.manager import UserManager
 
 router = Router()
