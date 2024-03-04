@@ -22,8 +22,8 @@ openai = OpenAI()
 openai_dialogue = OpenAIDialogue()
 
 
-@router.message(chat_filter & (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
-async def ask(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
+@router.message(chat_filter, F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot"))
+async def ask_chat(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
     await state.set_state(Text.get)
 
     uid = message.from_user.id
@@ -42,7 +42,7 @@ async def ask(message: types.Message, state: FSMContext, l10n: FluentLocalizatio
 
 
 @router.message(chat_filter, Text.get, F.reply_to_message.from_user.is_bot)
-async def process_ask(message: types.Message, l10n: FluentLocalization) -> None:
+async def process_ask_chat(message: types.Message, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):
         return
@@ -57,8 +57,8 @@ async def process_ask(message: types.Message, l10n: FluentLocalization) -> None:
             await send_reply(message, chunk)
 
 
-@router.message(forum_filter & (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
-async def ask(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
+@router.message(forum_filter, F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot"))
+async def ask_forum(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
     await state.set_state(Text.get)
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):
@@ -76,7 +76,7 @@ async def ask(message: types.Message, state: FSMContext, l10n: FluentLocalizatio
 
 
 @router.message(forum_filter, Text.get, F.reply_to_message.from_user.is_bot)
-async def process_ask(message: types.Message, l10n: FluentLocalization) -> None:
+async def process_ask_forum(message: types.Message, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):
         return
@@ -198,7 +198,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
 
 
 @router.message(Command(commands="course_register"))
-async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
+async def reg_course(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):

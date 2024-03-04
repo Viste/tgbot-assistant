@@ -23,7 +23,7 @@ robokassa_payment = Robokassa(merchant)
 
 
 @router.message(Payment.process, F.content_type.in_({'text'}), private_filter)
-async def pay_sub(message: types.Message, state: FSMContext):
+async def pay_sub_process(message: types.Message, state: FSMContext):
     random_id = uuid.uuid4().int & (1 << 24) - 1
     order = Order(random_id, 'подписка на сервис киберпапер', 500.0)
     link = await robokassa_payment.generate_payment_link(order)
@@ -40,7 +40,7 @@ async def pay_sub(message: types.Message, state: FSMContext):
 
 
 @router.message(Payment.end, F.text.regexp(r"[\s\S]+?оплатил[\s\S]+?") | F.text.startswith("оплатил"), private_filter)
-async def pay_sub(message: types.Message, state: FSMContext, session: AsyncSession):
+async def pay_sub_end(message: types.Message, state: FSMContext, session: AsyncSession):
     data = await state.get_data()
     check_link = data['check_link']
     logging.info("Current robokassa check link %s", check_link)
@@ -60,7 +60,7 @@ async def pay_sub(message: types.Message, state: FSMContext, session: AsyncSessi
         if user is None:
             user = User(telegram_id=message.from_user.id, telegram_username=message.from_user.username, balance_amount=500, max_tokens=0, current_tokens=0, subscription_start=now,
                         subscription_end=now + timedelta(days=30), subscription_status='active', updated_at=now)
-            await user_manager(session).upsert_user(user)
+            await user_manager(session).create_user(user)
             await message.answer(status_message)
         else:
             user.subscription_start = now

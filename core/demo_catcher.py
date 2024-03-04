@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 channel = config.channel
 
 
-@router.message(private_filter & Command(commands="demo", ignore_case=True))
+@router.message(private_filter, Command(commands="demo", ignore_case=True))
 async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
     uid = message.from_user.id
 
@@ -47,7 +47,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
         await message.answer(f"Привет {first_name}!\nСейчас не время присылать демки, попробуй позже")
 
 
-@router.message(private_filter & Demo.start)
+@router.message(private_filter, Demo.start)
 async def process_cmd(message: types.Message, state: FSMContext, bot: Bot):
     openai = OpenAIVision()
     file_id = message.photo[-1].file_id
@@ -63,7 +63,7 @@ async def process_cmd(message: types.Message, state: FSMContext, bot: Bot):
         await message.answer(f"Натяни нос клоуна и бахни селфи, не стесняйся!")
 
 
-@router.message(private_filter & Demo.process)
+@router.message(private_filter, Demo.process)
 async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession):
     email = message.text
     first_name = message.from_user.first_name
@@ -82,7 +82,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
         await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
 
 
-@router.message(private_filter & Demo.get, F.content_type.in_({'audio'}))
+@router.message(private_filter, Demo.get, F.content_type.in_({'audio'}))
 async def get_and_send_from_state(message: types.Message, state: FSMContext, bot: Bot, l10n: FluentLocalization):
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):
