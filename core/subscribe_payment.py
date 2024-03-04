@@ -4,7 +4,11 @@ import json
 
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
+from sqlalchemy.ext.asyncio import AsyncSession
+from datetime import datetime, timedelta
 
+from database.manager import UserManager as user_manager
+from database.models import User
 from tools.utils import config
 from tools.states import Payment
 from tools.scheme import Merchant, Order
@@ -36,12 +40,15 @@ async def pay_sub(message: types.Message, state: FSMContext):
 
 
 @router.message(Payment.end, F.text.regexp(r"[\s\S]+?оплатил[\s\S]+?") | F.text.startswith("оплатил"), private_filter)
-async def pay_sub(message: types.Message, state: FSMContext):
+async def pay_sub(message: types.Message, state: FSMContext, session: AsyncSession):
     data = await state.get_data()
     check_link = data['check_link']
     logging.info("Current robokassa check link %s", check_link)
     result_str = await check_payment(check_link)
     logging.info("RESULT OF PAYMENT %s", result_str)
+    now = datetime.utcnow()
+    userid = message.from_user.id
+    user = await user_manager(session).get_user(userid)
     try:
         result = json.loads(result_str)
     except json.JSONDecodeError:
@@ -49,4 +56,20 @@ async def pay_sub(message: types.Message, state: FSMContext):
         return
 
     status_message = get_payment_status_message(result)
-    await message.answer(status_message)
+    if status_message == 0:
+        if user is None:
+            user = User(telegram_id=message.from_user.id, telegram_username=message.from_user.username, balance_amount=500, max_tokens=0, current_tokens=0, subscription_start=now,
+                        subscription_end=now + timedelta(days=30), subscription_status='active', updated_at=now)
+            await user_manager(session).upsert_user(user)
+            await message.answer(status_message)
+        else:
+            user.subscription_start = now
+            user.subscription_end = now + timedelta(days=30)
+            user.subscription_status = 'active'
+            user.telegram_id = message.from_user.id
+            user.telegram_username = message.from_user.username
+            user.balance_amount = 350
+            await session.commit()
+            await message.answer(status_message)
+    else:
+        await message.answer(status_message)

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime, Integer, UniqueConstraint
+from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime, Integer
 
 from database.base import Base
 
@@ -37,9 +37,10 @@ class User(Base):
 class NeuropunkPro(Base):
     __tablename__ = "neuropunk_pro"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True, unique=True)
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
     telegram_id = Column(BigInteger, nullable=False, unique=True)
     telegram_username = Column(String(255), nullable=True, unique=True)
+    user_email = Column(String(255), nullable=True)
     subscription_start = Column(DateTime, nullable=True)
     subscription_end = Column(DateTime, nullable=True)
     subscription_status = Column(String(50), nullable=False, default='inactive')

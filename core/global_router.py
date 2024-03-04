@@ -198,6 +198,33 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
                 await message.reply(str(error), parse_mode=None)
 
 
+@router.message(Command(commands="course_register"))
+async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
+    await state.update_data(chatid=message.chat.id)
+    uid = message.from_user.id
+    if await reply_if_banned(message, uid, l10n):
+        return
+    else:
+        if not await has_active_subscription(uid, session):
+            kb = [[types.InlineKeyboardButton(text="Купить подписку на Курс", callback_data="buy_course")], ]
+            keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+            await message.answer("Дави на кнопку чтобы продолжить!", reply_markup=keyboard)
+            current_state = await state.get_state()
+            logging.info("current state %r", current_state)
+            return
+
+        logging.info("%s", message)
+        text = html.escape(message.text)
+        escaped_text = text.strip('киберпапер ')
+
+        await state.set_state(Dialogue.get)
+        replay_text, total_tokens = await openai_dialogue.get_resp(escaped_text, uid, session)
+        chunks = split_into_chunks(replay_text)
+        for index, chunk in enumerate(chunks):
+            if index == 0:
+                await send_reply(message, chunk)
+
+
 @router.message(Command(commands="help"))
 async def info_user(message: types.Message, l10n: FluentLocalization):
     await message.answer(l10n.format_value("help"))
