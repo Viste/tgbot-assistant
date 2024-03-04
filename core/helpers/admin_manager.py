@@ -9,7 +9,6 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import Calendar, StreamEmails
-from database.manager import UserManager
 from tools.ai.ai_tools import OpenAI
 from core.helpers.tools import private_filter
 from tools.utils import config, get_dt
@@ -102,31 +101,7 @@ async def stream_cmd(message: types.Message):
 async def stream_cmd(message: types.Message, state: FSMContext):
     await state.update_data(chatid=message.chat.id)
     kb = InlineKeyboardBuilder()
-    kb.add(InlineKeyboardButton(text="Нейропанк Академия", callback_data="course_academy"))
     kb.add(InlineKeyboardButton(text="PRO (КОНТЕНТ ПО ПОДПИСКЕ)", callback_data="course_np_pro"))
-    kb.add(InlineKeyboardButton(text="ЛИКВИД КУРС", callback_data="course_liquid"))
-    kb.add(InlineKeyboardButton(text="НАЧАЛЬНЫЙ #1 - от 0 до паладина!", callback_data="course_np_basic"))
-    kb.add(InlineKeyboardButton(text="SUPER PRO#1 (DNB)", callback_data="course_super_pro"))
-    kb.add(InlineKeyboardButton(text="НЕЙРОФАНК КУРС ", callback_data="course_neuro"))
-    kb.add(InlineKeyboardButton(text="NERV3 Продуктивность Level 99 #1", callback_data="course_nerve"))
-    kb.add(InlineKeyboardButton(text="DNB Курс - только девушки!", callback_data="course_girls"))
     kb.adjust(2)
 
     await message.reply("С какого курса тебе дать почты?", reply_markup=kb.as_markup(resize_keyboard=True))
-
-
-@router.message(Command(commands=['delete_email'], ignore_case=True), F.from_user.id.in_(config.admins), private_filter)
-async def delete_email_command(message: types.Message, session: AsyncSession):
-    manager = UserManager(session)
-    args_text = message.text.partition(' ')[2]
-    args = args_text.split(', ')
-    if len(args) != 2:
-        await message.reply("Пожалуйста, укажите название курса, как в телеграм и электронную почту для удаления в формате: /delete_email Курс Название, email@gmail.com")
-        return
-
-    course_name, email = args
-    success = await UserManager.delete_email_from_course(manager, course_name=course_name, email=email)
-    if success:
-        await message.reply(f"Электронная почта {email} успешно удалена из курса {course_name}.")
-    else:
-        await message.reply("Не удалось удалить электронную почту. Проверьте правильность введенных данных.")

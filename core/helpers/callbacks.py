@@ -45,22 +45,8 @@ async def process_catcher(callback: types.CallbackQuery, session: AsyncSession):
     manager = UserManager(session)
 
     if callback.data.startswith("course_"):
-        if callback.data == "course_academy":
-            course_name = "Нейропанк Академия (Общий поток)"
-        elif callback.data == "course_np_pro":
+        if callback.data == "course_np_pro":
             course_name = "НЕЙРОПАНК PRO (КОНТЕНТ ПО ПОДПИСКЕ) by Paperclip"
-        elif callback.data == "course_np_basic":
-            course_name = "НАЧАЛЬНЫЙ #1 - от 0 до паладина!"
-        elif callback.data == "course_liquid":
-            course_name = "ЛИКВИД КУРС #1 - Нейропанк Академия"
-        elif callback.data == "course_super_pro":
-            course_name = "SUPER PRO#1 (DNB)"
-        elif callback.data == "course_neuro":
-            course_name = "НЕЙРОФАНК КУРС #1"
-        elif callback.data == "course_nerve":
-            course_name = "NERV3 Продуктивность Level 99 #1"
-        elif callback.data == "course_girls":
-            course_name = "DNB Курс - только девушки! 🤖🤖🤖"
 
         if course_name:
             emails = await manager.get_emails_by_course(course_name=course_name)

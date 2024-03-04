@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 def setup_routers() -> Router:
-    from . import demo_catcher, dialogues, obs_processor, subscribe_payment, course_payment
+    from . import demo_catcher, global_router, obs_processor, subscribe_payment, course_payment
     from core.helpers import admin_manager, callbacks, unsupported_manager
 
     router = Router()
@@ -28,7 +28,7 @@ def setup_routers() -> Router:
 
     router.include_router(admin_manager.router)
     router.include_router(unsupported_manager.router)
-    router.include_router(dialogues.router)
+    router.include_router(global_router.router)
     router.include_router(callbacks.router)
     router.include_router(obs_processor.router)
     router.include_router(subscribe_payment.router)

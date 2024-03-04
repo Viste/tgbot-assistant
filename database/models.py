@@ -43,3 +43,4 @@ class NeuropunkPro(Base):
     subscription_start = Column(DateTime, nullable=True)
     subscription_end = Column(DateTime, nullable=True)
     subscription_status = Column(String(50), nullable=False, default='inactive')
+    mariadb_engine = "InnoDB"
