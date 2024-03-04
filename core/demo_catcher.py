@@ -30,19 +30,13 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
 
     first_name = message.chat.first_name
     now = datetime.now()
-    try:
-        result = await session.execute(select(Calendar).order_by(desc(Calendar.end_time)).limit(1))
-        close_date = result.scalar_one()
-        await session.commit()
-    except NoResultFound:
-        close_date = None
-    if close_date is not None:
-        if close_date.end_time is not None or now < close_date.end_time:
-            await message.answer(f"Привет {first_name}!\nЯ принимаю демки на эфиры Нейропанк академии\n"
-                                 f"Для начала пришли мне свое фото с клоунским носом, затем продолжим")
-            await state.set_state(Demo.start)
-        else:
-            await message.answer(f"Привет {first_name}!\nСейчас не время присылать демки, попробуй позже")
+    result = await session.execute(select(Calendar).order_by(desc(Calendar.end_time)).limit(1))
+    close_date = result.scalar_one_or_none()
+
+    if close_date and now < close_date.end_time:
+        await message.answer(f"Привет {first_name}!\nЯ принимаю демки на эфиры Нейропанк академии\n"
+                             f"Для начала пришли мне свое фото с клоунским носом, затем продолжим")
+        await state.set_state(Demo.start)
     else:
         await message.answer(f"Привет {first_name}!\nСейчас не время присылать демки, попробуй позже")
 

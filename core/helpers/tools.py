@@ -22,13 +22,10 @@ chat_settings = {
     "nerve": {"active_chat": -1002094481198, "thread_id": 72}, "girls": {"active_chat": -1001921488615, "thread_id": 9075},
     }
 
-forum_filter = (
-    F.chat.type.in_({'group', 'supergroup'}) &
-    (
-        (F.chat.id == -1001922960346 & F.message_thread_id == 12842) |
-        (F.chat.id == -1002040950538 & F.message_thread_id == 305) |
-        (F.chat.id == -1002094481198 & F.message_thread_id == 58) |
-        (F.chat.id == -1001921488615 & F.message_thread_id == 9078)))
+forum_filter = ((F.chat.type.in_({'group', 'supergroup'})) & ((F.chat.id == -1001922960346 & F.message_thread_id == 12842) |
+                                                              (F.chat.id == -1002040950538 & F.message_thread_id == 305) |
+                                                              (F.chat.id == -1002094481198 & F.message_thread_id == 58) |
+                                                              (F.chat.id == -1001921488615 & F.message_thread_id == 9078)))
 chat_filter = F.chat.type.in_({'group', 'supergroup'}) & F.chat.id.in_(config.allowed_groups)
 basic_chat_filter = F.chat.type.in_({'group', 'supergroup'})
 private_filter = F.chat.type == 'private'
