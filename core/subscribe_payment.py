@@ -4,15 +4,15 @@ import json
 
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
-from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.manager import UserManager as user_manager
+from database.manager import UserManager as User_manager
 from database.models import User
-from tools.utils import config
+from tools.utils import config, check_payment
 from tools.states import Payment
 from tools.scheme import Merchant, Order
-from core.helpers.robokassa import Robokassa, check_payment
+from core.helpers.tools import Robokassa
 from core.helpers.tools import generate_robokassa_link, get_payment_status_message, private_filter
 
 router = Router()
@@ -43,12 +43,12 @@ async def pay_sub_process(message: types.Message, state: FSMContext):
 async def pay_sub_end(message: types.Message, state: FSMContext, session: AsyncSession):
     data = await state.get_data()
     check_link = data['check_link']
-    logging.info("Current robokassa check link %s", check_link)
+    logging.info("Current robokassa check link from private sub end %s", check_link)
     result_str = await check_payment(check_link)
-    logging.info("RESULT OF PAYMENT %s", result_str)
+    logging.info("Payment result from sub end %s", result_str)
     now = datetime.utcnow()
     userid = message.from_user.id
-    user = await user_manager(session).get_user(userid)
+    user = await User_manager(session).get_user(userid)
     try:
         result = json.loads(result_str)
     except json.JSONDecodeError:
@@ -60,7 +60,7 @@ async def pay_sub_end(message: types.Message, state: FSMContext, session: AsyncS
         if user is None:
             user = User(telegram_id=message.from_user.id, telegram_username=message.from_user.username, balance_amount=500, max_tokens=0, current_tokens=0, subscription_start=now,
                         subscription_end=now + timedelta(days=30), subscription_status='active', updated_at=now)
-            await user_manager(session).create_user(user)
+            await User_manager(session).create_user(user)
             await message.answer(status_message)
         else:
             user.subscription_start = now
@@ -68,7 +68,7 @@ async def pay_sub_end(message: types.Message, state: FSMContext, session: AsyncS
             user.subscription_status = 'active'
             user.telegram_id = message.from_user.id
             user.telegram_username = message.from_user.username
-            user.balance_amount = 350
+            user.balance_amount = 500
             await session.commit()
             await message.answer(status_message)
     else:

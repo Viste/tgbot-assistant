@@ -8,7 +8,8 @@ from aiogram.filters import Command
 from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.helpers.tools import send_reply, reply_if_banned, has_active_subscription, handle_exception
+from database.manager import UserManager
+from core.helpers.tools import send_reply, reply_if_banned, handle_exception
 from core.helpers.tools import chat_filter, private_filter, forum_filter
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
 from tools.ai.listener_tools import OpenAIListener, Audio
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 openai_listener = OpenAIListener()
 openai = OpenAI()
 openai_dialogue = OpenAIDialogue()
+audio = Audio()
 
 
 @router.message(chat_filter, F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot"))
@@ -94,14 +96,15 @@ async def process_ask_forum(message: types.Message, l10n: FluentLocalization) ->
 @router.message(private_filter, F.text.regexp(r"[\s\S]+?киберпапер[\s\S]+?") | F.text.startswith("киберпапер"))
 async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
+    user_manager = UserManager(session)
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):
         return
     else:
-        if not await has_active_subscription(uid, session):
+        if not await user_manager.is_subscription_active(uid):
             kb = [[types.InlineKeyboardButton(text="Купить подписку", callback_data="buy_subscription")], ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-            await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.", reply_markup=keyboard)
+            await message.answer("Ваша подписка не активна. Пожалуйста, купите подписку, чтобы продолжить.", reply_markup=keyboard)
             current_state = await state.get_state()
             logging.info("current state %r", current_state)
             return
@@ -163,16 +166,17 @@ async def process_paint(message: types.Message, state: FSMContext) -> None:
 
 @router.message(private_filter, F.audio)
 async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot, l10n: FluentLocalization):
-    audio = Audio()
+    user_manager = UserManager(session)
+
     uid = message.from_user.id
     await state.update_data(chatid=message.chat.id)
     if await reply_if_banned(message, uid, l10n):
         return
 
-    if not await has_active_subscription(uid, session):
+    if not await user_manager.is_subscription_active(uid):
         kb = [[types.InlineKeyboardButton(text="Купить подписку", callback_data="buy_subscription")], ]
         keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-        await message.answer("У вас нет активной подписки. Пожалуйста, купите подписку, чтобы продолжить.", reply_markup=keyboard)
+        await message.answer("Ваша подписка не активна. Пожалуйста, купите подписку, чтобы продолжить.", reply_markup=keyboard)
         return
 
     file_path = f"/app/tmp/{str(uid)}.mp3"
@@ -200,11 +204,12 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
 @router.message(Command(commands="course_register"))
 async def reg_course(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
+    user_manager = UserManager(session)
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):
         return
     else:
-        if not await has_active_subscription(uid, session):
+        if not await user_manager.is_course_subscription_active(uid):
             kb = [[types.InlineKeyboardButton(text="Купить подписку на Курс", callback_data="buy_course")], ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
             await message.answer("Дави на кнопку чтобы продолжить!", reply_markup=keyboard)

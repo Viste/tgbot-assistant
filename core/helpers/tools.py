@@ -4,17 +4,15 @@ import os
 import hashlib
 import aiohttp
 
-from datetime import datetime
+from urllib import parse
 from xml.etree.ElementTree import fromstring
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from aiogram import types, F
 from fluent.runtime import FluentLocalization
 from aiogram.enums import ParseMode
 
-from database.models import User
 from tools.utils import config
+from tools.scheme import Merchant, Order
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +39,22 @@ private_filter = F.chat.type == 'private'
 robokassa_payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx'
 robokassa_check_url = 'https://auth.robokassa.ru/Merchant/WebService/Service.asmx/OpStateExt'
 is_test = 0
+
+
+class Robokassa:
+    def __init__(self, merchant: Merchant):
+        self.merchant = merchant
+
+    async def generate_payment_link(self, order: Order) -> str:
+        signature = calculate_signature(self.merchant.login, order.cost, order.number, self.merchant.password1)
+        data = {
+            'MerchantLogin': self.merchant.login,
+            'OutSum': order.cost,
+            'InvId': order.number,
+            'Description': order.description,
+            'SignatureValue': str(signature),
+            'IsTest': is_test}
+        return f'{robokassa_payment_url}?{parse.urlencode(data)}'
 
 
 class ChatState:
@@ -160,17 +174,6 @@ async def generate_robokassa_link(merchant_login: str, invoice_id: int, password
     signature = hashlib.md5(signature_string.encode()).hexdigest()
     url = f"{base_url}?MerchantLogin={merchant_login}&InvoiceID={invoice_id}&Signature={signature}"
     return url
-
-
-async def has_active_subscription(user_id: int, session: AsyncSession) -> bool:
-    result = await session.execute(select(User).filter(User.telegram_id == user_id))
-    subscription = result.scalars().one_or_none()
-
-    if subscription and subscription.subscription_status == 'active' and subscription.subscription_start and subscription.subscription_end:
-        now = datetime.now()
-        if subscription.subscription_start <= now <= subscription.subscription_end:
-            return True
-    return False
 
 
 async def handle_exception(message: types.Message, err: Exception, error_message: str = "Не удалось получить картинку. Попробуйте еще раз.\n "):

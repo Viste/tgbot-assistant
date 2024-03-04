@@ -1,6 +1,9 @@
 import json
 import os
 import re
+import logging
+import aiohttp
+
 from datetime import datetime
 from typing import List
 
@@ -9,6 +12,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User
+from core.helpers.tools import parse_xml_response
+
+logger = logging.getLogger(__name__)
 
 
 class JSONObject:
@@ -24,6 +30,15 @@ gmail_patt = re.compile("^[a-zA-Z0-9._%+-]+?@gmail\.com")
 
 def split_into_chunks(text: str, chunk_size: int = 4096) -> list[str]:
     return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+
+
+async def check_payment(url) -> str:
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            xml_data = await response.text()
+            parsed_response = parse_xml_response(xml_data)
+            logging.info("Parsed response from robokassa %s", parsed_response)
+            return parsed_response
 
 
 def check(string, performer):
