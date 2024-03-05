@@ -3,14 +3,13 @@ import logging
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
 from fluent.runtime import FluentLocalization
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import ChatState
 from core.helpers.tools import chat_settings
+from database.manager import UserManager
 from main import paper
 from tools.states import Payment, CoursePayment
-
-# from sqlalchemy.ext.asyncio import AsyncSession
-# from database.manager import UserManager
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -47,22 +46,13 @@ async def process_sender(callback: types.CallbackQuery):
     await callback.answer()
 
 
-# @router.callback_query(lambda c: c.data.startswith("course_"))
-# async def process_catcher(callback: types.CallbackQuery, session: AsyncSession):
-    # logger.info("Callback query received: %s", callback.data)
-    # course_name = None
-    # manager = UserManager(session)
+@router.callback_query(lambda c: c.data.startswith("course_"))
+async def process_catcher(callback: types.CallbackQuery, session: AsyncSession):
+    user_manager = UserManager(session)
+    emails = await user_manager.get_active_course_emails()
 
-    # if callback.data.startswith("course_"):
-    #     if callback.data == "course_np_pro":
-    #         course_name = "НЕЙРОПАНК PRO (КОНТЕНТ ПО ПОДПИСКЕ) by Paperclip"
-
-    # if course_name:
-    # emails = await manager.get_emails_by_course(course_name=course_name)
-    # if emails:
-    #    email_list = "\n".join(emails)
-    #    await callback.message.answer(f"Email адреса участников курса '{course_name}':\n{email_list}")
-    # else:
-    #    await callback.message.answer(f"Участников на курсе '{course_name}' не найдено.")
-    # else:
-    #    await callback.answer("Неизвестный курс.", show_alert=True)
+    if emails:
+        emails_str = ', '.join(emails)
+        await callback.message.answer(f"Активные email адреса подписчиков курса: {emails_str}")
+    else:
+        await callback.message.answer("Нет активных подписчиков курса с указанными email адресами.")

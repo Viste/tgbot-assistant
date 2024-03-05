@@ -8,7 +8,6 @@ from aiogram.fsm.context import FSMContext
 from fluent.runtime import FluentLocalization
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm.exc import NoResultFound
 
 from core.helpers.tools import reply_if_banned, private_filter
 from database.models import Calendar, StreamEmails

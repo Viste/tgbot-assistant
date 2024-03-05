@@ -51,3 +51,9 @@ class UserManager:
         if user and user.subscription_end and user.subscription_end > datetime.utcnow():
             return True
         return False
+
+    async def get_active_course_emails(self) -> list[str]:
+        stmt = select(NeuropunkPro.user_email).where(NeuropunkPro.subscription_end > datetime.utcnow(), NeuropunkPro.user_email.isnot(None))
+        result = await self.session.execute(stmt)
+        emails = [email[0] for email in result.all() if email[0] is not None]
+        return emails
