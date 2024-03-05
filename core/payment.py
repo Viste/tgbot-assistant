@@ -81,6 +81,9 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
     random_id = uuid.uuid4().int & (1 << 24) - 1
     email = message.text
     first_name = message.from_user.first_name
+    current_state = await state.get_state()
+    logging.info("%s", message)
+    logging.info("FROM CoursePayment.start state %r", current_state)
     if check(email, gmail_patt):
         order = Order(random_id, 'подписка на сервис киберпапер', 1500.0)
         link = await robokassa_payment.generate_payment_link(order)

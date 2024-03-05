@@ -29,9 +29,9 @@ def setup_routers() -> Router:
     router.include_router(admin_manager.router)
     router.include_router(unsupported_manager.router)
     router.include_router(global_router.router)
+    router.include_router(payment.router)
     router.include_router(callbacks.router)
     router.include_router(obs_processor.router)
-    router.include_router(payment.router)
     router.include_router(demo_catcher.router)
 
     return router
