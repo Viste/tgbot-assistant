@@ -102,7 +102,7 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
         return
     else:
         if not await user_manager.is_subscription_active(uid):
-            kb = [[types.InlineKeyboardButton(text="Купить подписку", callback_data="buy_subscription")], ]
+            kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_subscription")], ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
             await message.answer(l10n.format_value("error-sub-not-active"), reply_markup=keyboard)
             current_state = await state.get_state()
@@ -171,7 +171,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
         return
 
     if not await user_manager.is_subscription_active(uid):
-        kb = [[types.InlineKeyboardButton(text="Купить подписку", callback_data="buy_subscription")], ]
+        kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_subscription")], ]
         keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
         await message.answer(l10n.format_value("error-sub-not-active"), reply_markup=keyboard)
         return
@@ -207,7 +207,7 @@ async def reg_course(message: types.Message, state: FSMContext, session: AsyncSe
         return
     else:
         if not await user_manager.is_course_subscription_active(uid):
-            kb = [[types.InlineKeyboardButton(text="Купить подписку на Курс", callback_data="buy_course")], ]
+            kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_course")], ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
             await message.answer("Дави на кнопку чтобы продолжить!", reply_markup=keyboard)
             current_state = await state.get_state()
