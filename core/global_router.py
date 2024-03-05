@@ -2,13 +2,15 @@ import html
 import logging
 import os
 
+from datetime import datetime, timedelta
 from aiogram import types, F, Router, Bot
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
+from aiogram.methods import UnbanChatMember
 
-from core.helpers.tools import chat_filter, private_filter, forum_filter, subscribe_chat_filter
+from core.helpers.tools import chat_filter, private_filter, forum_filter, subscribe_chat_filter, subscribe_chat_check_filter
 from core.helpers.tools import send_reply, reply_if_banned, handle_exception
 from database.manager import UserManager
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
@@ -209,12 +211,28 @@ async def reg_course(message: types.Message, state: FSMContext, session: AsyncSe
         if not await user_manager.is_course_subscription_active(uid):
             kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub-course"), callback_data="buy_course")], ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-            await message.answer(l10n.format_value("button-action"), reply_markup=keyboard)
+            await message.replay(l10n.format_value("button-action"), reply_markup=keyboard)
             current_state = await state.get_state()
             logging.info("current state %r", current_state)
             return
 
         logging.info("%s", message)
+
+
+@router.message(subscribe_chat_check_filter)
+async def check_subscription_and_kick(message: types.Message, session: AsyncSession):
+    user_id = message.from_user.id
+    chat_id = message.chat.id
+    user_manager = UserManager(session)
+
+    user = await user_manager.get_course_user(user_id)
+    if user and user.subscription_end:
+        if datetime.utcnow() > user.subscription_end + timedelta(days=2):
+            await session.delete(user)
+            await session.commit()
+
+            await UnbanChatMember(chat_id=chat_id, user_id=user_id)
+            logger.info(f"User {user_id} kicked from chat {chat_id} due to expired subscription (more than 2 days).")
 
 
 @router.message(Command(commands="help"))

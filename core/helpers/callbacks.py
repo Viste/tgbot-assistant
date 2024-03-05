@@ -31,13 +31,8 @@ async def get_sub(callback: types.CallbackQuery, state: FSMContext, l10n: Fluent
 
 @router.callback_query(F.data == "buy_course")
 async def get_course(callback: types.CallbackQuery, state: FSMContext, l10n: FluentLocalization):
-    data = await state.get_data()
-    logging.info("current state data %s", data)
-    user_id = data['chatid']
-    await paper.send_message(user_id, l10n.format_value("ask-sub-mail"))
-    await state.set_state(CoursePayment.process)
-    current_state = await state.get_state()
-    logging.info("current state %r", current_state)
+    await callback.message.reply(l10n.format_value("ask-sub-mail"))
+    await state.set_state(CoursePayment.start)
     await callback.answer()
 
 

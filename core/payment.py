@@ -76,20 +76,22 @@ async def pay_sub_end(message: types.Message, state: FSMContext, session: AsyncS
         await message.answer(status_message)
 
 
-@router.message(CoursePayment.process, F.content_type.in_({'text'}))
+@router.message(CoursePayment.start, F.content_type.in_({'text'}), F.text.regexp(r"^[a-zA-Z0-9._%+-]+?@gmail\.com"))
 async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLocalization):
     random_id = uuid.uuid4().int & (1 << 24) - 1
+    email = message.text
     order = Order(random_id, 'подписка на сервис киберпапер', 1500.0)
     link = await robokassa_payment.generate_payment_link(order)
     check_link = await generate_robokassa_link(config.rb_login, random_id, config.rb_pass2)
     await state.update_data(check_link=check_link)
+    await state.update_data(email=email)
     logging.info("Current robokassa link: %s ", link)
-
+    logging.info("Current user email: %s ", email)
     kb = [
         [types.InlineKeyboardButton(text=l10n.format_value("pay-course-sub"), url=link)],
         ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-    await message.answer(l10n.format_value("check-pay-answer"), reply_markup=keyboard)
+    await message.reply(l10n.format_value("check-pay-answer"), reply_markup=keyboard)
     await state.set_state(CoursePayment.end)
 
 
@@ -118,7 +120,7 @@ async def pay_course_end(message: types.Message, state: FSMContext, session: Asy
                                 subscription_end=now + timedelta(days=30),
                                 subscription_status='active', updated_at=now)
             await user_manager.create_user(user)
-            await message.answer(status_message)
+            await message.replay(status_message)
         else:
             user.subscription_start = now
             user.subscription_end = now + timedelta(days=30)
@@ -127,6 +129,6 @@ async def pay_course_end(message: types.Message, state: FSMContext, session: Asy
             user.telegram_username = message.from_user.username
             user.email = email
             await session.commit()
-            await message.answer(status_message)
+            await message.reply(status_message)
     else:
-        await message.answer(status_message)
+        await message.replay(status_message)
