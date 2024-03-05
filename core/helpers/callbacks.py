@@ -30,7 +30,7 @@ async def get_sub(callback: types.CallbackQuery, state: FSMContext, l10n: Fluent
 
 @router.callback_query(F.data == "buy_course")
 async def get_course(callback: types.CallbackQuery, state: FSMContext, l10n: FluentLocalization):
-    await callback.message.reply(l10n.format_value("ask-sub-mail"))
+    await callback.message.reply(l10n.format_value("ask-sub-email"))
     await state.set_state(CoursePayment.start)
     await callback.answer()
 
