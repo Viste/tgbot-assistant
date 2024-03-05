@@ -151,7 +151,7 @@ class OpenAIListener:
                 if self.retries >= self.max_retries:
                     return f'⚠️Ошибочка вышла ⚠️\n{str(err)}'
 
-    async def get_resp_listen(self, user_id: int, query: str) -> tuple[str, int]:
+    async def get_resp_listen(self, user_id: int, query: str) -> str:
         response = await self._query_gpt_listen(user_id, query)
         answer = ''
 
@@ -168,14 +168,7 @@ class OpenAIListener:
             answer = response.choices[0].message.content.strip()
             await self.history.add_to_history(user_id, role="assistant", content=answer)
 
-        total_tokens = response.usage.total_tokens if response.usage else 0
-        if response.usage and self.show_tokens:
-            answer += "\n\n---\n" \
-                      f"💰 Использовано Токенов: {str(response.usage.total_tokens)}" \
-                      f" ({str(response.usage.prompt_tokens)} prompt," \
-                      f" {str(response.usage.completion_tokens)} completion)"
-
-        return answer, total_tokens
+        return answer
 
     def _count_listen_tokens(self, messages) -> int:
         try:

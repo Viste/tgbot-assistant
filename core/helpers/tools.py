@@ -29,6 +29,7 @@ forum_filter = ((F.chat.type.in_({'group', 'supergroup'})) & (((F.chat.id == -10
 chat_filter = F.chat.type.in_({'group', 'supergroup'}) & F.chat.id.in_(config.allowed_groups)
 basic_chat_filter = F.chat.type.in_({'group', 'supergroup'})
 private_filter = F.chat.type == 'private'
+subscribe_chat_filter = ((F.chat.type.in_({'group', 'supergroup'})) & ((F.chat.id == -1001814931266) & (F.message_thread_id == 5472)))
 
 robokassa_payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx'
 robokassa_check_url = 'https://auth.robokassa.ru/Merchant/WebService/Service.asmx/OpStateExt'

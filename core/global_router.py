@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.helpers.tools import chat_filter, private_filter, forum_filter
+from core.helpers.tools import chat_filter, private_filter, forum_filter, subscribe_chat_filter
 from core.helpers.tools import send_reply, reply_if_banned, handle_exception
 from database.manager import UserManager
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
@@ -36,7 +36,7 @@ async def ask_chat(message: types.Message, state: FSMContext, l10n: FluentLocali
     text = html.escape(message.text)
     escaped_text = text.strip('@cyberpaperbot')
 
-    replay_text, total_tokens = await openai.get_resp(escaped_text, uid)
+    replay_text = await openai.get_resp(escaped_text, uid)
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         if index == 0:
@@ -52,7 +52,7 @@ async def process_ask_chat(message: types.Message, l10n: FluentLocalization) -> 
     logging.info("%s", message)
     text = html.escape(message.text)
 
-    replay_text, total_tokens = await openai.get_resp(text, uid)
+    replay_text = await openai.get_resp(text, uid)
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         if index == 0:
@@ -70,7 +70,7 @@ async def ask_forum(message: types.Message, state: FSMContext, l10n: FluentLocal
     text = html.escape(message.text)
     escaped_text = text.strip('@cyberpaperbot ')
 
-    replay_text, total_tokens = await openai.get_resp(escaped_text, uid)
+    replay_text = await openai.get_resp(escaped_text, uid)
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         if index == 0:
@@ -86,7 +86,7 @@ async def process_ask_forum(message: types.Message, l10n: FluentLocalization) ->
     logging.info("%s", message)
     text = html.escape(message.text)
 
-    replay_text, total_tokens = await openai.get_resp(text, uid)
+    replay_text = await openai.get_resp(text, uid)
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         if index == 0:
@@ -183,7 +183,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
 
     result = await audio.process_audio_file(file_path)
     os.remove(file_path)
-    replay_text, total_tokens = await openai_listener.get_resp_listen(uid, str(result))
+    replay_text = await openai_listener.get_resp_listen(uid, str(result))
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         try:
@@ -198,7 +198,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
                 await message.reply(str(error), parse_mode=None)
 
 
-@router.message(Command(commands="course_register"))
+@router.message(Command(commands="course_register"), subscribe_chat_filter)
 async def reg_course(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
     user_manager = UserManager(session)
@@ -207,23 +207,14 @@ async def reg_course(message: types.Message, state: FSMContext, session: AsyncSe
         return
     else:
         if not await user_manager.is_course_subscription_active(uid):
-            kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_course")], ]
+            kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub-course"), callback_data="buy_course")], ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-            await message.answer("Дави на кнопку чтобы продолжить!", reply_markup=keyboard)
+            await message.answer(l10n.format_value("button-action"), reply_markup=keyboard)
             current_state = await state.get_state()
             logging.info("current state %r", current_state)
             return
 
         logging.info("%s", message)
-        text = html.escape(message.text)
-        escaped_text = text.strip('киберпапер ')
-
-        await state.set_state(Dialogue.get)
-        replay_text = await openai_dialogue.get_resp(escaped_text, uid)
-        chunks = split_into_chunks(replay_text)
-        for index, chunk in enumerate(chunks):
-            if index == 0:
-                await send_reply(message, chunk)
 
 
 @router.message(Command(commands="help"))
