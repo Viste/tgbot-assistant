@@ -1,4 +1,3 @@
-import json
 import logging
 import uuid
 from datetime import datetime, timedelta
@@ -46,17 +45,13 @@ async def pay_sub_end(message: types.Message, state: FSMContext, session: AsyncS
     check_link = data['check_link']
     user_manager = UserManager(session)
     logging.info("Current robokassa check link from private sub end %s", check_link)
-    result_str = await check_payment(check_link)
-    logging.info("Payment result from sub end %s", result_str)
+    result = await check_payment(check_link)
+    logging.info("Payment result from sub end %s", result)
     userid = message.from_user.id
     user = await user_manager.get_user(userid)
-    try:
-        result = json.loads(result_str)
-    except json.JSONDecodeError:
-        await message.answer(l10n.format_value("unknown-payment-error"))
-        return
 
     status_message = get_payment_status_message(result, l10n)
+    logging.info("Payment status_message from sub end %s", status_message)
     if status_message == 0:
         if user is None:
             user = User(telegram_id=message.from_user.id, telegram_username=message.from_user.username, balance_amount=500, max_tokens=0, current_tokens=0, subscription_start=now,
@@ -85,7 +80,7 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
     logging.info("%s", message)
     logging.info("FROM CoursePayment.start state %r", current_state)
     if check(email, gmail_patt):
-        order = Order(random_id, 'подписка на сервис киберпапер', 1500.0)
+        order = Order(random_id, 'Месячная подписка на курс Нейропанк Про.', 100.0)
         link = await robokassa_payment.generate_payment_link(order)
         check_link = await generate_robokassa_link(config.rb_login, random_id, config.rb_pass2)
         await state.update_data(check_link=check_link)
@@ -102,7 +97,6 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
         await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
 
 
-@router.message(CoursePayment.end, F.text.regexp(r"[\s\S]+?оплатил[\s\S]+?") | F.text.startswith("оплатил"), subscribe_chat_filter)
 async def pay_course_end(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
     data = await state.get_data()
     user_id = message.from_user.id
@@ -110,15 +104,10 @@ async def pay_course_end(message: types.Message, state: FSMContext, session: Asy
     user = await user_manager.get_course_user(user_id)
     check_link = data['check_link']
     email = data['email']
-    result_str = await check_payment(check_link)
+    result = await check_payment(check_link)
 
     logging.info("Current robokassa check link %s", check_link)
-    logging.info("Payment result in course %s", result_str)
-    try:
-        result = json.loads(result_str)
-    except json.JSONDecodeError:
-        await message.reply(l10n.format_value("unknown-payment-error"))
-        return
+    logging.info("Payment result in course %s", result)
 
     status_message = get_payment_status_message(result, l10n)
     if status_message == 0:
