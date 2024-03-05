@@ -110,7 +110,7 @@ async def pay_course_end(message: types.Message, state: FSMContext, session: Asy
     try:
         result = json.loads(result_str)
     except json.JSONDecodeError:
-        await message.answer(l10n.format_value("unknown-payment-error"))
+        await message.reply(l10n.format_value("unknown-payment-error"))
         return
 
     status_message = get_payment_status_message(result, l10n)
@@ -120,7 +120,7 @@ async def pay_course_end(message: types.Message, state: FSMContext, session: Asy
                                 subscription_end=now + timedelta(days=30),
                                 subscription_status='active', updated_at=now)
             await user_manager.create_user(user)
-            await message.replay(status_message)
+            await message.reply(status_message)
         else:
             user.subscription_start = now
             user.subscription_end = now + timedelta(days=30)
@@ -131,4 +131,4 @@ async def pay_course_end(message: types.Message, state: FSMContext, session: Asy
             await session.commit()
             await message.reply(status_message)
     else:
-        await message.replay(status_message)
+        await message.reply(status_message)

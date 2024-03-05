@@ -211,7 +211,7 @@ async def reg_course(message: types.Message, state: FSMContext, session: AsyncSe
         if not await user_manager.is_course_subscription_active(uid):
             kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub-course"), callback_data="buy_course")], ]
             keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-            await message.replay(l10n.format_value("button-action"), reply_markup=keyboard)
+            await message.reply(l10n.format_value("button-action"), reply_markup=keyboard)
             current_state = await state.get_state()
             logging.info("current state %r", current_state)
             return
