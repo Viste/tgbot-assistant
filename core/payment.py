@@ -9,11 +9,11 @@ from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import Robokassa
-from core.helpers.tools import generate_robokassa_link, get_payment_status_message, private_filter
+from core.helpers.tools import generate_robokassa_link, get_payment_status_message, private_filter, subscribe_chat_filter
 from database.manager import UserManager
 from database.models import User, NeuropunkPro
 from tools.states import Payment, CoursePayment
-from tools.utils import config, check_payment, Merchant, Order
+from tools.utils import config, check_payment, Merchant, Order, gmail_patt, check
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -76,26 +76,30 @@ async def pay_sub_end(message: types.Message, state: FSMContext, session: AsyncS
         await message.answer(status_message)
 
 
-@router.message(CoursePayment.start, F.content_type.in_({'text'}), F.text.regexp(r"^[a-zA-Z0-9._%+-]+?@gmail\.com"))
+@router.message(CoursePayment.start, F.content_type.in_({'text'}), subscribe_chat_filter)
 async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLocalization):
     random_id = uuid.uuid4().int & (1 << 24) - 1
     email = message.text
-    order = Order(random_id, 'подписка на сервис киберпапер', 1500.0)
-    link = await robokassa_payment.generate_payment_link(order)
-    check_link = await generate_robokassa_link(config.rb_login, random_id, config.rb_pass2)
-    await state.update_data(check_link=check_link)
-    await state.update_data(email=email)
-    logging.info("Current robokassa link: %s ", link)
-    logging.info("Current user email: %s ", email)
-    kb = [
-        [types.InlineKeyboardButton(text=l10n.format_value("pay-course-sub"), url=link)],
-        ]
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-    await message.reply(l10n.format_value("check-pay-answer"), reply_markup=keyboard)
-    await state.set_state(CoursePayment.end)
+    first_name = message.from_user.first_name
+    if check(email, gmail_patt):
+        order = Order(random_id, 'подписка на сервис киберпапер', 1500.0)
+        link = await robokassa_payment.generate_payment_link(order)
+        check_link = await generate_robokassa_link(config.rb_login, random_id, config.rb_pass2)
+        await state.update_data(check_link=check_link)
+        await state.update_data(email=email)
+        logging.info("Current robokassa link: %s ", link)
+        logging.info("Current user email: %s ", email)
+        kb = [
+            [types.InlineKeyboardButton(text=l10n.format_value("pay-course-sub"), url=link)],
+            ]
+        keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+        await message.reply(l10n.format_value("check-pay-answer"), reply_markup=keyboard)
+        await state.set_state(CoursePayment.end)
+    else:
+        await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
 
 
-@router.message(CoursePayment.end, F.text.regexp(r"[\s\S]+?оплатил[\s\S]+?") | F.text.startswith("оплатил"))
+@router.message(CoursePayment.end, F.text.regexp(r"[\s\S]+?оплатил[\s\S]+?") | F.text.startswith("оплатил"), subscribe_chat_filter)
 async def pay_course_end(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
     data = await state.get_data()
     user_id = message.from_user.id
