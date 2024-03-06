@@ -121,8 +121,6 @@ def get_payment_status_message(result: dict, l10n: FluentLocalization) -> str:
         0: l10n.format_value("check-pay-answer"), 1: l10n.format_value("wrong-sing-error"), 2: l10n.format_value("wrong-merchant-name-error"),
         3: l10n.format_value("wrong-invoice-error"), 4: l10n.format_value("duplicate-invoice-error"), 1000: l10n.format_value("service-error"),
         }
-
-    # Получаем сообщение по коду результата, если код неизвестен, возвращаем сообщение об ошибке
     return status_messages.get(result_code, "Неизвестный код результата. Пожалуйста, попробуйте позже или обратитесь в поддержку.")
 
 

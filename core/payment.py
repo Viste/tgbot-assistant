@@ -80,7 +80,7 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
     logging.info("%s", message)
     logging.info("FROM CoursePayment.start state %r", current_state)
     if check(email, gmail_patt):
-        order = Order(random_id, 'Месячная подписка на курс Нейропанк Про.', 100.0)
+        order = Order(random_id, 'Месячная подписка на курс Нейропанк Про.', 1500.0)
         link = await robokassa_payment.generate_payment_link(order)
         check_link = await generate_robokassa_link(config.rb_login, random_id, config.rb_pass2)
         await state.update_data(check_link=check_link)
@@ -97,6 +97,7 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
         await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
 
 
+@router.message(CoursePayment.end, F.text.regexp(r"[\s\S]+?оплатил[\s\S]+?") | F.text.startswith("оплатил"), subscribe_chat_filter)
 async def pay_course_end(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
     data = await state.get_data()
     user_id = message.from_user.id

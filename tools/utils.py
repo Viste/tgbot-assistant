@@ -81,7 +81,7 @@ def parse_xml_response(xml_data: str):
     return result
 
 
-async def check_payment(url) -> str:
+async def check_payment(url) -> dict:
     async with aiohttp.ClientSession() as session:
         async with session.get(url) as response:
             xml_data = await response.text()
