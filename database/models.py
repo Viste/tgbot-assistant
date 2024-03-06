@@ -40,7 +40,7 @@ class NeuropunkPro(Base):
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     telegram_id = Column(BigInteger, nullable=False, unique=True)
     telegram_username = Column(String(255), nullable=True, unique=True)
-    user_email = Column(String(255), nullable=True)
+    email = Column(String(255), nullable=True)
     subscription_start = Column(DateTime, nullable=True)
     subscription_end = Column(DateTime, nullable=True)
     subscription_status = Column(String(50), nullable=False, default='inactive')

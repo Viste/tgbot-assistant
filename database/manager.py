@@ -40,8 +40,8 @@ class UserManager:
         logging.info(f"get_course_user: user_id={user_id}, user={user}")
         return user
 
-    async def create_course_user(self, user_id: int, telegram_username: str, user_email: str = None) -> NeuropunkPro:
-        user = NeuropunkPro(telegram_id=user_id, telegram_username=telegram_username, user_email=user_email)
+    async def create_course_user(self, user_id: int) -> NeuropunkPro:
+        user = NeuropunkPro(telegram_id=user_id,)
         self.session.add(user)
         await self.session.commit()
         return user
@@ -53,7 +53,7 @@ class UserManager:
         return False
 
     async def get_active_course_emails(self) -> list[str]:
-        stmt = select(NeuropunkPro.user_email).where(NeuropunkPro.subscription_end > datetime.utcnow(), NeuropunkPro.user_email.isnot(None))
+        stmt = select(NeuropunkPro.email).where(NeuropunkPro.subscription_end > datetime.utcnow(), NeuropunkPro.email.isnot(None))
         result = await self.session.execute(stmt)
         emails = [email[0] for email in result.all() if email[0] is not None]
         return emails

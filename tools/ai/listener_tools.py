@@ -85,16 +85,12 @@ class Audio:
         integrated_loudness, loudness_range, momentary_loudness, short_term_loudness = lufs_algo(audio_stereo)
         lufs_values = momentary_loudness
 
-        # Compress data
-        def compress_data(data):
-            return [np.mean(data), np.median(data), np.min(data), np.max(data)]
-
-        chroma_values = compress_data(chroma_values)
-        spectral_contrast_values = compress_data(spectral_contrast_values)
-        dissonance_values = compress_data(dissonance_values)
-        lufs_compressed = compress_data(lufs_values)
-        loudness_range_compressed = compress_data(loudness_range)
-        beats_compressed = compress_data(beats)
+        chroma_values = chroma_values
+        spectral_contrast_values = spectral_contrast_values
+        dissonance_values = dissonance_values
+        lufs_compressed = lufs_values
+        loudness_range_compressed = loudness_range
+        beats_compressed = beats
 
         # Store the results in a string
         result = f"Results for file: {file_path} "
@@ -120,9 +116,9 @@ class OpenAIListener:
 
     def __init__(self):
         super().__init__()
-        self.model = "gpt-4-1106-preview"
+        self.model = "gpt-4-0125-preview"
         self.max_retries = 10
-        self.max_tokens = 8192
+        self.max_tokens = 126000
         self.n_choices = 1
         self.retries = 0
         self.show_tokens = False

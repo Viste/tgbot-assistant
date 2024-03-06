@@ -8,7 +8,10 @@ import aiohttp
 from aiogram import types, F
 from aiogram.enums import ParseMode
 from fluent.runtime import FluentLocalization
+from sqlalchemy.ext.asyncio import AsyncSession
 
+from database.manager import UserManager
+from database.models import User, NeuropunkPro
 from tools.utils import config, Merchant, Order
 
 logger = logging.getLogger(__name__)
@@ -115,13 +118,15 @@ async def parse_response(request: str) -> dict:
             return params
 
 
-def get_payment_status_message(result: dict, l10n: FluentLocalization) -> str:
-    result_code = int(result.get("Result", {}).get("Code", "-1"))
+def get_payment_status_message(result_code: int, l10n: FluentLocalization) -> str:
     status_messages = {
-        0: l10n.format_value("check-pay-answer"), 1: l10n.format_value("wrong-sing-error"), 2: l10n.format_value("wrong-merchant-name-error"),
-        3: l10n.format_value("wrong-invoice-error"), 4: l10n.format_value("duplicate-invoice-error"), 1000: l10n.format_value("service-error"),
-        }
-    return status_messages.get(result_code, "Неизвестный код результата. Пожалуйста, попробуйте позже или обратитесь в поддержку.")
+        0: l10n.format_value("check-pay-answer"),
+        1: l10n.format_value("wrong-sing-error"),
+        2: l10n.format_value("wrong-merchant-name-error"),
+        3: l10n.format_value("wrong-invoice-error"),
+        4: l10n.format_value("duplicate-invoice-error"),
+        1000: l10n.format_value("service-error")}
+    return status_messages.get(result_code, l10n.format_value("unknown-payment-error"))
 
 
 async def generate_robokassa_link(merchant_login: str, invoice_id: int, password2: str) -> str:
@@ -139,3 +144,30 @@ async def handle_exception(message: types.Message, err: Exception, error_message
     except Exception as error:
         logging.info('Last exception from Picture: %s', error)
         await message.reply(str(error), parse_mode=None)
+
+
+async def send_payment_message(message: types.Message, link: str, l10n: FluentLocalization, button_text_key: str, answer_text_key: str):
+    kb = [[types.InlineKeyboardButton(text=l10n.format_value(button_text_key), url=link)]]
+    keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+    await message.answer(l10n.format_value(answer_text_key), reply_markup=keyboard)
+
+
+async def update_or_create_user(session: AsyncSession, user_data: dict, is_course=False):
+    user_manager = UserManager(session)
+    if is_course:
+        user = await user_manager.get_course_user(user_data['telegram_id'])
+        if user is None:
+            user = NeuropunkPro(**user_data)
+            session.add(user)
+        else:
+            for key, value in user_data.items():
+                setattr(user, key, value)
+    else:
+        user = await user_manager.get_user(user_data['telegram_id'])
+        if user is None:
+            user = User(**user_data)
+            session.add(user)
+        else:
+            for key, value in user_data.items():
+                setattr(user, key, value)
+    await session.commit()
