@@ -1,6 +1,14 @@
 from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime, Integer
+from enum import Enum, unique
 
 from database.base import Base
+
+
+@unique
+class MemberStatus(Enum):
+    ACTIVE = "active"
+    LEFT = "left"
+    KICKED = "kicked"
 
 
 class Calendar(Base):
@@ -44,4 +52,16 @@ class NeuropunkPro(Base):
     subscription_start = Column(DateTime, nullable=True)
     subscription_end = Column(DateTime, nullable=True)
     subscription_status = Column(String(50), nullable=False, default='inactive')
+    mariadb_engine = "InnoDB"
+
+
+class ChatMember(Base):
+    __tablename__ = "chat_members"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    telegram_id = Column(BigInteger, nullable=False)
+    telegram_username = Column(String(255), nullable=True)
+    chat_name = Column(String(255), nullable=False)
+    chat_id = Column(BigInteger, nullable=False)
+    status = Column(String(50), nullable=False, default='active')
     mariadb_engine = "InnoDB"

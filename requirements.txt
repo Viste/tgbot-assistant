@@ -15,4 +15,5 @@ numpy~=1.25.1
 essentia
 pydantic
 fluent.runtime
-requests~=2.31.0
+requests
+apscheduler

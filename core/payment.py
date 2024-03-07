@@ -71,7 +71,7 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
         await message.reply(f"{message.from_user.first_name}, это не похоже на Email попробуй снова")
 
 
-@router.message(CoursePayment.end, (F.text.regexp(r"[\s\S]+?оплатил[\s\S]+?") | F.text.startswith("оплатил")), subscribe_chat_filter)
+@router.message(CoursePayment.end, (F.text.regexp(r"^(о|О)платил") | F.text.startswith("оплатил") | F.text.startswith("Оплатил")), subscribe_chat_filter, ignore_case=True)
 async def pay_course_end(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
     data = await state.get_data()
     now = datetime.utcnow()

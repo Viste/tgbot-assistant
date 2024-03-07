@@ -75,7 +75,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
         await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
 
 
-@router.message(private_filter, Demo.get, F.content_type.in_({'audio'}))
+@router.message(Demo.get, F.content_type.in_({'audio'}))
 async def get_and_send_from_state(message: types.Message, state: FSMContext, bot: Bot, l10n: FluentLocalization):
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):

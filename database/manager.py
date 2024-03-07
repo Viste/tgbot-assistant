@@ -5,7 +5,7 @@ from typing import Optional
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.models import User, NeuropunkPro
+from database.models import User, NeuropunkPro, ChatMember
 
 logger = logging.getLogger(__name__)
 
@@ -57,3 +57,10 @@ class UserManager:
         result = await self.session.execute(stmt)
         emails = [email[0] for email in result.all() if email[0] is not None]
         return emails
+
+    async def create_chat_member(self, telegram_id: int, telegram_username: str, chat_name: str, chat_id: int, status: str = 'active') -> ChatMember:
+        chat_member = ChatMember(telegram_id=telegram_id, telegram_username=telegram_username, chat_name=chat_name, chat_id=chat_id, status=status)
+        self.session.add(chat_member)
+        await self.session.commit()
+        logging.info(f"create_chat_member: telegram_id={telegram_id}, chat_name={chat_name}")
+        return chat_member

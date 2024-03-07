@@ -1,16 +1,14 @@
 import html
 import logging
 import os
-from datetime import datetime, timedelta
 
 from aiogram import types, F, Router, Bot
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.methods import UnbanChatMember
 from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.helpers.tools import chat_filter, private_filter, forum_filter, subscribe_chat_filter, subscribe_chat_check_filter
+from core.helpers.tools import chat_filter, private_filter, forum_filter, subscribe_chat_filter
 from core.helpers.tools import send_reply, reply_if_banned, handle_exception
 from database.manager import UserManager
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
@@ -26,7 +24,7 @@ openai_dialogue = OpenAIDialogue()
 audio = Audio()
 
 
-@router.message(chat_filter, F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot"))
+@router.message(chat_filter, (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
 async def ask_chat(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
     await state.set_state(Text.get)
 
@@ -61,7 +59,7 @@ async def process_ask_chat(message: types.Message, l10n: FluentLocalization) -> 
             await send_reply(message, chunk)
 
 
-@router.message(forum_filter, F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot"))
+@router.message(forum_filter, (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
 async def ask_forum(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
     await state.set_state(Text.get)
     uid = message.from_user.id
@@ -95,7 +93,7 @@ async def process_ask_forum(message: types.Message, l10n: FluentLocalization) ->
             await send_reply(message, chunk)
 
 
-@router.message(private_filter, F.text.regexp(r"[\s\S]+?киберпапер[\s\S]+?") | F.text.startswith("киберпапер"))
+@router.message(private_filter, (F.text.regexp(r"[\s\S]+?киберпапер[\s\S]+?") | F.text.startswith("киберпапер")), ignore_case=True)
 async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
     user_manager = UserManager(session)
@@ -163,41 +161,41 @@ async def process_paint(message: types.Message, state: FSMContext) -> None:
     logger.info("%s", message)
 
 
-@router.message(private_filter, F.audio)
-async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot, l10n: FluentLocalization):
-    user_manager = UserManager(session)
+# @router.message(private_filter, F.audio)
+# async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot, l10n: FluentLocalization):
+#    user_manager = UserManager(session)
 
-    uid = message.from_user.id
-    await state.update_data(chatid=message.chat.id)
-    if await reply_if_banned(message, uid, l10n):
-        return
+#    uid = message.from_user.id
+#    await state.update_data(chatid=message.chat.id)
+#    if await reply_if_banned(message, uid, l10n):
+#        return
 
-    if not await user_manager.is_subscription_active(uid):
-        kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_subscription")], ]
-        keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-        await message.answer(l10n.format_value("error-sub-not-active"), reply_markup=keyboard)
-        return
+#    if not await user_manager.is_subscription_active(uid):
+#        kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_subscription")], ]
+#        keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+#        await message.answer(l10n.format_value("error-sub-not-active"), reply_markup=keyboard)
+#        return
 
-    file_path = f"/app/tmp/{str(uid)}.mp3"
-    file_info = await bot.get_file(message.audio.file_id)
-    file_data = file_info.file_path
-    await bot.download_file(file_data, file_path)
+#    file_path = f"/app/tmp/{str(uid)}.mp3"
+#    file_info = await bot.get_file(message.audio.file_id)
+#    file_data = file_info.file_path
+#    await bot.download_file(file_data, file_path)
 
-    result = await audio.process_audio_file(file_path)
-    os.remove(file_path)
-    replay_text = await openai_listener.get_resp_listen(uid, str(result))
-    chunks = split_into_chunks(replay_text)
-    for index, chunk in enumerate(chunks):
-        try:
-            if index == 0:
-                await message.reply(chunk, parse_mode=None)
-        except Exception as err:
-            try:
-                logging.info('From try in for index chunks: %s', err)
-                await message.reply(chunk + err, parse_mode=None)
-            except Exception as error:
-                logging.info('Last exception from Core: %s', error)
-                await message.reply(str(error), parse_mode=None)
+#    result = await audio.process_audio_file(file_path)
+#    os.remove(file_path)
+#    replay_text = await openai_listener.get_resp_listen(uid, str(result))
+#    chunks = split_into_chunks(replay_text)
+#    for index, chunk in enumerate(chunks):
+#        try:
+#            if index == 0:
+#                await message.reply(chunk, parse_mode=None)
+#        except Exception as err:
+#            try:
+#                logging.info('From try in for index chunks: %s', err)
+#                await message.reply(chunk + err, parse_mode=None)
+#            except Exception as error:
+#                logging.info('Last exception from Core: %s', error)
+#                await message.reply(str(error), parse_mode=None)
 
 
 @router.message(Command(commands="course_register"), subscribe_chat_filter)
@@ -217,22 +215,6 @@ async def reg_course(message: types.Message, state: FSMContext, session: AsyncSe
             return
 
         logging.info("%s", message)
-
-
-@router.message(subscribe_chat_check_filter)
-async def check_subscription_and_kick(message: types.Message, session: AsyncSession):
-    user_id = message.from_user.id
-    chat_id = message.chat.id
-    user_manager = UserManager(session)
-
-    user = await user_manager.get_course_user(user_id)
-    if user and user.subscription_end:
-        if datetime.utcnow() > user.subscription_end + timedelta(days=2):
-            await session.delete(user)
-            await session.commit()
-
-            await UnbanChatMember(chat_id=chat_id, user_id=user_id)
-            logger.info(f"User {user_id} kicked from chat {chat_id} due to expired subscription (more than 2 days).")
 
 
 @router.message(Command(commands="help"))
