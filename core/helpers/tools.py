@@ -149,7 +149,7 @@ async def handle_exception(message: types.Message, err: Exception, error_message
 async def send_payment_message(message: types.Message, link: str, l10n: FluentLocalization, button_text_key: str, answer_text_key: str):
     kb = [[types.InlineKeyboardButton(text=l10n.format_value(button_text_key), url=link)]]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-    await message.answer(l10n.format_value(answer_text_key), reply_markup=keyboard)
+    await message.reply(l10n.format_value(answer_text_key), reply_markup=keyboard)
 
 
 async def update_or_create_user(session: AsyncSession, user_data: dict, is_course=False):

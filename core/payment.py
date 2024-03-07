@@ -32,7 +32,7 @@ async def pay_sub_process(message: types.Message, state: FSMContext, l10n: Fluen
     await state.set_state(Payment.end)
 
 
-@router.message(Payment.end, F.text.regexp(r"[\s\S]+?оплатил[\s\S]+?") | F.text.startswith("оплатил"), private_filter)
+@router.message(Payment.end, (F.text.regexp(r"[\s\S]+?оплатил[\s\S]+?") | F.text.startswith("оплатил")), private_filter)
 async def pay_sub_end(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
     now = datetime.utcnow()
     data = await state.get_data()
@@ -44,12 +44,15 @@ async def pay_sub_end(message: types.Message, state: FSMContext, session: AsyncS
     status_message = get_payment_status_message(result_code, l10n)
 
     logger.info("Payment status_message from sub end %s", status_message)
-    user_data = {
-        'telegram_id': message.from_user.id, 'telegram_username': message.from_user.username, 'balance_amount': 500,
-        'max_tokens': 0, 'current_tokens': 0, 'subscription_start': now,
-        'subscription_end': now + timedelta(days=30), 'subscription_status': 'active'}
-    await update_or_create_user(session, user_data)
-    await message.answer(status_message)
+    if result_code == 0:
+        user_data = {
+            'telegram_id': message.from_user.id, 'telegram_username': message.from_user.username, 'balance_amount': 500,
+            'max_tokens': 0, 'current_tokens': 0, 'subscription_start': now,
+            'subscription_end': now + timedelta(days=30), 'subscription_status': 'active'}
+        await message.reply(status_message)
+        await update_or_create_user(session, user_data)
+    else:
+        await message.reply(status_message)
 
 
 @router.message(CoursePayment.start, F.content_type.in_({'text'}), subscribe_chat_filter)
@@ -68,7 +71,7 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
         await message.reply(f"{message.from_user.first_name}, это не похоже на Email попробуй снова")
 
 
-@router.message(CoursePayment.end, F.text.regexp(r"[\s\S]+?оплатил[\s\S]+?") | F.text.startswith("оплатил"), subscribe_chat_filter)
+@router.message(CoursePayment.end, (F.text.regexp(r"[\s\S]+?оплатил[\s\S]+?") | F.text.startswith("оплатил")), subscribe_chat_filter)
 async def pay_course_end(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
     data = await state.get_data()
     now = datetime.utcnow()
@@ -80,9 +83,12 @@ async def pay_course_end(message: types.Message, state: FSMContext, session: Asy
     result_code = int(result.get("Result", {}).get("Code", "-1"))
     status_message = get_payment_status_message(result_code, l10n)
 
-    user_data = {
-        'telegram_id': message.from_user.id, 'telegram_username': message.from_user.username,
-        'email': email, 'subscription_start': now, 'subscription_end': now + timedelta(days=30),
-        'subscription_status': 'active'}
-    await update_or_create_user(session, user_data, is_course=True)
-    await message.reply(status_message)
+    if result_code == 0:
+        user_data = {
+            'telegram_id': message.from_user.id, 'telegram_username': message.from_user.username,
+            'email': email, 'subscription_start': now, 'subscription_end': now + timedelta(days=30),
+            'subscription_status': 'active'}
+        await message.reply(status_message)
+        await update_or_create_user(session, user_data, is_course=True)
+    else:
+        await message.reply(status_message)
