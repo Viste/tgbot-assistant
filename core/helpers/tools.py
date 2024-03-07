@@ -120,7 +120,7 @@ async def parse_response(request: str) -> dict:
 
 def get_payment_status_message(result_code: int, l10n: FluentLocalization) -> str:
     status_messages = {
-        0: l10n.format_value("check-pay-answer"),
+        0: l10n.format_value("success-query"),
         1: l10n.format_value("wrong-sing-error"),
         2: l10n.format_value("wrong-merchant-name-error"),
         3: l10n.format_value("wrong-invoice-error"),
