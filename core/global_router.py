@@ -93,7 +93,7 @@ async def process_ask_forum(message: types.Message, l10n: FluentLocalization) ->
             await send_reply(message, chunk)
 
 
-@router.message(private_filter, (F.text.regexp(r"[\s\S]+?киберпапер[\s\S]+?") | F.text.startswith("киберпапер")), ignore_case=True)
+@router.message(private_filter, (F.text.regexp(r"[\s\S]+?киберпапер[\s\S]+?") | F.text.startswith("киберпапер")))
 async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
     user_manager = UserManager(session)
