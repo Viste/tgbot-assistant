@@ -19,12 +19,12 @@ chat_state = ChatState()
 @router.callback_query(F.data == "buy_subscription")
 async def get_sub(callback: types.CallbackQuery, state: FSMContext, l10n: FluentLocalization):
     data = await state.get_data()
-    logging.info("current state data %s", data)
+    logger.info("current state data %s", data)
     user_id = data['chatid']
     await paper.send_message(user_id, l10n.format_value("sub-agreement"))
     await state.set_state(Payment.process)
     current_state = await state.get_state()
-    logging.info("current state %r", current_state)
+    logger.info("current state %r", current_state)
     await callback.answer()
 
 
@@ -32,7 +32,7 @@ async def get_sub(callback: types.CallbackQuery, state: FSMContext, l10n: Fluent
 async def get_course(callback: types.CallbackQuery, state: FSMContext, l10n: FluentLocalization):
     await state.set_state(CoursePayment.start)
     current_state = await state.get_state()
-    logging.info("FROM CoursePayment.start state %r", current_state)
+    logger.info("FROM CoursePayment.start state %r", current_state)
     await callback.message.reply(l10n.format_value("ask-sub-email"))
     await callback.answer()
 
@@ -44,7 +44,7 @@ async def process_sender(callback: types.CallbackQuery):
     chat_state.active_chat = settings["active_chat"]
     if "thread_id" in settings:
         chat_state.thread_id = settings["thread_id"]
-    logging.info('State changed: active_chat=%s, thread_id=%s', chat_state.active_chat, chat_state.thread_id)
+    logger.info('State changed: active_chat=%s, thread_id=%s', chat_state.active_chat, chat_state.thread_id)
     await callback.answer()
 
 

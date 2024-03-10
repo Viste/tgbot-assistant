@@ -86,7 +86,7 @@ async def check_payment(url) -> dict:
         async with session.get(url) as response:
             xml_data = await response.text()
             parsed_response = parse_xml_response(xml_data)
-            logging.info("Parsed response from robokassa %s", parsed_response)
+            logger.info("Parsed response from robokassa %s", parsed_response)
             return parsed_response
 
 

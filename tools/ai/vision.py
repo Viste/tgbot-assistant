@@ -59,6 +59,6 @@ class OpenAIVision:
 
             except Exception as err:
                 self.retries += 1
-                logging.info("Dialog From custom exception: %s", img)
+                logger.info("Dialog From custom exception: %s", img)
                 if self.retries == self.max_retries:
                     return f'⚠️Ошибочка вышла ⚠️\n{str(err)}', err

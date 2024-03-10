@@ -40,12 +40,12 @@ class OpenAIAssist:
             await asyncio.sleep(160)
 
             messages = await self.client.beta.threads.messages.list(thread_id=thread.id)
-            logging.info('FULL MESSAGE: %s', messages)
-            logging.info('DATA: %s', messages.data)
-            logging.info('CONTENT: %s', messages.data[0].content[0])
+            logger.info('FULL MESSAGE: %s', messages)
+            logger.info('DATA: %s', messages.data)
+            logger.info('CONTENT: %s', messages.data[0].content[0])
             if messages:
                 messages_list = messages.data[0]
-                logging.info('LAST MESSAGE FROM IF: %s', messages_list)
+                logger.info('LAST MESSAGE FROM IF: %s', messages_list)
                 return messages_list.content[0].text.value
             else:
                 return "No messages found."

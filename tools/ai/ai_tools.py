@@ -331,24 +331,24 @@ class OpenAI:
                 exceeded_max_history_size = len(self.history.user_dialogs[user_id]) > self.max_history_size
 
                 if exceeded_max_tokens or exceeded_max_history_size:
-                    logging.info(f'Chat history for chat ID {user_id} is too long. Summarising...')
+                    logger.info(f'Chat history for chat ID {user_id} is too long. Summarising...')
                     try:
                         summary = await self._summarise(self.history.user_dialogs[user_id][:-1])
-                        logging.info(f'Summary: {summary}')
+                        logger.info(f'Summary: {summary}')
                         await self.reset_history(user_id)
                         await self.add_to_history(user_id, role="assistant", content=summary)
                         await self.add_to_history(user_id, role="user", content=query)
-                        logging.info("Dialog From summary: %s", self.history.user_dialogs[user_id])
+                        logger.info("Dialog From summary: %s", self.history.user_dialogs[user_id])
                     except Exception as e:
-                        logging.info(f'Error while summarising chat history: {str(e)}. Popping elements instead...')
+                        logger.info(f'Error while summarising chat history: {str(e)}. Popping elements instead...')
                         await self.history.trim_history(user_id, self.max_history_size)
-                        logging.info("Dialog From summary exception: %s", self.history.user_dialogs[user_id])
+                        logger.info("Dialog From summary exception: %s", self.history.user_dialogs[user_id])
 
                 return await self.client.chat.completions.create(model=self.model, messages=self.history.user_dialogs[user_id], **self.args)
 
             except Exception as err:
                 self.retries += 1
-                logging.info("Dialog From custom exception: %s", self.history.user_dialogs[user_id])
+                logger.info("Dialog From custom exception: %s", self.history.user_dialogs[user_id])
                 if self.retries == self.max_retries:
                     return f'⚠️Ошибочка вышла ⚠️\n{str(err)}', err
 
@@ -436,24 +436,24 @@ class OpenAIDialogue:
                 exceeded_max_history_size = len(self.history.user_dialogs[user_id]) > self.max_history_size
 
                 if exceeded_max_tokens or exceeded_max_history_size:
-                    logging.info(f'Chat history for chat ID {user_id} is too long. Summarising...')
+                    logger.info(f'Chat history for chat ID {user_id} is too long. Summarising...')
                     try:
                         summary = await self._summarise(self.history.user_dialogs[user_id][:-1])
-                        logging.info(f'Summary: {summary}')
+                        logger.info(f'Summary: {summary}')
                         await self.reset_history(user_id)
                         await self.add_to_history(user_id, role="assistant", content=summary)
                         await self.add_to_history(user_id, role="user", content=query)
-                        logging.info("Dialog From summary: %s", self.history.user_dialogs[user_id])
+                        logger.info("Dialog From summary: %s", self.history.user_dialogs[user_id])
                     except Exception as e:
-                        logging.info(f'Error while summarising chat history: {str(e)}. Popping elements instead...')
+                        logger.info(f'Error while summarising chat history: {str(e)}. Popping elements instead...')
                         await self.history.trim_history(user_id, self.max_history_size)
-                        logging.info("Dialog From summary exception: %s", self.history.user_dialogs[user_id])
+                        logger.info("Dialog From summary exception: %s", self.history.user_dialogs[user_id])
 
                 return await self.client.chat.completions.create(model=self.model, messages=self.history.user_dialogs[user_id], **self.args)
 
             except Exception as err:
                 self.retries += 1
-                logging.info("Dialog From custom exception: %s", self.history.user_dialogs[user_id])
+                logger.info("Dialog From custom exception: %s", self.history.user_dialogs[user_id])
                 if self.retries == self.max_retries:
                     return f'⚠️Ошибочка вышла ⚠️\n{str(err)}', err
 
@@ -491,7 +491,7 @@ class OpenAIDialogue:
         while self.retries < self.max_retries:
             try:
                 result = await self.client.images.generate(model="dall-e-3", prompt=data + "4k resolution", n=1, size="1024x1024")
-                logging.info("RESULT OF DALLE3: %s", result)
+                logger.info("RESULT OF DALLE3: %s", result)
                 return result.data[0].url
             except Exception as e:
                 self.retries += 1

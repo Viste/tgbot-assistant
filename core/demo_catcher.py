@@ -90,8 +90,8 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
     email = data['email']
     file_id = data['photo']
 
-    logging.info('Full message info: %s', message)
-    logging.info('username: %s, duration: %s, artist: %s , title: %s, file_name: %s', message.chat.username,
+    logger.info('Full message info: %s', message)
+    logger.info('username: %s, duration: %s, artist: %s , title: %s, file_name: %s', message.chat.username,
                  message.audio.duration, message.audio.performer, message.audio.title, message.audio.file_name)
 
     file_info = await bot.get_file(track)

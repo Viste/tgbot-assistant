@@ -2,6 +2,8 @@ import hashlib
 import json
 import logging
 import os
+
+from datetime import datetime
 from urllib import parse
 
 import aiohttp
@@ -89,11 +91,11 @@ async def send_reply(message: types.Message, text: str) -> None:
     try:
         await message.reply(text, parse_mode=ParseMode.HTML)
     except Exception as err:
-        logging.info('Exception while sending reply: %s', err)
+        logger.info('Exception while sending reply: %s', err)
         try:
             await message.reply(str(err), parse_mode=None)
         except Exception as error:
-            logging.info('Last exception from Core: %s', error)
+            logger.info('Last exception from Core: %s', error)
 
 
 def update_config():
@@ -139,10 +141,10 @@ async def generate_robokassa_link(merchant_login: str, invoice_id: int, password
 
 async def handle_exception(message: types.Message, err: Exception, error_message: str = "Не удалось получить картинку. Попробуйте еще раз.\n "):
     try:
-        logging.info('From exception in Picture: %s', err)
+        logger.info('From exception in Picture: %s', err)
         await message.reply(error_message, parse_mode=None)
     except Exception as error:
-        logging.info('Last exception from Picture: %s', error)
+        logger.info('Last exception from Picture: %s', error)
         await message.reply(str(error), parse_mode=None)
 
 
@@ -156,18 +158,35 @@ async def update_or_create_user(session: AsyncSession, user_data: dict, is_cours
     user_manager = UserManager(session)
     if is_course:
         user = await user_manager.get_course_user(user_data['telegram_id'])
-        if user is None:
+        if user:
+            # Если подписка уже активна, продлеваем ее
+            if user.subscription_end and user.subscription_end > datetime.utcnow():
+                await user_manager.extend_subscription(user_data['telegram_id'], is_course=True)
+            else:
+                # Если подписка не активна, обновляем данные пользователя
+                for key, value in user_data.items():
+                    setattr(user, key, value)
+        else:
+            # Создаем нового пользователя курса, если он не найден
             user = NeuropunkPro(**user_data)
             session.add(user)
-        else:
-            for key, value in user_data.items():
-                setattr(user, key, value)
     else:
         user = await user_manager.get_user(user_data['telegram_id'])
-        if user is None:
+        if user:
+            # Если подписка уже активна, продлеваем ее
+            if user.subscription_end and user.subscription_end > datetime.utcnow():
+                await user_manager.extend_subscription(user_data['telegram_id'], is_course=False)
+            else:
+                # Если подписка не активна, обновляем данные пользователя
+                for key, value in user_data.items():
+                    setattr(user, key, value)
+        else:
+            # Создаем нового пользователя, если он не найден
             user = User(**user_data)
             session.add(user)
-        else:
-            for key, value in user_data.items():
-                setattr(user, key, value)
     await session.commit()
+
+
+async def create_chat_member_for_message(message: types.Message, session: AsyncSession):
+    user_manager = UserManager(session)
+    await user_manager.create_chat_member(telegram_id=message.from_user.id, telegram_username=message.from_user.username, chat_name=message.chat.title, chat_id=message.chat.id)
