@@ -43,12 +43,13 @@ async def set_bot_commands(bot: Bot):
     await bot.set_my_commands(commands)
 
 
-async def set_bot_admin_commands(bot: Bot,  admin_id: int):
+async def set_bot_admin_commands(bot: Bot):
     commands = [BotCommand(command="online", description="+ дата включить прием демок"),
                 BotCommand(command="offline", description="Выключить прием демок"),
                 BotCommand(command="stream", description="Переключить чат стрима"),
                 BotCommand(command="/get_active_emails", description="получить список адресов мужиков с подпиской"), ]
-    await bot.set_my_commands(commands, scope=BotCommandScopeChat(chat_id=admin_id))
+    for admin in config.admins:
+        await bot.set_my_commands(commands, scope=BotCommandScopeChat(chat_id=admin))
 
 
 async def check_subscriptions_and_unban():
@@ -84,7 +85,7 @@ async def main():
     worker.include_router(router)
     useful_updates = worker.resolve_used_update_types()
     await set_bot_commands(paper)
-    await set_bot_admin_commands(paper, config.admins)
+    await set_bot_admin_commands(paper)
     logger.info("Starting bot")
     scheduler = AsyncIOScheduler()
     scheduler.add_job(check_subscriptions_and_unban, 'interval', hours=2)
