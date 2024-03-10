@@ -75,7 +75,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
         await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
 
 
-@router.message(Demo.get, F.content_type.in_({'audio'}))
+@router.message(Demo.get, F.content_type.in_({'audio'}), private_filter)
 async def get_and_send_from_state(message: types.Message, state: FSMContext, bot: Bot, l10n: FluentLocalization):
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):
@@ -92,7 +92,8 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
 
     logger.info('Full message info: %s', message)
     logger.info('username: %s, duration: %s, artist: %s , title: %s, file_name: %s', message.chat.username,
-                 message.audio.duration, message.audio.performer, message.audio.title, message.audio.file_name)
+                message.audio.duration, message.audio.performer, message.audio.title,
+                message.audio.file_name)
 
     file_info = await bot.get_file(track)
     file_data = file_info.file_path
@@ -116,7 +117,7 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
                f"Длина файла: {duration} секунды\n" \
                f"title: {title}\n" \
                f"Artist: {artist}"
-        await bot.send_photo(config.channel, caption=text, photo=file_id)
+        await bot.send_photo(config.channel, photo=file_id)
         await bot.send_audio(config.channel, audio=track, caption=text)
 
         await message.reply(l10n.format_value("demo-thanks-message"))

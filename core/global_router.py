@@ -1,7 +1,8 @@
 import html
 import logging
+import os
 
-from aiogram import types, F, Router
+from aiogram import types, F, Router, Bot
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from fluent.runtime import FluentLocalization
@@ -171,47 +172,46 @@ async def process_paint(message: types.Message, state: FSMContext, session: Asyn
     logger.info("%s", message)
 
 
-# @router.message(private_filter, F.audio)
-# async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot, l10n: FluentLocalization):
-#    user_manager = UserManager(session)
+@router.message(private_filter, F.audio, F.state )
+async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot, l10n: FluentLocalization):
+    user_manager = UserManager(session)
 
-#    uid = message.from_user.id
-#    await state.update_data(chatid=message.chat.id)
-#    if await reply_if_banned(message, uid, l10n):
-#        return
+    uid = message.from_user.id
+    await state.update_data(chatid=message.chat.id)
+    if await reply_if_banned(message, uid, l10n):
+        return
 
-#    if not await user_manager.is_subscription_active(uid):
-#        kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_subscription")], ]
-#        keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-#        await message.answer(l10n.format_value("error-sub-not-active"), reply_markup=keyboard)
-#        return
+    if not await user_manager.is_subscription_active(uid):
+        kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_subscription")], ]
+        keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+        await message.answer(l10n.format_value("error-sub-not-active"), reply_markup=keyboard)
+        return
 
-#    file_path = f"/app/tmp/{str(uid)}.mp3"
-#    file_info = await bot.get_file(message.audio.file_id)
-#    file_data = file_info.file_path
-#    await bot.download_file(file_data, file_path)
+    file_path = f"/app/tmp/{str(uid)}.mp3"
+    file_info = await bot.get_file(message.audio.file_id)
+    file_data = file_info.file_path
+    await bot.download_file(file_data, file_path)
 
-#    result = await audio.process_audio_file(file_path)
-#    os.remove(file_path)
-#    replay_text = await openai_listener.get_resp_listen(uid, str(result))
-#    chunks = split_into_chunks(replay_text)
-#    for index, chunk in enumerate(chunks):
-#        try:
-#            if index == 0:
-#                await message.reply(chunk, parse_mode=None)
-#        except Exception as err:
-#            try:
-#                logger.info('From try in for index chunks: %s', err)
-#                await message.reply(chunk + err, parse_mode=None)
-#            except Exception as error:
-#                logger.info('Last exception from Core: %s', error)
-#                await message.reply(str(error), parse_mode=None)
+    result = await audio.process_audio_file(file_path)
+    os.remove(file_path)
+    replay_text = await openai_listener.get_resp_listen(uid, str(result))
+    chunks = split_into_chunks(replay_text)
+    for index, chunk in enumerate(chunks):
+        try:
+            if index == 0:
+                await message.reply(chunk, parse_mode=None)
+        except Exception as err:
+            try:
+                logger.info('From try in for index chunks: %s', err)
+                await message.reply(chunk + err, parse_mode=None)
+            except Exception as error:
+                logger.info('Last exception from Core: %s', error)
+                await message.reply(str(error), parse_mode=None)
 
 
 @router.message(Command(commands="course_register"), subscribe_chat_filter)
 async def reg_course(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
-    await create_chat_member_for_message(message, session)
     user_manager = UserManager(session)
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):

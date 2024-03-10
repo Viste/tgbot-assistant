@@ -3,9 +3,10 @@ import logging
 
 from aiogram import types, F, Router, Bot
 from fluent.runtime import FluentLocalization
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.obs import ClientOBS
-from core.helpers.tools import reply_if_banned, ChatState, basic_chat_filter
+from core.helpers.tools import reply_if_banned, ChatState, basic_chat_filter, create_chat_member_for_message
 from tools.utils import config
 
 router = Router()
@@ -14,7 +15,8 @@ state = ChatState()
 
 
 @router.message(basic_chat_filter, F.content_type.in_({'text'}))
-async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> None:
+async def process_obs_text(message: types.Message, l10n: FluentLocalization, session: AsyncSession) -> None:
+    await create_chat_member_for_message(message, session)
     logger.info("State chat %s", state.active_chat)
     uid = message.from_user.id
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
@@ -39,7 +41,8 @@ async def process_obs_text(message: types.Message, l10n: FluentLocalization) -> 
 
 
 @router.message(basic_chat_filter, F.content_type.in_({'animation'}))
-async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
+async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot: Bot, session: AsyncSession) -> None:
+    await create_chat_member_for_message(message, session)
     logger.info("%s", message)
     uid = message.from_user.id
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
@@ -68,7 +71,8 @@ async def process_obs_gif(message: types.Message, l10n: FluentLocalization, bot:
 
 
 @router.message(basic_chat_filter, F.content_type.in_({'sticker'}))
-async def process_obs_sticker(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
+async def process_obs_sticker(message: types.Message, l10n: FluentLocalization, bot: Bot, session: AsyncSession) -> None:
+    await create_chat_member_for_message(message, session)
     uid = message.from_user.id
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
     if await reply_if_banned(message, uid, l10n):
@@ -96,7 +100,8 @@ async def process_obs_sticker(message: types.Message, l10n: FluentLocalization, 
 
 
 @router.message(basic_chat_filter, F.content_type.in_({'photo'}))
-async def process_obs_image(message: types.Message, l10n: FluentLocalization, bot: Bot) -> None:
+async def process_obs_image(message: types.Message, l10n: FluentLocalization, bot: Bot, session:AsyncSession) -> None:
+    await create_chat_member_for_message(message, session)
     uid = message.from_user.id
     nickname = message.from_user.first_name + " " + (message.from_user.last_name if message.from_user.last_name else "")
     if await reply_if_banned(message, uid, l10n):

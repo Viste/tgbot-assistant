@@ -5,18 +5,18 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.memory import SimpleEventIsolation
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.fsm.strategy import FSMStrategy
-from aiogram.types import BotCommand
+from aiogram.types import BotCommand, BotCommandScopeChat
 from aioredis.client import Redis
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fluent.runtime import FluentLocalization, FluentResourceLoader
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
-
 from core import setup_routers
-from middlewares.database import DbSessionMiddleware
 from database.manager import UserManager
+from middlewares.database import DbSessionMiddleware
 from middlewares.l10n import L10nMiddleware
 from tools.utils import config, np_pro_chat
 
@@ -41,6 +41,14 @@ async def set_bot_commands(bot: Bot):
                 BotCommand(command="help", description="Помощь"),
                 BotCommand(command="demo", description="Прислать демку"), ]
     await bot.set_my_commands(commands)
+
+
+async def set_bot_admin_commands(bot: Bot,  admin_id: int):
+    commands = [BotCommand(command="online", description="+ дата включить прием демок"),
+                BotCommand(command="offline", description="Выключить прием демок"),
+                BotCommand(command="stream", description="Переключить чат стрима"),
+                BotCommand(command="/get_active_emails", description="получить список адресов мужиков с подпиской"), ]
+    await bot.set_my_commands(commands, scope=BotCommandScopeChat(chat_id=admin_id))
 
 
 async def check_subscriptions_and_unban():
@@ -69,13 +77,14 @@ async def main():
     l10n = FluentLocalization(["ru"], ["strings.ftl", "errors.ftl"], l10n_loader)
 
     storage = RedisStorage(redis=redis_client)
-    worker = Dispatcher(storage=storage, fsm_strategy=FSMStrategy.USER_IN_CHAT)
+    worker = Dispatcher(storage=storage, fsm_strategy=FSMStrategy.USER_IN_CHAT, events_isolation=SimpleEventIsolation())
     router = setup_routers()
     worker.update.middleware(db_middleware)
     worker.update.middleware(L10nMiddleware(l10n))
     worker.include_router(router)
     useful_updates = worker.resolve_used_update_types()
     await set_bot_commands(paper)
+    await set_bot_admin_commands(paper, config.admins)
     logger.info("Starting bot")
     scheduler = AsyncIOScheduler()
     scheduler.add_job(check_subscriptions_and_unban, 'interval', hours=2)
