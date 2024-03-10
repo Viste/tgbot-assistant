@@ -1,19 +1,24 @@
 import asyncio
 import logging
 import sys
+from datetime import datetime, timedelta
 from pathlib import Path
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.fsm.strategy import FSMStrategy
+from aiogram.types import BotCommand
 from aioredis.client import Redis
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fluent.runtime import FluentLocalization, FluentResourceLoader
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
+
 from core import setup_routers
 from middlewares.database import DbSessionMiddleware
+from database.manager import UserManager
 from middlewares.l10n import L10nMiddleware
-from tools.utils import config
+from tools.utils import config, np_pro_chat
 
 redis_client = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db, decode_responses=True)
 paper = Bot(token=config.token, parse_mode="HTML")
@@ -31,6 +36,33 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+async def set_bot_commands(bot: Bot):
+    commands = [BotCommand(command="course_register", description="Купить PRO курс по подписке"),
+                BotCommand(command="help", description="Помощь"),
+                BotCommand(command="demo", description="Прислать демку"), ]
+    await bot.set_my_commands(commands)
+
+
+async def check_subscriptions_and_unban():
+    async with session_maker() as session:
+        user_manager = UserManager(session)
+        chat_member_ids = await user_manager.get_all_chat_member_telegram_ids()
+
+        for telegram_id in chat_member_ids:
+            # Проверяем, является ли пользователь участником чата
+            member = await paper.get_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
+            logger.info('RESULT OF GET CHAT MEMBER %s', member)
+            if member:
+                # Проверяем статус подписки
+                is_subscription_active = await user_manager.is_subscription_active(telegram_id)
+                if not is_subscription_active:
+                    user = await user_manager.get_user(telegram_id)
+                    if user.subscription_end and datetime.utcnow() - user.subscription_end > timedelta(days=2):
+                        # Вызываем метод unban_chat_member, если подписка закончилась более 2 дней назад
+                        await paper.unban_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
+                        logger.info(f"Unbanned user {telegram_id} in chat -1001814931266")
+
+
 async def main():
     locales_dir = Path(__file__).parent.joinpath("locales")
     l10n_loader = FluentResourceLoader(str(locales_dir) + "/{locale}")
@@ -43,7 +75,12 @@ async def main():
     worker.update.middleware(L10nMiddleware(l10n))
     worker.include_router(router)
     useful_updates = worker.resolve_used_update_types()
+    await set_bot_commands(paper)
     logger.info("Starting bot")
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(check_subscriptions_and_unban, 'interval', hours=2)
+
+    scheduler.start()
     await worker.start_polling(paper, allowed_updates=useful_updates, handle_signals=True)
 
 

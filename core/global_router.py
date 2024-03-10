@@ -1,8 +1,7 @@
 import html
 import logging
-import os
 
-from aiogram import types, F, Router, Bot
+from aiogram import types, F, Router
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from fluent.runtime import FluentLocalization
@@ -45,7 +44,7 @@ async def ask_chat(message: types.Message, state: FSMContext, l10n: FluentLocali
 
 
 @router.message(chat_filter, Text.get, F.reply_to_message.from_user.is_bot)
-async def process_ask_chat(message: types.Message, l10n: FluentLocalization) -> None:
+async def process_ask_chat(message: types.Message, l10n: FluentLocalization, session: AsyncSession) -> None:
     uid = message.from_user.id
     await create_chat_member_for_message(message, session)
 
@@ -63,7 +62,7 @@ async def process_ask_chat(message: types.Message, l10n: FluentLocalization) -> 
 
 
 @router.message(forum_filter, (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
-async def ask_forum(message: types.Message, state: FSMContext, l10n: FluentLocalizatio, session: AsyncSession) -> None:
+async def ask_forum(message: types.Message, state: FSMContext, l10n: FluentLocalization, session: AsyncSession) -> None:
     await state.set_state(Text.get)
     await create_chat_member_for_message(message, session)
 
@@ -146,7 +145,7 @@ async def process_dialogue(message: types.Message, l10n: FluentLocalization, ses
 
 
 @router.message(private_filter, F.text.startswith("нарисуй, "), F.from_user.id.in_(config.admins))
-async def paint(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
+async def paint(message: types.Message, state: FSMContext, l10n: FluentLocalization, session: AsyncSession) -> None:
     await create_chat_member_for_message(message, session)
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):

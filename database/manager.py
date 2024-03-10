@@ -112,3 +112,10 @@ class UserManager:
             logging.info(f"Subscription extended for user_id={user_id}, new_end_date={user.subscription_end}")
         else:
             logging.info(f"No active subscription found for user_id={user_id} to extend")
+
+    async def get_all_chat_member_telegram_ids(self) -> list[int]:
+        stmt = select(ChatMember.telegram_id).distinct()
+        result = await self.session.execute(stmt)
+        telegram_ids = [telegram_id[0] for telegram_id in result.all()]
+        logger.info(f"Retrieved {len(telegram_ids)} unique telegram_ids from chat_members")
+        return telegram_ids
