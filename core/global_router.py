@@ -160,8 +160,13 @@ async def process_paint(message: types.Message, state: FSMContext) -> None:
     logger.info("%s", message)
 
 
-@router.message(private_filter, F.audio, ~Demo.get)
+@router.message(private_filter, F.audio)
 async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot, l10n: FluentLocalization):
+    current_state = await state.get_state()
+    # Проверяем, находится ли пользователь в процессе отправки демки
+    if current_state == Demo.get.state:
+        # Если пользователь отправляет демку, пропускаем обработку в handle_audio
+        return
     user_manager = UserManager(session)
 
     uid = message.from_user.id
