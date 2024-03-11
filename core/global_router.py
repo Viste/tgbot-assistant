@@ -13,7 +13,7 @@ from core.helpers.tools import send_reply, reply_if_banned, handle_exception, cr
 from database.manager import UserManager
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
 from tools.ai.listener_tools import OpenAIListener, Audio
-from tools.states import Text, Dialogue, DAImage
+from tools.states import Text, Dialogue, DAImage, Demo
 from tools.utils import split_into_chunks, config
 
 router = Router()
@@ -25,10 +25,8 @@ audio = Audio()
 
 
 @router.message(chat_filter, (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
-async def ask_chat(message: types.Message, state: FSMContext, l10n: FluentLocalization, session: AsyncSession) -> None:
+async def ask_chat(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
     await state.set_state(Text.get)
-    await create_chat_member_for_message(message, session)
-
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):
         return
@@ -45,10 +43,8 @@ async def ask_chat(message: types.Message, state: FSMContext, l10n: FluentLocali
 
 
 @router.message(chat_filter, Text.get, F.reply_to_message.from_user.is_bot)
-async def process_ask_chat(message: types.Message, l10n: FluentLocalization, session: AsyncSession) -> None:
+async def process_ask_chat(message: types.Message, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
-    await create_chat_member_for_message(message, session)
-
     if await reply_if_banned(message, uid, l10n):
         return
 
@@ -63,10 +59,8 @@ async def process_ask_chat(message: types.Message, l10n: FluentLocalization, ses
 
 
 @router.message(forum_filter, (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
-async def ask_forum(message: types.Message, state: FSMContext, l10n: FluentLocalization, session: AsyncSession) -> None:
+async def ask_forum(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
     await state.set_state(Text.get)
-    await create_chat_member_for_message(message, session)
-
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):
         return
@@ -83,10 +77,8 @@ async def ask_forum(message: types.Message, state: FSMContext, l10n: FluentLocal
 
 
 @router.message(forum_filter, Text.get, F.reply_to_message.from_user.is_bot)
-async def process_ask_forum(message: types.Message, l10n: FluentLocalization, session: AsyncSession) -> None:
+async def process_ask_forum(message: types.Message, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
-    await create_chat_member_for_message(message, session)
-
     if await reply_if_banned(message, uid, l10n):
         return
 
@@ -102,7 +94,6 @@ async def process_ask_forum(message: types.Message, l10n: FluentLocalization, se
 
 @router.message(private_filter, (F.text.regexp(r"[\s\S]+?киберпапер[\s\S]+?") | F.text.startswith("киберпапер")))
 async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
-    await create_chat_member_for_message(message, session)
     await state.update_data(chatid=message.chat.id)
     user_manager = UserManager(session)
     uid = message.from_user.id
@@ -130,8 +121,7 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
 
 
 @router.message(private_filter, Dialogue.get, F.text)
-async def process_dialogue(message: types.Message, l10n: FluentLocalization, session: AsyncSession) -> None:
-    await create_chat_member_for_message(message, session)
+async def process_dialogue(message: types.Message, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):
         return
@@ -146,8 +136,7 @@ async def process_dialogue(message: types.Message, l10n: FluentLocalization, ses
 
 
 @router.message(private_filter, F.text.startswith("нарисуй, "), F.from_user.id.in_(config.admins))
-async def paint(message: types.Message, state: FSMContext, l10n: FluentLocalization, session: AsyncSession) -> None:
-    await create_chat_member_for_message(message, session)
+async def paint(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
     uid = message.from_user.id
     if await reply_if_banned(message, uid, l10n):
         return
@@ -166,13 +155,12 @@ async def paint(message: types.Message, state: FSMContext, l10n: FluentLocalizat
 
 
 @router.message(private_filter, DAImage.get)
-async def process_paint(message: types.Message, state: FSMContext, session: AsyncSession) -> None:
-    await create_chat_member_for_message(message, session)
+async def process_paint(message: types.Message, state: FSMContext) -> None:
     await state.set_state(DAImage.result)
     logger.info("%s", message)
 
 
-@router.message(private_filter, F.audio, F.state )
+@router.message(private_filter, F.audio, ~Demo.get)
 async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot, l10n: FluentLocalization):
     user_manager = UserManager(session)
 
@@ -203,7 +191,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
         except Exception as err:
             try:
                 logger.info('From try in for index chunks: %s', err)
-                await message.reply(chunk + err, parse_mode=None)
+                await message.reply(chunk + str(err), parse_mode=None)
             except Exception as error:
                 logger.info('Last exception from Core: %s', error)
                 await message.reply(str(error), parse_mode=None)
