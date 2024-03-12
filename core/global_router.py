@@ -3,6 +3,7 @@ import logging
 import os
 
 from aiogram import types, F, Router, Bot
+from aiogram.enums import ParseMode
 from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from fluent.runtime import FluentLocalization
@@ -161,14 +162,14 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
     for index, chunk in enumerate(chunks):
         try:
             if index == 0:
-                await message.reply(chunk, parse_mode=None)
+                await message.reply(chunk, parse_mode=ParseMode.HTML)
         except Exception as err:
             try:
                 logger.info('From try in for index chunks: %s', err)
-                await message.reply(chunk + str(err), parse_mode=None)
+                await message.reply(chunk + str(err), parse_mode=ParseMode.HTML)
             except Exception as error:
                 logger.info('Last exception from Core: %s', error)
-                await message.reply(str(error), parse_mode=None)
+                await message.reply(str(error), parse_mode=ParseMode.HTML)
 
 
 @router.message(Command(commands="course_register"), SubscribeChatFilter())

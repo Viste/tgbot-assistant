@@ -62,8 +62,7 @@ async def check_subscriptions_and_unban():
                 is_subscription_active = await user_manager.is_subscription_active(telegram_id)
                 if not is_subscription_active:
                     user = await user_manager.get_course_user(telegram_id)
-                    if user.subscription_end and datetime.utcnow() - user.subscription_end > timedelta(days=2):
-                        # Вызываем метод unban_chat_member, если подписка закончилась более 2 дней назад
+                    if user and user.subscription_end and datetime.utcnow() - user.subscription_end > timedelta(days=2):
                         await paper.unban_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
                         logger.info(f"Unbanned user {telegram_id} in chat -1001814931266")
 
