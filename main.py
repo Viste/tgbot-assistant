@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from aiogram import Bot, Dispatcher
+from aiogram.enums import ChatMemberStatus
 from aiogram.fsm.storage.memory import SimpleEventIsolation
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.fsm.strategy import FSMStrategy
@@ -56,8 +57,8 @@ async def check_subscriptions_and_unban():
         for telegram_id in chat_member_ids:
             # Проверяем, является ли пользователь участником чата
             member = await paper.get_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
-            logger.info('RESULT OF GET CHAT MEMBER %s', member)
-            if member:
+            logger.info('RESULT OF GET CHAT MEMBER %s', member.status, member.user.id)
+            if member.status == ChatMemberStatus.MEMBER:
                 # Проверяем статус подписки
                 is_subscription_active = await user_manager.is_subscription_active(telegram_id)
                 if not is_subscription_active:
