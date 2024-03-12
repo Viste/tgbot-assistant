@@ -173,8 +173,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
 
 
 @router.message(Command(commands="course_register"), SubscribeChatFilter())
-async def reg_course(message: types.Message, state: FSMContext, session: AsyncSession,
-                     l10n: FluentLocalization) -> None:
+async def reg_course(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
     user_manager = UserManager(session)
     uid = message.from_user.id
@@ -185,6 +184,16 @@ async def reg_course(message: types.Message, state: FSMContext, session: AsyncSe
         current_state = await state.get_state()
         logger.info("current state %r", current_state)
         return
+
+
+@router.message(Command(commands="course_state"), SubscribeChatFilter())
+async def state_course(message: types.Message, session: AsyncSession) -> None:
+    user_manager = UserManager(session)
+    end_date = await user_manager.get_course_subscription_end_date(message.from_user.id)
+    if end_date:
+        await message.answer(f"Ваша подписка истекает: {end_date.strftime('%Y-%m-%d %H:%M:%S')}")
+    else:
+        await message.answer("У вас нет активной подписки или произошла ошибка.")
 
 
 @router.message(Command(commands="help"))

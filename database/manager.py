@@ -142,3 +142,9 @@ class UserManager:
         result = await self.session.execute(select(ChatMember.banned).where(ChatMember.telegram_id == telegram_id))
         chat_member_bans = result.scalars().all()
         return any(chat_member_bans)
+
+    async def get_course_subscription_end_date(self, user_id: int) -> Optional[datetime]:
+        user = await self.get_course_user(user_id)
+        if user:
+            return user.subscription_end
+        return None
