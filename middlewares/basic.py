@@ -32,7 +32,15 @@ class BasicMiddleware(BaseMiddleware):
             if await user_manager.is_user_banned(event.from_user.id):
                 await event.reply(l10n.format_value("you-were-banned-error"))
 
-            await user_manager.create_chat_member(telegram_id=event.from_user.id, telegram_username=event.from_user.username,
-                                                  chat_name=event.chat.title, chat_id=event.chat.id)
+            chat_title = event.chat.title
+            if event.chat.title is None:
+                chat_title = "private"
+                await user_manager.create_chat_member(telegram_id=event.from_user.id,
+                                                      telegram_username=event.from_user.username, chat_name=chat_title,
+                                                      chat_id=event.chat.id)
+            else:
+                await user_manager.create_chat_member(telegram_id=event.from_user.id,
+                                                      telegram_username=event.from_user.username, chat_name=chat_title,
+                                                      chat_id=event.chat.id)
 
         return result
