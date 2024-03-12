@@ -13,7 +13,7 @@ from database.manager import UserManager
 from filters.filters import ChatFilter, ForumFilter, PrivateFilter, SubscribeChatFilter
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
 from tools.ai.listener_tools import OpenAIListener, Audio
-from tools.states import Text, Dialogue, DAImage
+from tools.states import Text, Dialogue, DAImage, Demo
 from tools.utils import split_into_chunks, config
 
 router = Router()
@@ -135,7 +135,7 @@ async def process_paint(message: types.Message, state: FSMContext) -> None:
     logger.info("%s", message)
 
 
-@router.message(PrivateFilter(), F.audio, ~StateFilter("Demo"))
+@router.message(PrivateFilter(), F.audio, ~StateFilter(Demo.get))
 async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot,
                        l10n: FluentLocalization):
     user_manager = UserManager(session)
