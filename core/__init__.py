@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 def setup_routers() -> Router:
-    from . import demo_catcher, global_router, obs_processor, payment
-    from core.helpers import admin_manager, callbacks, unsupported_manager
+    from . import global_router, payment
+    from core.helpers import admin_manager, callbacks
 
     router = Router()
 
@@ -26,12 +26,9 @@ def setup_routers() -> Router:
         await state.clear()
         await message.answer("Контекст обнулен.", reply_markup=ReplyKeyboardRemove())
 
-    router.include_router(admin_manager.router)
-    router.include_router(unsupported_manager.router)
     router.include_router(global_router.router)
+    router.include_router(admin_manager.router)
     router.include_router(payment.router)
     router.include_router(callbacks.router)
-    router.include_router(obs_processor.router)
-    router.include_router(demo_catcher.router)
 
     return router
