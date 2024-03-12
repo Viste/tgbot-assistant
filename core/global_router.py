@@ -79,7 +79,7 @@ async def process_ask_forum(message: types.Message) -> None:
             await send_reply(message, chunk)
 
 
-@router.message(PrivateFilter(), (F.text.regexp(r"[\s\S]+?киберпапер[\s\S]+?") | F.text.startswith("киберпапер")))
+@router.message(PrivateFilter(), (F.text.regexp(r"[\s\S]+?Киберпапер[\s\S]+?") | F.text.startswith("Киберпапер")))
 async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession,
                          l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
@@ -94,7 +94,7 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
 
     logger.info("%s", message)
     text = html.escape(message.text)
-    escaped_text = text.strip('киберпапер ')
+    escaped_text = text.strip('Киберпапер ')
 
     await state.set_state(Dialogue.get)
     replay_text = await openai_dialogue.get_resp(escaped_text, message.from_user.id)
