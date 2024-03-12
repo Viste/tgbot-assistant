@@ -53,7 +53,7 @@ def parse_xml_response(xml_data: str):
     root = fromstring(xml_data)
     result = {
         "Result": {}, "State": {}, "Info": {}, "UserField": []
-        }
+    }
     result_section = root.find(".//ns:Result", ns)
     if result_section is not None:
         result["Result"]["Code"] = result_section.find("ns:Code", ns).text

@@ -12,27 +12,23 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 from aioredis.client import Redis
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fluent.runtime import FluentLocalization, FluentResourceLoader
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from core import setup_routers
 from database.manager import UserManager
+from middlewares.common import CommonTasksMiddleware
 from middlewares.database import DbSessionMiddleware
 from middlewares.l10n import L10nMiddleware
 from tools.utils import config, np_pro_chat
 
 redis_client = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db, decode_responses=True)
-paper = Bot(token=config.token, parse_mode="HTML")
-
 engine = create_async_engine(url=config.db_url, echo=True, echo_pool=False, pool_size=50, max_overflow=30,
                              pool_timeout=30, pool_recycle=3600)
+paper = Bot(token=config.token, parse_mode="HTML")
 session_maker = async_sessionmaker(engine, expire_on_commit=False)
 db_middleware = DbSessionMiddleware(session_pool=session_maker)
-
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
-    stream=sys.stdout,)
-
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
+                    stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 
@@ -72,15 +68,17 @@ async def check_subscriptions_and_unban():
                         logger.info(f"Unbanned user {telegram_id} in chat -1001814931266")
 
 
-async def main():
+async def main(session: AsyncSession):
     locales_dir = Path(__file__).parent.joinpath("locales")
     l10n_loader = FluentResourceLoader(str(locales_dir) + "/{locale}")
     l10n = FluentLocalization(["ru"], ["strings.ftl", "errors.ftl"], l10n_loader)
+    user_manager = UserManager(session)
 
     storage = RedisStorage(redis=redis_client)
     worker = Dispatcher(storage=storage, fsm_strategy=FSMStrategy.USER_IN_CHAT, events_isolation=SimpleEventIsolation())
     router = setup_routers()
     worker.update.middleware(db_middleware)
+    worker.update.middleware(CommonTasksMiddleware(session_maker))
     worker.update.middleware(L10nMiddleware(l10n))
     worker.include_router(router)
     useful_updates = worker.resolve_used_update_types()
@@ -88,7 +86,8 @@ async def main():
     await set_bot_admin_commands(paper)
     logger.info("Starting bot")
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_subscriptions_and_unban, 'interval', hours=2)
+    scheduler.add_job(check_subscriptions_and_unban, 'interval', minutes=10)
+    scheduler.add_job(user_manager.remove_duplicate_chat_members, 'interval', hours=12)
 
     scheduler.start()
     await worker.start_polling(paper, allowed_updates=useful_updates, handle_signals=True)

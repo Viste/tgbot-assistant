@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 args = {
     "temperature": 0.15, "max_tokens": 512, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None
-    }
+}
 
 
 class Audio:

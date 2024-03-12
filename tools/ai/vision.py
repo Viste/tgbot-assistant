@@ -46,16 +46,16 @@ class OpenAIVision:
 
                 return await self.client.chat.completions.create(model=self.model, messages=[
                     {
-                      "role": "user",
-                      "content": [
-                          {
-                            "type": "text",
-                            "text": "If there is a man or woman with a clown nose in the image, just answer yes! If not, then no accordingly."},
-                          {
-                            "type": "image_url",
-                            "image_url":
+                        "role": "user",
+                        "content": [
                             {
-                              "url": f"{img}", }, }, ], }, ], **self.args)
+                                "type": "text",
+                                "text": "If there is a man or woman with a clown nose in the image, just answer yes! If not, then no accordingly."},
+                            {
+                                "type": "image_url",
+                                "image_url":
+                                    {
+                                        "url": f"{img}", }, }, ], }, ], **self.args)
 
             except Exception as err:
                 self.retries += 1

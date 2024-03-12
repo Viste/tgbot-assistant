@@ -84,7 +84,8 @@ async def stream_cmd(message: types.Message):
     await message.reply("Надо чат выбрать:", reply_markup=kb.as_markup(resize_keyboard=True))
 
 
-@router.message(Command(commands="get_active_emails", ignore_case=True), F.from_user.id.in_(config.admins), private_filter)
+@router.message(Command(commands="get_active_emails", ignore_case=True), F.from_user.id.in_(config.admins),
+                private_filter)
 @flags.chat_action("typing")
 async def stream_cmd(message: types.Message, state: FSMContext):
     await state.update_data(chatid=message.chat.id)
@@ -92,4 +93,5 @@ async def stream_cmd(message: types.Message, state: FSMContext):
     kb.add(InlineKeyboardButton(text="PRO (КОНТЕНТ ПО ПОДПИСКЕ)", callback_data="course_np_pro"))
     kb.adjust(2)
 
-    await message.reply("С какого курса тебе дать почты? он пока один ахахах", reply_markup=kb.as_markup(resize_keyboard=True))
+    await message.reply("С какого курса тебе дать почты? он пока один ахахах",
+                        reply_markup=kb.as_markup(resize_keyboard=True))

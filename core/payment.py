@@ -8,8 +8,8 @@ from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import Robokassa, send_payment_message, update_or_create_user
-from core.helpers.tools import generate_robokassa_link, get_payment_status_message, private_filter, subscribe_chat_filter
-
+from core.helpers.tools import generate_robokassa_link, get_payment_status_message, private_filter, \
+    subscribe_chat_filter
 from tools.states import Payment, CoursePayment
 from tools.utils import config, check_payment, Merchant, Order, gmail_patt, check
 
@@ -71,7 +71,9 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
         await message.reply(f"{message.from_user.first_name}, это не похоже на Email попробуй снова")
 
 
-@router.message(CoursePayment.end, (F.text.regexp(r"^(о|О)платил") | F.text.startswith("оплатил") | F.text.startswith("Оплатил")), subscribe_chat_filter)
+@router.message(CoursePayment.end,
+                (F.text.regexp(r"^(о|О)платил") | F.text.startswith("оплатил") | F.text.startswith("Оплатил")),
+                subscribe_chat_filter)
 async def pay_course_end(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
     data = await state.get_data()
     now = datetime.utcnow()

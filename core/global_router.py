@@ -3,17 +3,17 @@ import logging
 import os
 
 from aiogram import types, F, Router, Bot
-from aiogram.filters import Command
+from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import chat_filter, private_filter, forum_filter, subscribe_chat_filter
-from core.helpers.tools import send_reply, reply_if_banned, handle_exception, create_chat_member_for_message
+from core.helpers.tools import send_reply, handle_exception, create_chat_member_for_message
 from database.manager import UserManager
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
 from tools.ai.listener_tools import OpenAIListener, Audio
-from tools.states import Text, Dialogue, DAImage, Demo
+from tools.states import Text, Dialogue, DAImage
 from tools.utils import split_into_chunks, config
 
 router = Router()
@@ -25,17 +25,14 @@ audio = Audio()
 
 
 @router.message(chat_filter, (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
-async def ask_chat(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
+async def ask_chat(message: types.Message, state: FSMContext) -> None:
     await state.set_state(Text.get)
-    uid = message.from_user.id
-    if await reply_if_banned(message, uid, l10n):
-        return
 
     logger.info("%s", message)
     text = html.escape(message.text)
     escaped_text = text.strip('@cyberpaperbot')
 
-    replay_text = await openai.get_resp(escaped_text, uid)
+    replay_text = await openai.get_resp(escaped_text, message.from_user.id)
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         if index == 0:
@@ -43,15 +40,11 @@ async def ask_chat(message: types.Message, state: FSMContext, l10n: FluentLocali
 
 
 @router.message(chat_filter, Text.get, F.reply_to_message.from_user.is_bot)
-async def process_ask_chat(message: types.Message, l10n: FluentLocalization) -> None:
-    uid = message.from_user.id
-    if await reply_if_banned(message, uid, l10n):
-        return
-
+async def process_ask_chat(message: types.Message) -> None:
     logger.info("%s", message)
     text = html.escape(message.text)
 
-    replay_text = await openai.get_resp(text, uid)
+    replay_text = await openai.get_resp(text, message.from_user.id)
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         if index == 0:
@@ -59,17 +52,14 @@ async def process_ask_chat(message: types.Message, l10n: FluentLocalization) -> 
 
 
 @router.message(forum_filter, (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
-async def ask_forum(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
+async def ask_forum(message: types.Message, state: FSMContext) -> None:
     await state.set_state(Text.get)
-    uid = message.from_user.id
-    if await reply_if_banned(message, uid, l10n):
-        return
 
     logger.info("%s", message)
     text = html.escape(message.text)
     escaped_text = text.strip('@cyberpaperbot ')
 
-    replay_text = await openai.get_resp(escaped_text, uid)
+    replay_text = await openai.get_resp(escaped_text, message.from_user.id)
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         if index == 0:
@@ -77,15 +67,11 @@ async def ask_forum(message: types.Message, state: FSMContext, l10n: FluentLocal
 
 
 @router.message(forum_filter, Text.get, F.reply_to_message.from_user.is_bot)
-async def process_ask_forum(message: types.Message, l10n: FluentLocalization) -> None:
-    uid = message.from_user.id
-    if await reply_if_banned(message, uid, l10n):
-        return
-
+async def process_ask_forum(message: types.Message) -> None:
     logger.info("%s", message)
     text = html.escape(message.text)
 
-    replay_text = await openai.get_resp(text, uid)
+    replay_text = await openai.get_resp(text, message.from_user.id)
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         if index == 0:
@@ -93,65 +79,54 @@ async def process_ask_forum(message: types.Message, l10n: FluentLocalization) ->
 
 
 @router.message(private_filter, (F.text.regexp(r"[\s\S]+?киберпапер[\s\S]+?") | F.text.startswith("киберпапер")))
-async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
+async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession,
+                         l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
     user_manager = UserManager(session)
-    uid = message.from_user.id
-    if await reply_if_banned(message, uid, l10n):
+    if not await user_manager.is_subscription_active(message.from_user.id):
+        kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_subscription")], ]
+        keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+        await message.answer(l10n.format_value("error-sub-not-active"), reply_markup=keyboard)
+        current_state = await state.get_state()
+        logger.info("current state %r", current_state)
         return
-    else:
-        if not await user_manager.is_subscription_active(uid):
-            kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_subscription")], ]
-            keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-            await message.answer(l10n.format_value("error-sub-not-active"), reply_markup=keyboard)
-            current_state = await state.get_state()
-            logger.info("current state %r", current_state)
-            return
 
-        logger.info("%s", message)
-        text = html.escape(message.text)
-        escaped_text = text.strip('киберпапер ')
+    logger.info("%s", message)
+    text = html.escape(message.text)
+    escaped_text = text.strip('киберпапер ')
 
-        await state.set_state(Dialogue.get)
-        replay_text = await openai_dialogue.get_resp(escaped_text, uid)
-        chunks = split_into_chunks(replay_text)
-        for index, chunk in enumerate(chunks):
-            if index == 0:
-                await send_reply(message, chunk)
+    await state.set_state(Dialogue.get)
+    replay_text = await openai_dialogue.get_resp(escaped_text, message.from_user.id)
+    chunks = split_into_chunks(replay_text)
+    for index, chunk in enumerate(chunks):
+        if index == 0:
+            await send_reply(message, chunk)
 
 
 @router.message(private_filter, Dialogue.get, F.text)
-async def process_dialogue(message: types.Message, l10n: FluentLocalization) -> None:
-    uid = message.from_user.id
-    if await reply_if_banned(message, uid, l10n):
-        return
-    else:
-        logger.info("%s", message)
-        text = html.escape(message.text)
-        replay_text = await openai_dialogue.get_resp(text, uid)
-        chunks = split_into_chunks(replay_text)
-        for index, chunk in enumerate(chunks):
-            if index == 0:
-                await send_reply(message, chunk)
+async def process_dialogue(message: types.Message) -> None:
+    logger.info("%s", message)
+    text = html.escape(message.text)
+    replay_text = await openai_dialogue.get_resp(text, message.from_user.id)
+    chunks = split_into_chunks(replay_text)
+    for index, chunk in enumerate(chunks):
+        if index == 0:
+            await send_reply(message, chunk)
 
 
 @router.message(private_filter, F.text.startswith("нарисуй, "), F.from_user.id.in_(config.admins))
-async def paint(message: types.Message, state: FSMContext, l10n: FluentLocalization) -> None:
-    uid = message.from_user.id
-    if await reply_if_banned(message, uid, l10n):
-        return
-    else:
-        logger.info("Message: %s", message)
-        await state.set_state(DAImage.get)
-        text = html.escape(message.text)
-        escaped_text = text.strip('нарисуй, ')
-        result = await openai_dialogue.send_dalle(escaped_text)
-        logger.info("Response from DaLLe: %s", result)
-        try:
-            photo = result
-            await message.reply_photo(types.URLInputFile(photo))
-        except Exception as err:
-            await handle_exception(message, err)
+async def paint(message: types.Message, state: FSMContext) -> None:
+    logger.info("Message: %s", message)
+    await state.set_state(DAImage.get)
+    text = html.escape(message.text)
+    escaped_text = text.strip('нарисуй, ')
+    result = await openai_dialogue.send_dalle(escaped_text)
+    logger.info("Response from DaLLe: %s", result)
+    try:
+        photo = result
+        await message.reply_photo(types.URLInputFile(photo))
+    except Exception as err:
+        await handle_exception(message, err)
 
 
 @router.message(private_filter, DAImage.get)
@@ -160,19 +135,13 @@ async def process_paint(message: types.Message, state: FSMContext) -> None:
     logger.info("%s", message)
 
 
-@router.message(private_filter, F.audio)
-async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot, l10n: FluentLocalization):
-    current_state = await state.get_state()
-    # Проверяем, находится ли пользователь в процессе отправки демки
-    if current_state == Demo.get.state:
-        # Если пользователь отправляет демку, пропускаем обработку в handle_audio
-        return
+@router.message(private_filter, F.audio, ~StateFilter("Demo.get"))
+async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot,
+                       l10n: FluentLocalization):
     user_manager = UserManager(session)
 
     uid = message.from_user.id
     await state.update_data(chatid=message.chat.id)
-    if await reply_if_banned(message, uid, l10n):
-        return
 
     if not await user_manager.is_subscription_active(uid):
         kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_subscription")], ]
@@ -203,22 +172,18 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
 
 
 @router.message(Command(commands="course_register"), subscribe_chat_filter)
-async def reg_course(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
+async def reg_course(message: types.Message, state: FSMContext, session: AsyncSession,
+                     l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
     user_manager = UserManager(session)
     uid = message.from_user.id
-    if await reply_if_banned(message, uid, l10n):
+    if not await user_manager.is_course_subscription_active(uid):
+        kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub-course"), callback_data="buy_course")], ]
+        keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
+        await message.reply(l10n.format_value("button-action"), reply_markup=keyboard)
+        current_state = await state.get_state()
+        logger.info("current state %r", current_state)
         return
-    else:
-        if not await user_manager.is_course_subscription_active(uid):
-            kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub-course"), callback_data="buy_course")], ]
-            keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-            await message.reply(l10n.format_value("button-action"), reply_markup=keyboard)
-            current_state = await state.get_state()
-            logger.info("current state %r", current_state)
-            return
-
-        logger.info("%s", message)
 
 
 @router.message(Command(commands="help"))

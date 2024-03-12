@@ -2,7 +2,7 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional
 
-from sqlalchemy import select
+from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import User, NeuropunkPro, ChatMember
@@ -41,7 +41,7 @@ class UserManager:
         return user
 
     async def create_course_user(self, user_id: int) -> NeuropunkPro:
-        user = NeuropunkPro(telegram_id=user_id,)
+        user = NeuropunkPro(telegram_id=user_id, )
         self.session.add(user)
         await self.session.commit()
         return user
@@ -53,12 +53,14 @@ class UserManager:
         return False
 
     async def get_active_course_emails(self) -> list[str]:
-        stmt = select(NeuropunkPro.email).where(NeuropunkPro.subscription_end > datetime.utcnow(), NeuropunkPro.email.isnot(None))
+        stmt = select(NeuropunkPro.email).where(NeuropunkPro.subscription_end > datetime.utcnow(),
+                                                NeuropunkPro.email.is_not(None))
         result = await self.session.execute(stmt)
         emails = [email[0] for email in result.all() if email[0] is not None]
         return emails
 
-    async def create_chat_member(self, telegram_id: int, telegram_username: str, chat_name: str, chat_id: int, status: str = 'active') -> ChatMember:
+    async def create_chat_member(self, telegram_id: int, telegram_username: str, chat_name: str, chat_id: int,
+                                 status: str = 'active') -> ChatMember:
         stmt = select(ChatMember).where(ChatMember.telegram_id == telegram_id, ChatMember.chat_id == chat_id)
         result = await self.session.execute(stmt)
         chat_member = result.scalar_one_or_none()
@@ -79,11 +81,13 @@ class UserManager:
                 await self.session.commit()
                 logging.info(f"Chat member updated: telegram_id={telegram_id}, chat_name={chat_name}")
             else:
-                logging.info(f"Chat member already exists with the same data: telegram_id={telegram_id}, chat_name={chat_name}")
+                logging.info(
+                    f"Chat member already exists with the same data: telegram_id={telegram_id}, chat_name={chat_name}")
             return chat_member
         else:
             # Если член чата не существует, создаем новую запись
-            chat_member = ChatMember(telegram_id=telegram_id, telegram_username=telegram_username, chat_name=chat_name, chat_id=chat_id, status=status)
+            chat_member = ChatMember(telegram_id=telegram_id, telegram_username=telegram_username, chat_name=chat_name,
+                                     chat_id=chat_id, status=status)
             self.session.add(chat_member)
             await self.session.commit()
             logging.info(f"New chat member created: telegram_id={telegram_id}, chat_name={chat_name}")
@@ -119,3 +123,24 @@ class UserManager:
         telegram_ids = [telegram_id[0] for telegram_id in result.all()]
         logger.info(f"Retrieved {len(telegram_ids)} unique telegram_ids from chat_members")
         return telegram_ids
+
+    async def remove_duplicate_chat_members(self) -> None:
+        subquery = self.session.query(ChatMember.telegram_id, ChatMember.chat_id,
+                                      func.max(ChatMember.id).label('max_id')).group_by(ChatMember.telegram_id,
+                                                                                        ChatMember.chat_id).subquery()
+
+        duplicates = self.session.query(ChatMember).join(subquery,
+                                                         and_(ChatMember.telegram_id == subquery.c.telegram_id,
+                                                              ChatMember.chat_id == subquery.c.chat_id,
+                                                              ChatMember.id != subquery.c.max_id))
+
+        for duplicate in duplicates:
+            await self.session.delete(duplicate)
+        await self.session.commit()
+
+    async def is_user_banned(self, telegram_id: int) -> bool:
+        result = await self.session.execute(select(ChatMember.banned).where(ChatMember.telegram_id == telegram_id))
+        chat_member_info = result.scalar_one_or_none()
+        if chat_member_info:
+            return chat_member_info.banned
+        return False

@@ -1,5 +1,7 @@
-from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime, Integer
 from enum import Enum, unique
+
+from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime, Integer, Boolean
+from sqlalchemy.sql import expression
 
 from database.base import Base
 
@@ -64,4 +66,5 @@ class ChatMember(Base):
     chat_name = Column(String(255), nullable=False)
     chat_id = Column(BigInteger, nullable=False)
     status = Column(String(50), nullable=False, default='active')
+    banned = Column(Boolean, default=False, server_default=expression.false())
     mariadb_engine = "InnoDB"

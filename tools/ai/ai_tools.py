@@ -287,8 +287,9 @@ class OpenAI:
         self.retries = 0
         self.show_tokens = False
         self.args = {
-            "temperature": 0.1, "max_tokens": 1024, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None
-            }
+            "temperature": 0.1, "max_tokens": 1024, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8,
+            "stop": None
+        }
 
     async def add_to_history(self, user_id, role, content):
         await self.history.add_to_history(user_id, role, content)
@@ -344,7 +345,9 @@ class OpenAI:
                         await self.history.trim_history(user_id, self.max_history_size)
                         logger.info("Dialog From summary exception: %s", self.history.user_dialogs[user_id])
 
-                return await self.client.chat.completions.create(model=self.model, messages=self.history.user_dialogs[user_id], **self.args)
+                return await self.client.chat.completions.create(model=self.model,
+                                                                 messages=self.history.user_dialogs[user_id],
+                                                                 **self.args)
 
             except Exception as err:
                 self.retries += 1
@@ -353,7 +356,8 @@ class OpenAI:
                     return f'⚠️Ошибочка вышла ⚠️\n{str(err)}', err
 
     async def _summarise(self, conversation) -> str:
-        messages = [{"role": "assistant", "content": "Summarize this conversation in 700 characters or less"}, {"role": "user", "content": str(conversation)}]
+        messages = [{"role": "assistant", "content": "Summarize this conversation in 700 characters or less"},
+                    {"role": "user", "content": str(conversation)}]
         response = await self.client.chat.completions.create(model=self.model, messages=messages, temperature=0.1)
         return response.choices[0].message.content
 
@@ -393,7 +397,8 @@ class OpenAIDialogue:
         self.show_tokens = False
         self.client = AsyncOpenAI(api_key=config.api_key, base_url='http://176.222.52.92:9000/v1')
         self.history = UserHistoryManager()
-        self.args = {"temperature": 0.1, "max_tokens": 1024, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None}
+        self.args = {"temperature": 0.1, "max_tokens": 1024, "top_p": 1, "frequency_penalty": 0,
+                     "presence_penalty": 0.8, "stop": None}
 
     async def add_to_history(self, user_id, role, content):
         await self.history.add_to_history(user_id, role, content)
@@ -449,7 +454,9 @@ class OpenAIDialogue:
                         await self.history.trim_history(user_id, self.max_history_size)
                         logger.info("Dialog From summary exception: %s", self.history.user_dialogs[user_id])
 
-                return await self.client.chat.completions.create(model=self.model, messages=self.history.user_dialogs[user_id], **self.args)
+                return await self.client.chat.completions.create(model=self.model,
+                                                                 messages=self.history.user_dialogs[user_id],
+                                                                 **self.args)
 
             except Exception as err:
                 self.retries += 1
@@ -463,7 +470,8 @@ class OpenAIDialogue:
         return len(self.history.user_dialogs[user_id]), self._count_tokens(self.history.user_dialogs[user_id])
 
     async def _summarise(self, conversation) -> str:
-        messages = [{"role": "assistant", "content": "Summarize this conversation in 700 characters or less"}, {"role": "user", "content": str(conversation)}]
+        messages = [{"role": "assistant", "content": "Summarize this conversation in 700 characters or less"},
+                    {"role": "user", "content": str(conversation)}]
         response = await self.client.chat.completions.create(model=self.model, messages=messages, temperature=0.1)
         return response.choices[0].message.content
 
@@ -490,7 +498,8 @@ class OpenAIDialogue:
     async def send_dalle(self, data):
         while self.retries < self.max_retries:
             try:
-                result = await self.client.images.generate(model="dall-e-3", prompt=data + "4k resolution", n=1, size="1024x1024")
+                result = await self.client.images.generate(model="dall-e-3", prompt=data + "4k resolution", n=1,
+                                                           size="1024x1024")
                 logger.info("RESULT OF DALLE3: %s", result)
                 return result.data[0].url
             except Exception as e:
