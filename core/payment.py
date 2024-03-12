@@ -47,8 +47,8 @@ async def pay_sub_end(message: types.Message, state: FSMContext, session: AsyncS
     if result_code == 0:
         user_data = {
             'telegram_id': message.from_user.id, 'telegram_username': message.from_user.username, 'balance_amount': 500,
-            'max_tokens': 0, 'current_tokens': 0, 'subscription_start': now,
-            'subscription_end': now + timedelta(days=30), 'subscription_status': 'active'}
+            'used_tokens': 0, 'subscription_start': now, 'subscription_end': now + timedelta(days=30),
+            'subscription_status': 'active'}
         await message.reply(status_message)
         await update_or_create_user(session, user_data)
     else:
