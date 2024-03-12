@@ -9,15 +9,15 @@ from fluent.runtime import FluentLocalization
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.helpers.tools import private_filter
 from database.models import Calendar, StreamEmails
+from filters.filters import PrivateFilter
 from tools.utils import config, get_dt
 
 router = Router()
 logger = logging.getLogger(__name__)
 
 
-@router.message(Command(commands="online", ignore_case=True), F.from_user.id.in_(config.admins), private_filter)
+@router.message(Command(commands="online", ignore_case=True), F.from_user.id.in_(config.admins), PrivateFilter())
 @flags.chat_action("typing")
 async def online_cmd(message: types.Message, command: CommandObject, session: AsyncSession):
     first_name = message.chat.first_name
@@ -30,7 +30,7 @@ async def online_cmd(message: types.Message, command: CommandObject, session: As
     await message.reply(text)
 
 
-@router.message(Command(commands="offline", ignore_case=True), F.from_user.id.in_(config.admins), private_filter)
+@router.message(Command(commands="offline", ignore_case=True), F.from_user.id.in_(config.admins), PrivateFilter())
 @flags.chat_action("typing")
 async def offline_cmd(message: types.Message, session: AsyncSession):
     first_name = message.chat.first_name
@@ -41,7 +41,7 @@ async def offline_cmd(message: types.Message, session: AsyncSession):
     await message.reply(text)
 
 
-@router.message(F.from_user.id.in_(config.admins), Command(commands="help"), private_filter)
+@router.message(F.from_user.id.in_(config.admins), Command(commands="help"), PrivateFilter())
 @flags.chat_action("typing")
 async def info(message: types.Message, l10n: FluentLocalization):
     uid = message.from_user.id
@@ -53,7 +53,7 @@ async def info(message: types.Message, l10n: FluentLocalization):
         await message.reply(text, parse_mode=None)
 
 
-@router.message(Command(commands="emails"), F.from_user.id.in_(config.admins), private_filter)
+@router.message(Command(commands="emails"), F.from_user.id.in_(config.admins), PrivateFilter())
 @flags.chat_action("typing")
 async def mails_get(message: types.Message, session: AsyncSession):
     stmt = select(StreamEmails.email)
@@ -67,7 +67,7 @@ async def mails_get(message: types.Message, session: AsyncSession):
         await message.reply("Нет записей", parse_mode=None)
 
 
-@router.message(Command(commands="stream", ignore_case=True), F.from_user.id.in_(config.admins), private_filter)
+@router.message(Command(commands="stream", ignore_case=True), F.from_user.id.in_(config.admins), PrivateFilter())
 @flags.chat_action("typing")
 async def stream_cmd(message: types.Message):
     kb = InlineKeyboardBuilder()
@@ -85,7 +85,7 @@ async def stream_cmd(message: types.Message):
 
 
 @router.message(Command(commands="get_active_emails", ignore_case=True), F.from_user.id.in_(config.admins),
-                private_filter)
+                PrivateFilter())
 @flags.chat_action("typing")
 async def stream_cmd(message: types.Message, state: FSMContext):
     await state.update_data(chatid=message.chat.id)

@@ -4,14 +4,14 @@ from datetime import datetime
 from urllib import parse
 
 import aiohttp
-from aiogram import types, F
+from aiogram import types
 from aiogram.enums import ParseMode
 from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.manager import UserManager
 from database.models import User, NeuropunkPro
-from tools.utils import config, Merchant, Order
+from tools.utils import Merchant, Order
 
 logger = logging.getLogger(__name__)
 
@@ -25,19 +25,6 @@ chat_settings = {
     "nerve": {"active_chat": -1002094481198, "thread_id": 72},
     "girls": {"active_chat": -1001921488615, "thread_id": 9075},
 }
-
-forum_filter = ((F.chat.type.in_({'group', 'supergroup'})) & (
-            ((F.chat.id == -1001922960346) & (F.message_thread_id == 12842)) |
-            ((F.chat.id == -1002040950538) & (F.message_thread_id == 305)) |
-            ((F.chat.id == -1002094481198) & (F.message_thread_id == 58)) |
-            ((F.chat.id == -1001921488615) & (F.message_thread_id == 9078))))
-chat_filter = F.chat.type.in_({'group', 'supergroup'}) & F.chat.id.in_(config.allowed_groups)
-basic_chat_filter = F.chat.type.in_({'group', 'supergroup'})
-private_filter = F.chat.type == 'private'
-subscribe_chat_filter = ((F.chat.type.in_({'group', 'supergroup'})) & (
-            (F.chat.id == -1001814931266) & (F.message_thread_id == 5472)))
-subscribe_chat_check_filter = (
-            (F.chat.type.in_({'group', 'supergroup'})) & ((F.chat.id == -1001814931266) & (F.message_thread_id == 1)))
 
 robokassa_payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx'
 robokassa_check_url = 'https://auth.robokassa.ru/Merchant/WebService/Service.asmx/OpStateExt'
@@ -183,10 +170,3 @@ async def update_or_create_user(session: AsyncSession, user_data: dict, is_cours
             user = User(**user_data)
             session.add(user)
     await session.commit()
-
-
-async def create_chat_member_for_message(message: types.Message, session: AsyncSession):
-    user_manager = UserManager(session)
-    await user_manager.create_chat_member(telegram_id=message.from_user.id,
-                                          telegram_username=message.from_user.username, chat_name=message.chat.title,
-                                          chat_id=message.chat.id)

@@ -54,7 +54,7 @@ class UserManager:
 
     async def get_active_course_emails(self) -> list[str]:
         stmt = select(NeuropunkPro.email).where(NeuropunkPro.subscription_end > datetime.utcnow(),
-                                                NeuropunkPro.email.is_not(None))
+                                                NeuropunkPro.email.isnot(None))
         result = await self.session.execute(stmt)
         emails = [email[0] for email in result.all() if email[0] is not None]
         return emails
@@ -125,14 +125,14 @@ class UserManager:
         return telegram_ids
 
     async def remove_duplicate_chat_members(self) -> None:
-        subquery = self.session.query(ChatMember.telegram_id, ChatMember.chat_id,
-                                      func.max(ChatMember.id).label('max_id')).group_by(ChatMember.telegram_id,
-                                                                                        ChatMember.chat_id).subquery()
+        subquery = select(ChatMember.telegram_id, ChatMember.chat_id, func.max(ChatMember.id).label('max_id')).group_by(ChatMember.telegram_id,
+                                                                                                                        ChatMember.chat_id).subquery()
+        stmt = select(ChatMember).join(subquery, and_(ChatMember.telegram_id == subquery.c.telegram_id,
+                                                      ChatMember.chat_id == subquery.c.chat_id,
+                                                      ChatMember.id != subquery.c.max_id))
 
-        duplicates = self.session.query(ChatMember).join(subquery,
-                                                         and_(ChatMember.telegram_id == subquery.c.telegram_id,
-                                                              ChatMember.chat_id == subquery.c.chat_id,
-                                                              ChatMember.id != subquery.c.max_id))
+        result = await self.session.execute(stmt)
+        duplicates = result.scalars().all()
 
         for duplicate in duplicates:
             await self.session.delete(duplicate)
@@ -140,7 +140,5 @@ class UserManager:
 
     async def is_user_banned(self, telegram_id: int) -> bool:
         result = await self.session.execute(select(ChatMember.banned).where(ChatMember.telegram_id == telegram_id))
-        chat_member_info = result.scalar_one_or_none()
-        if chat_member_info:
-            return chat_member_info.banned
-        return False
+        chat_member_bans = result.scalars().all()
+        return any(chat_member_bans)

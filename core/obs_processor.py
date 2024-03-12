@@ -4,15 +4,14 @@ import logging
 from aiogram import types, F, Router, Bot
 
 from core.helpers.obs import ClientOBS
-from core.helpers.tools import basic_chat_filter
-from filters.activity import IsActiveChatFilter
+from filters.filters import IsActiveChatFilter
 from tools.utils import config
 
 router = Router()
 logger = logging.getLogger(__name__)
 
 
-@router.message(IsActiveChatFilter(), basic_chat_filter, F.content_type.in_({'text', 'animation', 'sticker', 'photo'}))
+@router.message(IsActiveChatFilter(), F.chat.type.in_({'group', 'supergroup'}), F.content_type.in_({'text', 'animation', 'sticker', 'photo'}))
 async def process_obs_content(message: types.Message, bot: Bot) -> None:
     logger.info("%s", message)
     nickname = message.from_user.full_name

@@ -12,11 +12,11 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 from aioredis.client import Redis
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fluent.runtime import FluentLocalization, FluentResourceLoader
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from core import setup_routers
 from database.manager import UserManager
-from middlewares.common import CommonTasksMiddleware
+from middlewares.basic import BasicMiddleware
 from middlewares.database import DbSessionMiddleware
 from middlewares.l10n import L10nMiddleware
 from tools.utils import config, np_pro_chat
@@ -61,24 +61,29 @@ async def check_subscriptions_and_unban():
                 # Проверяем статус подписки
                 is_subscription_active = await user_manager.is_subscription_active(telegram_id)
                 if not is_subscription_active:
-                    user = await user_manager.get_user(telegram_id)
+                    user = await user_manager.get_course_user(telegram_id)
                     if user.subscription_end and datetime.utcnow() - user.subscription_end > timedelta(days=2):
                         # Вызываем метод unban_chat_member, если подписка закончилась более 2 дней назад
                         await paper.unban_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
                         logger.info(f"Unbanned user {telegram_id} in chat -1001814931266")
 
 
-async def main(session: AsyncSession):
+async def task_wrapper():
+    async with session_maker() as session:
+        user_manager = UserManager(session)
+        await user_manager.remove_duplicate_chat_members()
+
+
+async def main():
     locales_dir = Path(__file__).parent.joinpath("locales")
     l10n_loader = FluentResourceLoader(str(locales_dir) + "/{locale}")
     l10n = FluentLocalization(["ru"], ["strings.ftl", "errors.ftl"], l10n_loader)
-    user_manager = UserManager(session)
 
     storage = RedisStorage(redis=redis_client)
     worker = Dispatcher(storage=storage, fsm_strategy=FSMStrategy.USER_IN_CHAT, events_isolation=SimpleEventIsolation())
     router = setup_routers()
+    router.message.middleware(BasicMiddleware(session_maker))
     worker.update.middleware(db_middleware)
-    worker.update.middleware(CommonTasksMiddleware(session_maker))
     worker.update.middleware(L10nMiddleware(l10n))
     worker.include_router(router)
     useful_updates = worker.resolve_used_update_types()
@@ -87,7 +92,7 @@ async def main(session: AsyncSession):
     logger.info("Starting bot")
     scheduler = AsyncIOScheduler()
     scheduler.add_job(check_subscriptions_and_unban, 'interval', minutes=10)
-    scheduler.add_job(user_manager.remove_duplicate_chat_members, 'interval', hours=12)
+    scheduler.add_job(task_wrapper, 'interval', hours=12)
 
     scheduler.start()
     await worker.start_polling(paper, allowed_updates=useful_updates, handle_signals=True)

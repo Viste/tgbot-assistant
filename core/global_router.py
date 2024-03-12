@@ -8,9 +8,9 @@ from aiogram.fsm.context import FSMContext
 from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.helpers.tools import chat_filter, private_filter, forum_filter, subscribe_chat_filter
-from core.helpers.tools import send_reply, handle_exception, create_chat_member_for_message
+from core.helpers.tools import send_reply, handle_exception
 from database.manager import UserManager
+from filters.filters import ChatFilter, ForumFilter, PrivateFilter, SubscribeChatFilter
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
 from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.states import Text, Dialogue, DAImage
@@ -24,7 +24,7 @@ openai_dialogue = OpenAIDialogue()
 audio = Audio()
 
 
-@router.message(chat_filter, (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
+@router.message(ChatFilter(config.allowed_groups), (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
 async def ask_chat(message: types.Message, state: FSMContext) -> None:
     await state.set_state(Text.get)
 
@@ -39,7 +39,7 @@ async def ask_chat(message: types.Message, state: FSMContext) -> None:
             await send_reply(message, chunk)
 
 
-@router.message(chat_filter, Text.get, F.reply_to_message.from_user.is_bot)
+@router.message(ChatFilter(config.allowed_groups), Text.get, F.reply_to_message.from_user.is_bot)
 async def process_ask_chat(message: types.Message) -> None:
     logger.info("%s", message)
     text = html.escape(message.text)
@@ -51,7 +51,7 @@ async def process_ask_chat(message: types.Message) -> None:
             await send_reply(message, chunk)
 
 
-@router.message(forum_filter, (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
+@router.message(ForumFilter(), (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
 async def ask_forum(message: types.Message, state: FSMContext) -> None:
     await state.set_state(Text.get)
 
@@ -66,7 +66,7 @@ async def ask_forum(message: types.Message, state: FSMContext) -> None:
             await send_reply(message, chunk)
 
 
-@router.message(forum_filter, Text.get, F.reply_to_message.from_user.is_bot)
+@router.message(ForumFilter(), Text.get, F.reply_to_message.from_user.is_bot)
 async def process_ask_forum(message: types.Message) -> None:
     logger.info("%s", message)
     text = html.escape(message.text)
@@ -78,7 +78,7 @@ async def process_ask_forum(message: types.Message) -> None:
             await send_reply(message, chunk)
 
 
-@router.message(private_filter, (F.text.regexp(r"[\s\S]+?киберпапер[\s\S]+?") | F.text.startswith("киберпапер")))
+@router.message(PrivateFilter(), (F.text.regexp(r"[\s\S]+?киберпапер[\s\S]+?") | F.text.startswith("киберпапер")))
 async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession,
                          l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
@@ -103,7 +103,7 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
             await send_reply(message, chunk)
 
 
-@router.message(private_filter, Dialogue.get, F.text)
+@router.message(PrivateFilter(), Dialogue.get, F.text)
 async def process_dialogue(message: types.Message) -> None:
     logger.info("%s", message)
     text = html.escape(message.text)
@@ -114,7 +114,7 @@ async def process_dialogue(message: types.Message) -> None:
             await send_reply(message, chunk)
 
 
-@router.message(private_filter, F.text.startswith("нарисуй, "), F.from_user.id.in_(config.admins))
+@router.message(PrivateFilter(), F.text.startswith("нарисуй, "), F.from_user.id.in_(config.admins))
 async def paint(message: types.Message, state: FSMContext) -> None:
     logger.info("Message: %s", message)
     await state.set_state(DAImage.get)
@@ -129,13 +129,13 @@ async def paint(message: types.Message, state: FSMContext) -> None:
         await handle_exception(message, err)
 
 
-@router.message(private_filter, DAImage.get)
+@router.message(PrivateFilter(), DAImage.get)
 async def process_paint(message: types.Message, state: FSMContext) -> None:
     await state.set_state(DAImage.result)
     logger.info("%s", message)
 
 
-@router.message(private_filter, F.audio, ~StateFilter("Demo.get"))
+@router.message(PrivateFilter(), F.audio, ~StateFilter("Demo"))
 async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot,
                        l10n: FluentLocalization):
     user_manager = UserManager(session)
@@ -156,7 +156,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
 
     result = await audio.process_audio_file(file_path)
     os.remove(file_path)
-    replay_text = await openai_listener.get_resp_listen(uid, str(result))
+    replay_text = await openai_listener.get_resp_listen(uid, result)
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         try:
@@ -171,7 +171,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
                 await message.reply(str(error), parse_mode=None)
 
 
-@router.message(Command(commands="course_register"), subscribe_chat_filter)
+@router.message(Command(commands="course_register"), SubscribeChatFilter())
 async def reg_course(message: types.Message, state: FSMContext, session: AsyncSession,
                      l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
@@ -187,6 +187,5 @@ async def reg_course(message: types.Message, state: FSMContext, session: AsyncSe
 
 
 @router.message(Command(commands="help"))
-async def info_user(message: types.Message, l10n: FluentLocalization, session: AsyncSession):
-    await create_chat_member_for_message(message, session)
+async def info_user(message: types.Message, l10n: FluentLocalization):
     await message.answer(l10n.format_value("help"))

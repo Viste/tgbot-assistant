@@ -9,8 +9,8 @@ from fluent.runtime import FluentLocalization
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.helpers.tools import reply_if_banned, private_filter
 from database.models import Calendar, StreamEmails
+from filters.filters import PrivateFilter
 from tools.ai.vision import OpenAIVision
 from tools.states import Demo
 from tools.utils import config, check_bit_rate, email_patt, check
@@ -20,13 +20,8 @@ logger = logging.getLogger(__name__)
 channel = config.channel
 
 
-@router.message(private_filter, Command(commands="demo", ignore_case=True))
-async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
-    uid = message.from_user.id
-
-    if await reply_if_banned(message, uid, l10n):
-        return
-
+@router.message(PrivateFilter(), Command(commands="demo", ignore_case=True))
+async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession):
     first_name = message.chat.first_name
     now = datetime.now()
     result = await session.execute(select(Calendar).order_by(desc(Calendar.end_time)).limit(1))
@@ -40,7 +35,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
         await message.answer(f"Привет {first_name}!\nСейчас не время присылать демки, попробуй позже")
 
 
-@router.message(private_filter, Demo.start)
+@router.message(PrivateFilter(), Demo.start)
 async def process_cmd(message: types.Message, state: FSMContext, bot: Bot, l10n: FluentLocalization):
     openai = OpenAIVision()
     file_id = message.photo[-1].file_id
@@ -56,7 +51,7 @@ async def process_cmd(message: types.Message, state: FSMContext, bot: Bot, l10n:
         await message.answer(f"Натяни нос клоуна и бахни селфи, не стесняйся!")
 
 
-@router.message(private_filter, Demo.process)
+@router.message(PrivateFilter(), Demo.process)
 async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession):
     email = message.text
     first_name = message.from_user.first_name
@@ -75,11 +70,9 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
         await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
 
 
-@router.message(Demo.get, F.content_type.in_({'audio'}), private_filter)
+@router.message(PrivateFilter(), Demo.get, F.content_type.in_({'audio'}))
 async def get_and_send_from_state(message: types.Message, state: FSMContext, bot: Bot, l10n: FluentLocalization):
     uid = message.from_user.id
-    if await reply_if_banned(message, uid, l10n):
-        return
 
     username = message.chat.username
     track = message.audio.file_id

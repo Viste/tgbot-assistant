@@ -8,8 +8,8 @@ from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import Robokassa, send_payment_message, update_or_create_user
-from core.helpers.tools import generate_robokassa_link, get_payment_status_message, private_filter, \
-    subscribe_chat_filter
+from core.helpers.tools import generate_robokassa_link, get_payment_status_message
+from filters.filters import PrivateFilter, SubscribeChatFilter
 from tools.states import Payment, CoursePayment
 from tools.utils import config, check_payment, Merchant, Order, gmail_patt, check
 
@@ -20,7 +20,7 @@ merchant = Merchant(config.rb_login, config.rb_pass1, config.rb_pass2)
 robokassa_payment = Robokassa(merchant)
 
 
-@router.message(Payment.process, F.content_type.in_({'text'}), private_filter)
+@router.message(Payment.process, F.content_type.in_({'text'}), PrivateFilter())
 async def pay_sub_process(message: types.Message, state: FSMContext, l10n: FluentLocalization):
     random_id = uuid.uuid4().int & (1 << 24) - 1
     order = Order(random_id, 'подписка на сервис киберпапер', 500.0)
@@ -32,7 +32,7 @@ async def pay_sub_process(message: types.Message, state: FSMContext, l10n: Fluen
     await state.set_state(Payment.end)
 
 
-@router.message(Payment.end, (F.text.regexp(r"[\s\S]+?оплатил[\s\S]+?") | F.text.startswith("оплатил")), private_filter)
+@router.message(Payment.end, (F.text.regexp(r"[\s\S]+?оплатил[\s\S]+?") | F.text.startswith("оплатил")), PrivateFilter())
 async def pay_sub_end(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
     now = datetime.utcnow()
     data = await state.get_data()
@@ -55,7 +55,7 @@ async def pay_sub_end(message: types.Message, state: FSMContext, session: AsyncS
         await message.reply(status_message)
 
 
-@router.message(CoursePayment.start, F.content_type.in_({'text'}), subscribe_chat_filter)
+@router.message(CoursePayment.start, F.content_type.in_({'text'}), SubscribeChatFilter())
 async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLocalization):
     random_id = uuid.uuid4().int & (1 << 24) - 1
     email = message.text
@@ -73,7 +73,7 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
 
 @router.message(CoursePayment.end,
                 (F.text.regexp(r"^(о|О)платил") | F.text.startswith("оплатил") | F.text.startswith("Оплатил")),
-                subscribe_chat_filter)
+                SubscribeChatFilter())
 async def pay_course_end(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
     data = await state.get_data()
     now = datetime.utcnow()
