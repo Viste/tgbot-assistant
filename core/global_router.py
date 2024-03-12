@@ -156,7 +156,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
 
     result = await audio.process_audio_file(file_path)
     os.remove(file_path)
-    replay_text = await openai_listener.get_resp_listen(uid, result)
+    replay_text = await openai_listener.get_resp_listen(result, uid)
     chunks = split_into_chunks(replay_text)
     for index, chunk in enumerate(chunks):
         try:

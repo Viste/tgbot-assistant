@@ -2,7 +2,6 @@ import logging
 
 import essentia.standard as es
 import numpy as np
-import tiktoken
 from openai import AsyncOpenAI
 
 from tools.ai.ai_tools import UserHistoryManager
@@ -88,16 +87,16 @@ class Audio:
         chroma_values = chroma_values
         spectral_contrast_values = spectral_contrast_values
         dissonance_values = dissonance_values
-        lufs_compressed = lufs_values
-        loudness_range_compressed = loudness_range
-        beats_compressed = beats
+        lufs = lufs_values
+        loudness_range = loudness_range
+        beats = beats
 
         # Store the results in a string
         result = f"Results for file: {file_path} "
         result += f"Track duration: {track_duration_str} "
         result += f"Pitch: {pitch}, Confidence: {pitch_confidence} "
         result += f"Tempo: {bpm}"
-        result += f"Compressed Beats: {beats_compressed}"
+        result += f"Compressed Beats: {beats}"
         result += f"MFCCs: {mfccs} "
         result += f"Chroma: {chroma_values} "
         result += f"Loudness: {loudness} "
@@ -105,8 +104,8 @@ class Audio:
         result += f"Spectral Contrast: {spectral_contrast_values} "
         result += f"Dissonance: {dissonance_values} "
         result += f"Dynamic Complexity: {dynamic_complexity} "
-        result += f"LUFS: {lufs_compressed} "
-        result += f"Loudness Range: {loudness_range_compressed} "
+        result += f"LUFS: {lufs} "
+        result += f"Loudness Range: {loudness_range} "
 
         return result
 
@@ -147,41 +146,24 @@ class OpenAIListener:
                 if self.retries >= self.max_retries:
                     return f'⚠️Ошибочка вышла ⚠️\n{str(err)}'
 
-    async def get_resp_listen(self, user_id: int, query: str) -> str:
-        response = await self._query_gpt_listen(user_id, query)
+    async def get_resp_listen(self, query: str, chat_id: int) -> str:
+        response = await self._query_gpt_listen(chat_id, query)
         answer = ''
 
+        logger.info('Response: %s, Answer: %s', response, answer)
         if response.choices and len(response.choices) > 1 and self.n_choices > 1:
             for index, choice in enumerate(response.choices):
                 content = choice.message.content.strip()
+                if index == 0:
+                    await self.history.add_to_history(chat_id, role="assistant", content=content)
                 answer += f'{index + 1}\u20e3\n'
                 answer += content
                 answer += '\n\n'
         elif response.choices and len(response.choices) >= 0:
             answer = response.choices[0].message.content.strip()
-            await self.history.add_to_history(user_id, role="assistant", content=answer)
+            await self.history.add_to_history(chat_id, role="assistant", content=answer)
         else:
             answer = response.choices[0].message.content.strip()
-            await self.history.add_to_history(user_id, role="assistant", content=answer)
+            await self.history.add_to_history(chat_id, role="assistant", content=answer)
 
         return answer
-
-    def _count_listen_tokens(self, messages) -> int:
-        try:
-            model = self.model
-            encoding = tiktoken.encoding_for_model(model)
-        except KeyError:
-            encoding = tiktoken.get_encoding("gpt-4")
-
-        tokens_per_message = 3
-        tokens_per_name = 1
-
-        num_tokens = 0
-        for message in messages:
-            num_tokens += tokens_per_message
-            for key, value in message.items():
-                num_tokens += len(encoding.encode(value))
-                if key == "name":
-                    num_tokens += tokens_per_name
-        num_tokens += 3
-        return num_tokens
