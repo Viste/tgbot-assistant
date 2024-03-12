@@ -191,7 +191,7 @@ async def state_course(message: types.Message, session: AsyncSession) -> None:
     user_manager = UserManager(session)
     end_date = await user_manager.get_course_subscription_end_date(message.from_user.id)
     if end_date:
-        await message.answer(f"Ваша подписка истекает: {end_date.strftime('%d-%m-%Y %H:%M:%S')}")
+        await message.answer(f"Ваша подписка истекает: {end_date.strftime('%d.%m.%Y %H:%M:%S')}")
     else:
         await message.answer("У вас нет активной подписки или произошла ошибка.")
 
