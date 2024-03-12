@@ -57,7 +57,7 @@ async def check_subscriptions_and_unban():
         for telegram_id in chat_member_ids:
             # Проверяем, является ли пользователь участником чата
             member = await paper.get_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
-            logger.info('RESULT OF GET CHAT MEMBER %s', member.status, member.user.id)
+            logger.info('Get Chat Member result: %s', member.status)
             if member.status == ChatMemberStatus.MEMBER:
                 # Проверяем статус подписки
                 is_subscription_active = await user_manager.is_subscription_active(telegram_id)
