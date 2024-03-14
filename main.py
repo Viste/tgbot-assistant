@@ -34,7 +34,6 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 config: AppConfig = None
-paper = Bot(token=config.token)
 
 
 async def set_bot_commands(bot: Bot):
@@ -56,6 +55,8 @@ async def set_bot_commands(bot: Bot):
 async def check_subscriptions_and_unban():
     async with session_maker() as session:
         manager = Manager(session)
+        con = await load_config(session_maker)
+        paper = Bot(token=con.token)
         chat_member_ids = await manager.get_all_chat_member_telegram_ids()
 
         for telegram_id in chat_member_ids:
@@ -86,6 +87,7 @@ async def main():
     l10n_loader = FluentResourceLoader(str(locales_dir) + "/{locale}")
     l10n = FluentLocalization(["ru"], ["strings.ftl", "errors.ftl"], l10n_loader)
     config = await load_config(session_maker)
+    paper = Bot(token=config.token)
 
     storage = RedisStorage(redis=redis_client)
     worker = Dispatcher(storage=storage, fsm_strategy=FSMStrategy.USER_IN_CHAT, events_isolation=SimpleEventIsolation())
