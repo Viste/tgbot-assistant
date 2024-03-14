@@ -13,14 +13,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.obs import ClientOBS
 from core.helpers.tools import send_reply, handle_exception
-from database.manager import UserManager
+from database.manager import Manager
 from database.models import Calendar, StreamEmails
-from filters.filters import ChatFilter, ForumFilter, PrivateFilter, SubscribeChatFilter, IsActiveChatFilter
+from filters.filters import ChatFilter, ForumFilter, PrivateFilter, SubscribeChatFilter, IsActiveChatFilter, Admin
+from main import config
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
 from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.ai.vision import OpenAIVision
 from tools.states import Text, Dialogue, DAImage, Demo
-from tools.utils import split_into_chunks, config, check_bit_rate, email_patt, check
+from tools.utils import split_into_chunks, check_bit_rate, email_patt, check
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -57,7 +58,7 @@ async def process_obs_content(message: types.Message, bot: Bot) -> None:
             await client.send_request(nickname, content)
 
 
-@router.message(ChatFilter(config.allowed_groups), (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
+@router.message(ChatFilter(), (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
 async def ask_chat(message: types.Message, state: FSMContext) -> None:
     await state.set_state(Text.get)
 
@@ -72,7 +73,7 @@ async def ask_chat(message: types.Message, state: FSMContext) -> None:
             await send_reply(message, chunk)
 
 
-@router.message(ChatFilter(config.allowed_groups), Text.get, F.reply_to_message.from_user.is_bot)
+@router.message(ChatFilter(), Text.get, F.reply_to_message.from_user.is_bot)
 async def process_ask_chat(message: types.Message) -> None:
     logger.info("%s", message)
     text = html.escape(message.text)
@@ -115,7 +116,7 @@ async def process_ask_forum(message: types.Message) -> None:
 async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession,
                          l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
-    user_manager = UserManager(session)
+    user_manager = Manager(session)
     if not await user_manager.is_subscription_active(message.from_user.id):
         kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_subscription")], ]
         keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
@@ -147,7 +148,7 @@ async def process_dialogue(message: types.Message) -> None:
             await send_reply(message, chunk)
 
 
-@router.message(PrivateFilter(), F.text.startswith("нарисуй, "), F.from_user.id.in_(config.admins))
+@router.message(PrivateFilter(), F.text.startswith("нарисуй, "), Admin())
 async def paint(message: types.Message, state: FSMContext) -> None:
     logger.info("Message: %s", message)
     await state.set_state(DAImage.get)
@@ -171,7 +172,7 @@ async def process_paint(message: types.Message, state: FSMContext) -> None:
 @router.message(PrivateFilter(), F.audio, ~StateFilter(Demo.get))
 async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot,
                        l10n: FluentLocalization):
-    user_manager = UserManager(session)
+    user_manager = Manager(session)
 
     uid = message.from_user.id
     await state.update_data(chatid=message.chat.id)
@@ -207,7 +208,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
 @router.message(Command(commands="course_register"), SubscribeChatFilter())
 async def reg_course(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
-    user_manager = UserManager(session)
+    user_manager = Manager(session)
     uid = message.from_user.id
     if not await user_manager.is_course_subscription_active(uid):
         kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub-course"), callback_data="buy_course")], ]
@@ -220,7 +221,7 @@ async def reg_course(message: types.Message, state: FSMContext, session: AsyncSe
 
 @router.message(Command(commands="course_state"), SubscribeChatFilter())
 async def state_course(message: types.Message, session: AsyncSession) -> None:
-    user_manager = UserManager(session)
+    user_manager = Manager(session)
     end_date = await user_manager.get_course_subscription_end_date(message.from_user.id)
     if end_date:
         await message.answer(f"Ваша подписка истекает: {end_date.strftime('%d.%m.%Y %H:%M:%S')}")

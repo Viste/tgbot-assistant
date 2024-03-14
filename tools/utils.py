@@ -1,9 +1,7 @@
-import decimal
 import json
 import logging
 import os
 import re
-from dataclasses import dataclass
 from datetime import datetime
 from typing import List
 from xml.etree.ElementTree import fromstring
@@ -13,26 +11,13 @@ import mutagen
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.models import User
+from database.models import User, Config
+from tools.data import AppConfig
 
 logger = logging.getLogger(__name__)
 email_patt = re.compile("^(\w+?|\w+?\.\w+?|\w+?\.\w+?\.\w+?)@\w+?\.\w{2,12}$")
 gmail_patt = re.compile("^[a-zA-Z0-9._%+-]+?@gmail\.com")
 np_pro_chat = -1001814931266
-
-
-@dataclass
-class Merchant:
-    login: str
-    password1: str
-    password2: str
-
-
-@dataclass
-class Order:
-    number: int
-    description: str
-    cost: decimal
 
 
 class JSONObject:
@@ -123,3 +108,13 @@ async def get_all_telegram_ids(session: AsyncSession) -> List[int]:
 def year_month(date_str):
     # extract string of year-month from date, eg: '2023-03'
     return str(date_str)[:7]
+
+
+async def load_config(session_maker) -> AppConfig:
+    async with session_maker() as session:
+        result = await session.execute(select(Config))
+        config_entries = result.scalars().all()
+        config_dict = {entry.key_name: entry.value for entry in config_entries}
+
+        app_config = AppConfig(**config_dict)
+        return app_config

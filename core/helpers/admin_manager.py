@@ -1,6 +1,6 @@
 import logging
 
-from aiogram import types, Router, F, flags
+from aiogram import types, Router, flags
 from aiogram.filters.command import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton
@@ -10,14 +10,14 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import Calendar, StreamEmails
-from filters.filters import PrivateFilter
-from tools.utils import config, get_dt
+from filters.filters import PrivateFilter, Admin
+from tools.utils import get_dt
 
 router = Router()
 logger = logging.getLogger(__name__)
 
 
-@router.message(Command(commands="online", ignore_case=True), F.from_user.id.in_(config.admins), PrivateFilter())
+@router.message(Command(commands="online", ignore_case=True), Admin(), PrivateFilter())
 @flags.chat_action("typing")
 async def online_cmd(message: types.Message, command: CommandObject, session: AsyncSession):
     first_name = message.chat.first_name
@@ -30,7 +30,7 @@ async def online_cmd(message: types.Message, command: CommandObject, session: As
     await message.reply(text)
 
 
-@router.message(Command(commands="offline", ignore_case=True), F.from_user.id.in_(config.admins), PrivateFilter())
+@router.message(Command(commands="offline", ignore_case=True), Admin(), PrivateFilter())
 @flags.chat_action("typing")
 async def offline_cmd(message: types.Message, session: AsyncSession):
     first_name = message.chat.first_name
@@ -41,19 +41,14 @@ async def offline_cmd(message: types.Message, session: AsyncSession):
     await message.reply(text)
 
 
-@router.message(F.from_user.id.in_(config.admins), Command(commands="help"), PrivateFilter())
+@router.message(Command(commands="help"), PrivateFilter(), Admin())
 @flags.chat_action("typing")
 async def info(message: types.Message, l10n: FluentLocalization):
-    uid = message.from_user.id
-    if uid in config.banned_user_ids:
-        text = l10n.format_value("you-were-banned-error")
-        await message.reply(text, parse_mode=None)
-    else:
-        text = l10n.format_value("admin-help")
-        await message.reply(text, parse_mode=None)
+    text = l10n.format_value("admin-help")
+    await message.reply(text, parse_mode=None)
 
 
-@router.message(Command(commands="emails"), F.from_user.id.in_(config.admins), PrivateFilter())
+@router.message(Command(commands="emails"), Admin(), PrivateFilter())
 @flags.chat_action("typing")
 async def mails_get(message: types.Message, session: AsyncSession):
     stmt = select(StreamEmails.email)
@@ -67,7 +62,7 @@ async def mails_get(message: types.Message, session: AsyncSession):
         await message.reply("Нет записей", parse_mode=None)
 
 
-@router.message(Command(commands="stream", ignore_case=True), F.from_user.id.in_(config.admins), PrivateFilter())
+@router.message(Command(commands="stream", ignore_case=True), Admin(), PrivateFilter())
 @flags.chat_action("typing")
 async def stream_cmd(message: types.Message):
     kb = InlineKeyboardBuilder()
@@ -84,8 +79,7 @@ async def stream_cmd(message: types.Message):
     await message.reply("Надо чат выбрать:", reply_markup=kb.as_markup(resize_keyboard=True))
 
 
-@router.message(Command(commands="get_active_emails", ignore_case=True), F.from_user.id.in_(config.admins),
-                PrivateFilter())
+@router.message(Command(commands="get_active_emails", ignore_case=True), Admin(), PrivateFilter())
 @flags.chat_action("typing")
 async def stream_cmd(message: types.Message, state: FSMContext):
     await state.update_data(chatid=message.chat.id)

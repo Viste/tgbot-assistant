@@ -5,12 +5,12 @@ from typing import Optional
 from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.models import User, NeuropunkPro, ChatMember
+from database.models import User, NeuropunkPro, ChatMember, Config
 
 logger = logging.getLogger(__name__)
 
 
-class UserManager:
+class Manager:
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -148,3 +148,12 @@ class UserManager:
         if user:
             return user.subscription_end
         return None
+
+    async def get_config_value(self, key_name: str) -> Optional[str, int]:
+        stmt = select(Config).where(Config.key_name == key_name)
+        result = await self.session.execute(stmt)
+        config_entry = result.scalar_one_or_none()
+        if config_entry:
+            return config_entry.value
+        else:
+            return None

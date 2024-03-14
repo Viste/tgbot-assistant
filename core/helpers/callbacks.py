@@ -1,14 +1,13 @@
 import logging
 
-from aiogram import types, Router, F
+from aiogram import types, Router, F, Bot
 from aiogram.fsm.context import FSMContext
 from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import ChatState
 from core.helpers.tools import chat_settings
-from database.manager import UserManager
-from main import paper
+from database.manager import Manager
 from tools.states import Payment, CoursePayment
 
 router = Router()
@@ -17,11 +16,11 @@ chat_state = ChatState()
 
 
 @router.callback_query(F.data == "buy_subscription")
-async def get_sub(callback: types.CallbackQuery, state: FSMContext, l10n: FluentLocalization):
+async def get_sub(callback: types.CallbackQuery, state: FSMContext, l10n: FluentLocalization, bot: Bot) -> None:
     data = await state.get_data()
     logger.info("current state data %s", data)
     user_id = data['chatid']
-    await paper.send_message(user_id, l10n.format_value("sub-agreement"))
+    await bot.send_message(user_id, l10n.format_value("sub-agreement"))
     await state.set_state(Payment.process)
     current_state = await state.get_state()
     logger.info("current state %r", current_state)
@@ -50,7 +49,7 @@ async def process_sender(callback: types.CallbackQuery):
 
 @router.callback_query(lambda c: c.data.startswith("course_"))
 async def process_catcher(callback: types.CallbackQuery, session: AsyncSession):
-    user_manager = UserManager(session)
+    user_manager = Manager(session)
     emails = await user_manager.get_active_course_emails()
 
     if emails:

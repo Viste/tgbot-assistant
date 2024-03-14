@@ -10,8 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.helpers.tools import Robokassa, send_payment_message, update_or_create_user
 from core.helpers.tools import generate_robokassa_link, get_payment_status_message
 from filters.filters import PrivateFilter, SubscribeChatFilter
+from tools.data import Merchant, Order
 from tools.states import Payment, CoursePayment
-from tools.utils import config, check_payment, Merchant, Order, gmail_patt, check
+from tools.utils import config, check_payment, gmail_patt, check
 
 router = Router()
 logger = logging.getLogger(__name__)

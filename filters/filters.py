@@ -26,11 +26,12 @@ class ForumFilter(BaseFilter):
 
 
 class ChatFilter(BaseFilter):
-    def __init__(self, allowed_groups):
-        self.allowed_groups = allowed_groups
-
     async def __call__(self, message: types.Message) -> bool:
-        return message.chat.type in {'group', 'supergroup'} and message.chat.id in self.allowed_groups
+        return (
+            message.chat.type in {'group', 'supergroup'} and ((message.chat.id == -1001647523732) or
+                                                              (message.chat.id == -1001700103389) or
+                                                              (message.chat.id == -1001537420102) or
+                                                              (message.chat.id == -1001170569681)))
 
 
 class PrivateFilter(BaseFilter):
@@ -45,3 +46,8 @@ class SubscribeChatFilter(BaseFilter):
             message.chat.id == -1001814931266 and
             message.message_thread_id == 5472
         )
+
+
+class Admin(BaseFilter):
+    async def __call__(self, message: types.Message) -> bool:
+        return message.from_user.id in {'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}

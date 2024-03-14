@@ -1,7 +1,7 @@
-aiogram==3.3.0
+aiogram
 aiomysql
-sqlalchemy==2.0.19
-mutagen~=1.46.0
+sqlalchemy
+mutagen
 aiohttp
 datetime~=5.2
 aioredis~=2.0.1
@@ -11,9 +11,10 @@ tiktoken
 urllib3
 tqdm
 fluent~=0.10.0
-numpy~=1.25.1
+numpy
 essentia
 pydantic
 fluent.runtime
 requests
 apscheduler
+elevenlabs

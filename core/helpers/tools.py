@@ -9,9 +9,9 @@ from aiogram.enums import ParseMode
 from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.manager import UserManager
+from database.manager import Manager
 from database.models import User, NeuropunkPro
-from tools.utils import Merchant, Order
+from tools.data import Merchant, Order
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ class EmailChatState:
 
 
 async def reply_if_banned(message: types.Message, uid: int, l10n: FluentLocalization, session: AsyncSession) -> bool:
-    user_manager = UserManager(session)
+    user_manager = Manager(session)
     if await user_manager.is_user_banned(uid):
         await message.reply(l10n.format_value("you-were-banned-error"))
         return True
@@ -140,7 +140,7 @@ async def send_payment_message(message: types.Message, link: str, l10n: FluentLo
 
 
 async def update_or_create_user(session: AsyncSession, user_data: dict, is_course=False):
-    user_manager = UserManager(session)
+    user_manager = Manager(session)
     if is_course:
         user = await user_manager.get_course_user(user_data['telegram_id'])
         if user:

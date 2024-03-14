@@ -1,6 +1,6 @@
 from enum import Enum, unique
 
-from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime, Integer, Boolean
+from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime, Integer, Boolean, Text
 from sqlalchemy.sql import expression
 
 from database.base import Base
@@ -67,4 +67,13 @@ class ChatMember(Base):
     chat_id = Column(BigInteger, nullable=False)
     status = Column(String(50), nullable=False, default='active')
     banned = Column(Boolean, default=False, server_default=expression.false())
+    mariadb_engine = "InnoDB"
+
+
+class Config(Base):
+    __tablename__ = 'config'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    key_name = Column(String(255), nullable=False)
+    value = Column(Text, nullable=False)
+    description = Column(Text)
     mariadb_engine = "InnoDB"
