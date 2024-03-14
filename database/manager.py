@@ -149,7 +149,7 @@ class Manager:
             return user.subscription_end
         return None
 
-    async def get_config_value(self, key_name: str) -> Optional[str, int]:
+    async def get_config_value(self, key_name: str) -> Optional:
         stmt = select(Config).where(Config.key_name == key_name)
         result = await self.session.execute(stmt)
         config_entry = result.scalar_one_or_none()
