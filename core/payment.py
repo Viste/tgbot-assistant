@@ -105,7 +105,7 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
     random_id = uuid.uuid4().int & (1 << 24) - 1
     email = message.text
     if check(email, gmail_patt):
-        order = Order(random_id, 'Альбом: Приморский EP + плагины', 20000.0)
+        order = Order(random_id, 'Альбом: Приморский EP + плагины', 100.0)
         link = await robokassa_payment.generate_payment_link(order)
         check_link = await generate_robokassa_link(config.rb_login, random_id, config.rb_pass2)
         await state.update_data(check_link=check_link, email=email)
