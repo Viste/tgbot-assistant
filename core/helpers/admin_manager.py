@@ -1,6 +1,6 @@
 import logging
 
-from aiogram import types, Router, flags
+from aiogram import types, Router, F
 from aiogram.filters.command import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton
@@ -10,15 +10,14 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database.models import Calendar, StreamEmails
-from filters.filters import PrivateFilter, Admin
+from filters.filters import PrivateFilter
 from tools.utils import get_dt
 
 router = Router()
 logger = logging.getLogger(__name__)
 
 
-@router.message(Command(commands="online", ignore_case=True), Admin(), PrivateFilter())
-@flags.chat_action("typing")
+@router.message(Command(commands="online", ignore_case=True), F.from_user.id.in_({'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}), PrivateFilter())
 async def online_cmd(message: types.Message, command: CommandObject, session: AsyncSession):
     first_name = message.chat.first_name
     dt = get_dt(command.args)
@@ -30,8 +29,7 @@ async def online_cmd(message: types.Message, command: CommandObject, session: As
     await message.reply(text)
 
 
-@router.message(Command(commands="offline", ignore_case=True), Admin(), PrivateFilter())
-@flags.chat_action("typing")
+@router.message(Command(commands="offline", ignore_case=True), F.from_user.id.in_({'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}), PrivateFilter())
 async def offline_cmd(message: types.Message, session: AsyncSession):
     first_name = message.chat.first_name
     await session.execute(delete(Calendar))
@@ -41,15 +39,13 @@ async def offline_cmd(message: types.Message, session: AsyncSession):
     await message.reply(text)
 
 
-@router.message(Command(commands="help"), PrivateFilter(), Admin())
-@flags.chat_action("typing")
+@router.message(Command(commands="help"), PrivateFilter(), F.from_user.id.in_({'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}))
 async def info(message: types.Message, l10n: FluentLocalization):
     text = l10n.format_value("admin-help")
     await message.reply(text, parse_mode=None)
 
 
-@router.message(Command(commands="emails"), Admin(), PrivateFilter())
-@flags.chat_action("typing")
+@router.message(Command(commands="emails"), F.from_user.id.in_({'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}), PrivateFilter())
 async def mails_get(message: types.Message, session: AsyncSession):
     stmt = select(StreamEmails.email)
     result = await session.execute(stmt)
@@ -62,8 +58,7 @@ async def mails_get(message: types.Message, session: AsyncSession):
         await message.reply("Нет записей", parse_mode=None)
 
 
-@router.message(Command(commands="stream", ignore_case=True), Admin(), PrivateFilter())
-@flags.chat_action("typing")
+@router.message(Command(commands="stream", ignore_case=True), F.from_user.id.in_({'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}), PrivateFilter())
 async def stream_cmd(message: types.Message):
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text="Нейропанк Академия", callback_data="academy_chat"))
@@ -79,12 +74,12 @@ async def stream_cmd(message: types.Message):
     await message.reply("Надо чат выбрать:", reply_markup=kb.as_markup(resize_keyboard=True))
 
 
-@router.message(Command(commands="get_active_emails", ignore_case=True), Admin(), PrivateFilter())
-@flags.chat_action("typing")
+@router.message(Command(commands="get_active_emails", ignore_case=True), F.from_user.id.in_({'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}), PrivateFilter())
 async def stream_cmd(message: types.Message, state: FSMContext):
     await state.update_data(chatid=message.chat.id)
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text="PRO (КОНТЕНТ ПО ПОДПИСКЕ)", callback_data="course_np_pro"))
+    kb.add(InlineKeyboardButton(text="Zoom", callback_data="course_zoom"))
     kb.adjust(2)
 
     await message.reply("С какого курса тебе дать почты? он пока один ахахах",

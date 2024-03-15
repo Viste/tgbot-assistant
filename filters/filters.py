@@ -46,8 +46,3 @@ class SubscribeChatFilter(BaseFilter):
             message.chat.id == -1001814931266 and
             message.message_thread_id == 5472
         )
-
-
-class Admin(BaseFilter):
-    async def __call__(self, message: types.Message) -> bool:
-        return message.from_user.id in {'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}

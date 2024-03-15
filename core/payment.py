@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import Robokassa, send_payment_message, update_or_create_user
 from core.helpers.tools import generate_robokassa_link, get_payment_status_message
+from database.models import NeuropunkPro, User
 from filters.filters import PrivateFilter, SubscribeChatFilter
 from tools.data import Merchant, Order
 from tools.dependencies import container
@@ -52,7 +53,7 @@ async def pay_sub_end(message: types.Message, state: FSMContext, session: AsyncS
             'used_tokens': 0, 'subscription_start': now, 'subscription_end': now + timedelta(days=30),
             'subscription_status': 'active'}
         await message.reply(status_message)
-        await update_or_create_user(session, user_data)
+        await update_or_create_user(session, user_data, User)
     else:
         await message.reply(status_message)
 
@@ -93,6 +94,6 @@ async def pay_course_end(message: types.Message, state: FSMContext, session: Asy
             'email': email, 'subscription_start': now, 'subscription_end': now + timedelta(days=30),
             'subscription_status': 'active'}
         await message.reply(status_message)
-        await update_or_create_user(session, user_data, is_course=True)
+        await update_or_create_user(session, user_data, NeuropunkPro)
     else:
         await message.reply(status_message)

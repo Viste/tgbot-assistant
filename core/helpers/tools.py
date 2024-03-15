@@ -1,6 +1,7 @@
 import hashlib
 import logging
 from datetime import datetime
+from typing import Type
 from urllib import parse
 
 import aiohttp
@@ -8,9 +9,9 @@ from aiogram import types
 from aiogram.enums import ParseMode
 from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.declarative import DeclarativeMeta
 
 from database.manager import Manager
-from database.models import User, NeuropunkPro
 from tools.data import Merchant, Order
 
 logger = logging.getLogger(__name__)
@@ -139,34 +140,18 @@ async def send_payment_message(message: types.Message, link: str, l10n: FluentLo
     await message.reply(l10n.format_value(answer_text_key), reply_markup=keyboard)
 
 
-async def update_or_create_user(session: AsyncSession, user_data: dict, is_course=False):
+async def update_or_create_user(session: AsyncSession, user_data: dict, model: Type[DeclarativeMeta]):
     user_manager = Manager(session)
-    if is_course:
-        user = await user_manager.get_course_user(user_data['telegram_id'])
-        if user:
-            # Если подписка уже активна, продлеваем ее
-            if user.subscription_end and user.subscription_end > datetime.utcnow():
-                await user_manager.extend_subscription(user_data['telegram_id'], is_course=True)
-            else:
-                # Если подписка не активна, обновляем данные пользователя
-                for key, value in user_data.items():
-                    setattr(user, key, value)
+    user = await user_manager.get_user(user_data['telegram_id'], model)
+    if user:
+        # Если подписка уже активна, продлеваем ее
+        if user.subscription_end and user.subscription_end > datetime.utcnow():
+            await user_manager.extend_subscription(user_data['telegram_id'], model)
         else:
-            # Создаем нового пользователя курса, если он не найден
-            user = NeuropunkPro(**user_data)
-            session.add(user)
+            # Если подписка не активна, обновляем данные пользователя
+            for key, value in user_data.items():
+                setattr(user, key, value)
     else:
-        user = await user_manager.get_user(user_data['telegram_id'])
-        if user:
-            # Если подписка уже активна, продлеваем ее
-            if user.subscription_end and user.subscription_end > datetime.utcnow():
-                await user_manager.extend_subscription(user_data['telegram_id'], is_course=False)
-            else:
-                # Если подписка не активна, обновляем данные пользователя
-                for key, value in user_data.items():
-                    setattr(user, key, value)
-        else:
-            # Создаем нового пользователя, если он не найден
-            user = User(**user_data)
-            session.add(user)
+        # Создаем нового пользователя, если он не найден
+        user = await user_manager.create_user(user_data, model)
     await session.commit()

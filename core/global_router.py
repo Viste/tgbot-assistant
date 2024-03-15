@@ -14,8 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.helpers.obs import ClientOBS
 from core.helpers.tools import send_reply, handle_exception
 from database.manager import Manager
-from database.models import Calendar, StreamEmails
-from filters.filters import ChatFilter, ForumFilter, PrivateFilter, SubscribeChatFilter, IsActiveChatFilter, Admin
+from database.models import Calendar, StreamEmails, NeuropunkPro, User
+from filters.filters import ChatFilter, ForumFilter, PrivateFilter, SubscribeChatFilter, IsActiveChatFilter
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
 from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.ai.vision import OpenAIVision
@@ -119,7 +119,7 @@ async def start_dialogue(message: types.Message, state: FSMContext, session: Asy
                          l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
     user_manager = Manager(session)
-    if not await user_manager.is_subscription_active(message.from_user.id):
+    if not await user_manager.is_subscription_active(message.from_user.id, User):
         kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_subscription")], ]
         keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
         await message.answer(l10n.format_value("error-sub-not-active"), reply_markup=keyboard)
@@ -150,7 +150,7 @@ async def process_dialogue(message: types.Message) -> None:
             await send_reply(message, chunk)
 
 
-@router.message(PrivateFilter(), F.text.startswith("нарисуй, "), Admin())
+@router.message(PrivateFilter(), F.text.startswith("нарисуй, "), F.from_user.id.in_({'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}))
 async def paint(message: types.Message, state: FSMContext) -> None:
     logger.info("Message: %s", message)
     await state.set_state(DAImage.get)
@@ -179,7 +179,7 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
     uid = message.from_user.id
     await state.update_data(chatid=message.chat.id)
 
-    if not await user_manager.is_subscription_active(uid):
+    if not await user_manager.is_subscription_active(uid, User):
         kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_subscription")], ]
         keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
         await message.answer(l10n.format_value("error-sub-not-active"), reply_markup=keyboard)
@@ -212,7 +212,7 @@ async def reg_course(message: types.Message, state: FSMContext, session: AsyncSe
     await state.update_data(chatid=message.chat.id)
     user_manager = Manager(session)
     uid = message.from_user.id
-    if not await user_manager.is_course_subscription_active(uid):
+    if not await user_manager.is_subscription_active(uid, NeuropunkPro):
         kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub-course"), callback_data="buy_course")], ]
         keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
         await message.reply(l10n.format_value("button-action"), reply_markup=keyboard)
@@ -224,7 +224,7 @@ async def reg_course(message: types.Message, state: FSMContext, session: AsyncSe
 @router.message(Command(commands="course_state"), SubscribeChatFilter())
 async def state_course(message: types.Message, session: AsyncSession) -> None:
     user_manager = Manager(session)
-    end_date = await user_manager.get_course_subscription_end_date(message.from_user.id)
+    end_date = await user_manager.get_subscription_end_date(message.from_user.id, NeuropunkPro)
     if end_date:
         await message.answer(f"Ваша подписка истекает: {end_date.strftime('%d.%m.%Y %H:%M:%S')}")
     else:

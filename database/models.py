@@ -77,3 +77,13 @@ class Config(Base):
     value = Column(Text, nullable=False)
     description = Column(Text)
     mariadb_engine = "InnoDB"
+
+
+class Zoom(Base):
+    __tablename__ = "zoom"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    telegram_id = Column(BigInteger, nullable=False, unique=True)
+    telegram_username = Column(String(255), nullable=True, unique=True)
+    email = Column(String(255), nullable=True)
+    mariadb_engine = "InnoDB"

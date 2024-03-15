@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from core.helpers.tools import ChatState
 from core.helpers.tools import chat_settings
 from database.manager import Manager
+from database.models import NeuropunkPro, Zoom
 from tools.states import Payment, CoursePayment
 
 router = Router()
@@ -50,7 +51,10 @@ async def process_sender(callback: types.CallbackQuery):
 @router.callback_query(lambda c: c.data.startswith("course_"))
 async def process_catcher(callback: types.CallbackQuery, session: AsyncSession):
     user_manager = Manager(session)
-    emails = await user_manager.get_active_course_emails()
+    if callback.data.startswith("course_course_np_pro"):
+        emails = await user_manager.get_active_emails(NeuropunkPro)
+    if callback.data.startswith("course_course_zoom"):
+        emails = await user_manager.get_active_emails(Zoom)
 
     if emails:
         emails_str = ', '.join(emails)

@@ -1,11 +1,12 @@
 import logging
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Type
 
 from sqlalchemy import select, func, and_
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.declarative import DeclarativeMeta
 
-from database.models import User, NeuropunkPro, ChatMember, Config
+from database.models import ChatMember, Config
 
 logger = logging.getLogger(__name__)
 
@@ -14,47 +15,28 @@ class Manager:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def is_subscription_active(self, user_id: int) -> bool:
-        user = await self.get_user(user_id)
+    async def is_subscription_active(self, user_id: int, model: Type[DeclarativeMeta]) -> bool:
+        user = await self.get_user(user_id, model)
         if user and user.subscription_end and user.subscription_end > datetime.utcnow():
             return True
         return False
 
-    async def get_user(self, user_id: int) -> Optional[User]:
-        stmt = select(User).where(User.telegram_id == user_id)
+    async def get_user(self, user_id: int, model: Type[DeclarativeMeta]) -> Optional[DeclarativeMeta]:
+        stmt = select(model).where(model.telegram_id == user_id)
         result = await self.session.execute(stmt)
         user = result.scalar_one_or_none()
         logger.info(f"get_user: user_id={user_id}, user={user}")
         return user
 
-    async def create_user(self, user_id: int) -> User:
-        user = User(telegram_id=user_id)
+    async def create_user(self, user_data: dict, model: Type[DeclarativeMeta]) -> DeclarativeMeta:
+        user = model(**user_data)
         self.session.add(user)
         await self.session.commit()
         return user
 
-    async def get_course_user(self, user_id: int) -> Optional[NeuropunkPro]:
-        stmt = select(NeuropunkPro).where(NeuropunkPro.telegram_id == user_id)
-        result = await self.session.execute(stmt)
-        user = result.scalar_one_or_none()
-        logger.info(f"get_course_user: user_id={user_id}, user={user}")
-        return user
-
-    async def create_course_user(self, user_id: int) -> NeuropunkPro:
-        user = NeuropunkPro(telegram_id=user_id, )
-        self.session.add(user)
-        await self.session.commit()
-        return user
-
-    async def is_course_subscription_active(self, user_id: int) -> bool:
-        user = await self.get_course_user(user_id)
-        if user and user.subscription_end and user.subscription_end > datetime.utcnow():
-            return True
-        return False
-
-    async def get_active_course_emails(self) -> list[str]:
-        stmt = select(NeuropunkPro.email).where(NeuropunkPro.subscription_end > datetime.utcnow(),
-                                                NeuropunkPro.email.isnot(None))
+    async def get_active_emails(self, model: Type[DeclarativeMeta]) -> list[str]:
+        stmt = select(model.email).where(model.subscription_end > datetime.utcnow(),
+                                         model.email.isnot(None))
         result = await self.session.execute(stmt)
         emails = [email[0] for email in result.all() if email[0] is not None]
         return emails
@@ -104,18 +86,14 @@ class Manager:
         else:
             logger.info(f"No chat member found for telegram_id={telegram_id} to update status")
 
-    async def extend_subscription(self, user_id: int, is_course: bool = False) -> None:
-        if is_course:
-            user = await self.get_course_user(user_id)
-        else:
-            user = await self.get_user(user_id)
-
+    async def extend_subscription(self, user_id: int, model: Type[DeclarativeMeta]) -> None:
+        user = await self.get_user(user_id, model)
         if user and user.subscription_end and user.subscription_end > datetime.utcnow():
             user.subscription_end += timedelta(days=30)
             await self.session.commit()
-            logging.info(f"Subscription extended for user_id={user_id}, new_end_date={user.subscription_end}")
+            logger.info(f"Subscription extended for user_id={user_id}, new_end_date={user.subscription_end}")
         else:
-            logging.info(f"No active subscription found for user_id={user_id} to extend")
+            logger.info(f"No active subscription found for user_id={user_id} to extend")
 
     async def get_all_chat_member_telegram_ids(self) -> list[int]:
         stmt = select(ChatMember.telegram_id).distinct()
@@ -143,8 +121,8 @@ class Manager:
         chat_member_bans = result.scalars().all()
         return any(chat_member_bans)
 
-    async def get_course_subscription_end_date(self, user_id: int) -> Optional[datetime]:
-        user = await self.get_course_user(user_id)
+    async def get_subscription_end_date(self, user_id: int, model: Type[DeclarativeMeta]) -> Optional[datetime]:
+        user = await self.get_user(user_id, model)
         if user:
             return user.subscription_end
         return None
