@@ -45,7 +45,7 @@ async def info(message: types.Message, l10n: FluentLocalization):
     await message.reply(text, parse_mode=None)
 
 
-@router.message(Command(commands="emails"), F.from_user.id.in_({'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}), PrivateFilter())
+@router.message(Command(commands="emails"), PrivateFilter(), F.from_user.id.in_({'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}))
 async def mails_get(message: types.Message, session: AsyncSession):
     stmt = select(StreamEmails.email)
     result = await session.execute(stmt)

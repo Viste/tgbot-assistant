@@ -17,10 +17,10 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from core import setup_routers
 from database.manager import Manager
+from database.models import NeuropunkPro
 from middlewares.basic import BasicMiddleware
 from middlewares.database import DbSessionMiddleware
 from middlewares.l10n import L10nMiddleware
-from tools.data import AppConfig
 from tools.dependencies import container
 from tools.utils import config as conf
 from tools.utils import np_pro_chat, load_config
@@ -33,8 +33,6 @@ db_middleware = DbSessionMiddleware(session_pool=session_maker)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
                     stream=sys.stdout)
 logger = logging.getLogger(__name__)
-
-config: AppConfig = None
 
 
 async def set_bot_commands(bot: Bot):
@@ -66,9 +64,9 @@ async def check_subscriptions_and_unban():
             logger.info('Get Chat Member result: %s', member.status)
             if member.status == ChatMemberStatus.MEMBER:
                 # Проверяем статус подписки
-                is_subscription_active = await manager.is_subscription_active(telegram_id)
+                is_subscription_active = await manager.is_subscription_active(telegram_id, NeuropunkPro)
                 if not is_subscription_active:
-                    user = await manager.get_course_user(telegram_id)
+                    user = await manager.get_user(telegram_id, NeuropunkPro)
                     logger.info("Info about User: %s", user)
                     # Если пользователь не найден в таблице или подписка истекла более чем на 2 дня
                     if user is None or (user.subscription_end and datetime.utcnow() - user.subscription_end > timedelta(days=2)):
@@ -83,7 +81,6 @@ async def task_wrapper():
 
 
 async def main():
-    global config
     locales_dir = Path(__file__).parent.joinpath("locales")
     l10n_loader = FluentResourceLoader(str(locales_dir) + "/{locale}")
     l10n = FluentLocalization(["ru"], ["strings.ftl", "errors.ftl"], l10n_loader)
