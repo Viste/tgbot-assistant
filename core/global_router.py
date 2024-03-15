@@ -16,12 +16,14 @@ from core.helpers.tools import send_reply, handle_exception
 from database.manager import Manager
 from database.models import Calendar, StreamEmails
 from filters.filters import ChatFilter, ForumFilter, PrivateFilter, SubscribeChatFilter, IsActiveChatFilter, Admin
-from main import config
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
 from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.ai.vision import OpenAIVision
+from tools.dependencies import container
 from tools.states import Text, Dialogue, DAImage, Demo
 from tools.utils import split_into_chunks, check_bit_rate, email_patt, check
+
+config = container.get('config')
 
 router = Router()
 logger = logging.getLogger(__name__)

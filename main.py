@@ -21,6 +21,7 @@ from middlewares.basic import BasicMiddleware
 from middlewares.database import DbSessionMiddleware
 from middlewares.l10n import L10nMiddleware
 from tools.data import AppConfig
+from tools.dependencies import container
 from tools.utils import config as conf
 from tools.utils import np_pro_chat, load_config
 
@@ -87,6 +88,7 @@ async def main():
     l10n_loader = FluentResourceLoader(str(locales_dir) + "/{locale}")
     l10n = FluentLocalization(["ru"], ["strings.ftl", "errors.ftl"], l10n_loader)
     config = await load_config(session_maker)
+    container.add('config', config)
     paper = Bot(token=config.token)
 
     storage = RedisStorage(redis=redis_client)

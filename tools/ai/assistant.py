@@ -3,9 +3,10 @@ import logging
 
 from openai import AsyncOpenAI
 
-from main import config
+from tools.dependencies import container
 
 logger = logging.getLogger(__name__)
+config = container.get('config')
 
 
 class OpenAIAssist:

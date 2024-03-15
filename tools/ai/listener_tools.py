@@ -4,11 +4,11 @@ import essentia.standard as es
 import numpy as np
 from openai import AsyncOpenAI
 
-from main import config
 from tools.ai.ai_tools import UserHistoryManager
+from tools.dependencies import container
 
 logger = logging.getLogger(__name__)
-
+config = container.get('config')
 args = {
     "temperature": 0.15, "max_tokens": 512, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8, "stop": None
 }
