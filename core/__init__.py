@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 def setup_routers() -> Router:
     from . import global_router, payment
-    from core.helpers import admin_manager, callbacks
+    from core.helpers import callbacks
 
     router = Router()
 
@@ -26,7 +26,6 @@ def setup_routers() -> Router:
         await state.clear()
         await message.answer("Контекст обнулен.", reply_markup=ReplyKeyboardRemove())
 
-    router.include_router(admin_manager.router)
     router.include_router(global_router.router)
     router.include_router(payment.router)
     router.include_router(callbacks.router)

@@ -9,7 +9,7 @@ from core.helpers.tools import ChatState
 from core.helpers.tools import chat_settings
 from database.manager import Manager
 from database.models import NeuropunkPro, Zoom
-from tools.states import Payment, CoursePayment
+from tools.states import Payment, NpPayment, ZoomPayment
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -28,9 +28,18 @@ async def get_sub(callback: types.CallbackQuery, state: FSMContext, l10n: Fluent
     await callback.answer()
 
 
-@router.callback_query(F.data == "buy_course")
-async def get_course(callback: types.CallbackQuery, state: FSMContext, l10n: FluentLocalization):
-    await state.set_state(CoursePayment.start)
+@router.callback_query(F.data == "buy_nppro")
+async def get_course_np_pro(callback: types.CallbackQuery, state: FSMContext, l10n: FluentLocalization):
+    await state.set_state(NpPayment.start)
+    current_state = await state.get_state()
+    logger.info("FROM CoursePayment.start state %r", current_state)
+    await callback.message.reply(l10n.format_value("ask-sub-email"))
+    await callback.answer()
+
+
+@router.callback_query(F.data == "buy_zoom")
+async def get_course_zoom(callback: types.CallbackQuery, state: FSMContext, l10n: FluentLocalization):
+    await state.set_state(ZoomPayment.start)
     current_state = await state.get_state()
     logger.info("FROM CoursePayment.start state %r", current_state)
     await callback.message.reply(l10n.format_value("ask-sub-email"))
@@ -51,13 +60,18 @@ async def process_sender(callback: types.CallbackQuery):
 @router.callback_query(lambda c: c.data.startswith("course_"))
 async def process_catcher(callback: types.CallbackQuery, session: AsyncSession):
     user_manager = Manager(session)
-    if callback.data.startswith("course_course_np_pro"):
-        emails = await user_manager.get_active_emails(NeuropunkPro)
-    if callback.data.startswith("course_course_zoom"):
-        emails = await user_manager.get_active_emails(Zoom)
 
-    if emails:
-        emails_str = ', '.join(emails)
-        await callback.message.answer(f"Активные email адреса подписчиков курса: {emails_str}")
-    else:
-        await callback.message.answer("Нет активных подписчиков курса с указанными email адресами.")
+    course_models = {
+        "course_np_pro": NeuropunkPro,
+        "course_zoom": Zoom,
+    }
+    for key, model in course_models.items():
+        if callback.data.startswith(key):
+            emails = await user_manager.get_active_emails(model)
+
+            if emails:
+                emails_str = ', '.join(emails)
+                await callback.message.answer(f"Активные email адреса подписчиков курса: {emails_str}")
+            else:
+                await callback.message.answer("Нет активных подписчиков курса с указанными email адресами.")
+            break

@@ -23,7 +23,13 @@ class Payment(StatesGroup):
     end = State()
 
 
-class CoursePayment(StatesGroup):
+class NpPayment(StatesGroup):
+    start = State()
+    process = State()
+    end = State()
+
+
+class ZoomPayment(StatesGroup):
     start = State()
     process = State()
     end = State()

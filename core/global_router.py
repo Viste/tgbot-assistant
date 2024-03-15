@@ -5,23 +5,25 @@ from datetime import datetime
 
 from aiogram import types, F, Router, Bot
 from aiogram.enums import ParseMode
-from aiogram.filters import Command, StateFilter
+from aiogram.filters import Command, StateFilter, CommandObject
 from aiogram.fsm.context import FSMContext
+from aiogram.types import InlineKeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from fluent.runtime import FluentLocalization
-from sqlalchemy import desc, select
+from sqlalchemy import desc, select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.obs import ClientOBS
 from core.helpers.tools import send_reply, handle_exception
 from database.manager import Manager
 from database.models import Calendar, StreamEmails, NeuropunkPro, User
-from filters.filters import ChatFilter, ForumFilter, PrivateFilter, SubscribeChatFilter, IsActiveChatFilter
+from filters.filters import ChatFilter, ForumFilter, PrivateFilter, IsActiveChatFilter, IsAdmin
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
 from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.ai.vision import OpenAIVision
 from tools.dependencies import container
 from tools.states import Text, Dialogue, DAImage, Demo
-from tools.utils import split_into_chunks, check_bit_rate, email_patt, check
+from tools.utils import split_into_chunks, check_bit_rate, email_patt, check, get_dt
 
 config = container.get('config')
 
@@ -207,21 +209,18 @@ async def handle_audio(message: types.Message, state: FSMContext, session: Async
                 await message.reply(str(error), parse_mode=ParseMode.HTML)
 
 
-@router.message(Command(commands="course_register"), SubscribeChatFilter())
-async def reg_course(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization) -> None:
+@router.message(Command(commands="course"), PrivateFilter())
+async def course_choose(message: types.Message, state: FSMContext) -> None:
     await state.update_data(chatid=message.chat.id)
-    user_manager = Manager(session)
-    uid = message.from_user.id
-    if not await user_manager.is_subscription_active(uid, NeuropunkPro):
-        kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub-course"), callback_data="buy_course")], ]
-        keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
-        await message.reply(l10n.format_value("button-action"), reply_markup=keyboard)
-        current_state = await state.get_state()
-        logger.info("current state %r", current_state)
-        return
+    kb = InlineKeyboardBuilder()
+    kb.add(InlineKeyboardButton(text="ZOOM H5 #1 - Приморский EP", callback_data="buy_zoom"))
+    kb.add(InlineKeyboardButton(text="PRO (КОНТЕНТ ПО ПОДПИСКЕ)", callback_data="buy_nppro"))
+    kb.adjust(2)
+
+    await message.reply("Какой курс хочешь приобрести?", reply_markup=kb.as_markup(resize_keyboard=True))
 
 
-@router.message(Command(commands="course_state"), SubscribeChatFilter())
+@router.message(Command(commands="course_state"), PrivateFilter())
 async def state_course(message: types.Message, session: AsyncSession) -> None:
     user_manager = Manager(session)
     end_date = await user_manager.get_subscription_end_date(message.from_user.id, NeuropunkPro)
@@ -332,3 +331,82 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
         await message.reply(l10n.format_value("demo-thanks-message"))
         os.remove(f"{str(uid)}.mp3")
         await state.clear()
+
+
+@router.message(Command(commands="online", ignore_case=True), IsAdmin())
+async def online_cmd(message: types.Message, command: CommandObject, session: AsyncSession):
+    first_name = message.chat.first_name
+    dt = get_dt(command.args)
+    new_date = Calendar(end_time=dt)
+    async with session.begin():
+        session.add(new_date)
+        await session.commit()
+    text = f"Личность подтверждена! Уважаемый, {first_name}, включаю прием дэмок.\nВремя окончания приема демок {dt}"
+    await message.reply(text)
+
+
+@router.message(Command(commands="offline", ignore_case=True), IsAdmin())
+async def offline_cmd(message: types.Message, session: AsyncSession):
+    first_name = message.chat.first_name
+    await session.execute(delete(Calendar))
+    await session.execute(delete(StreamEmails))
+    await session.commit()
+    text = f"Личность подтверждена! Уважаемый, {first_name}, выключаю прием дэмок"
+    await message.reply(text)
+
+
+@router.message(Command(commands="help"), IsAdmin())
+async def info(message: types.Message, l10n: FluentLocalization):
+    text = l10n.format_value("admin-help")
+    await message.reply(text, parse_mode=None)
+
+
+@router.message(Command(commands="emails"), IsAdmin())
+async def mails_get(message: types.Message, session: AsyncSession):
+    stmt = select(StreamEmails.email)
+    result = await session.execute(stmt)
+    emails = result.fetchall()
+    if emails:
+        email_list = [email[0] for email in emails]
+        all_emails_str = ", ".join(email_list)
+        await message.reply(all_emails_str, parse_mode=None)
+    else:
+        await message.reply("Нет записей", parse_mode=None)
+
+
+@router.message(Command(commands="stream", ignore_case=True), IsAdmin())
+async def stream_cmd(message: types.Message):
+    buttons = [
+        ("Нейропанк Академия", "academy_chat"),
+        ("PRO (КОНТЕНТ ПО ПОДПИСКЕ)", "np_pro"),
+        ("ЛИКВИД КУРС", "liquid_chat"),
+        ("НАЧАЛЬНЫЙ #1 - от 0 до паладина!", "np_basic"),
+        ("SUPER PRO#1 (DNB)", "super_pro"),
+        ("НЕЙРОФАНК КУРС", "neuro"),
+        ("NERV3 Продуктивность Level 99 #1", "nerve"),
+        ("DNB Курс - только девушки!", "girls")
+    ]
+
+    kb = InlineKeyboardBuilder()
+    for text, callback_data in buttons:
+        kb.add(InlineKeyboardButton(text=text, callback_data=callback_data))
+    kb.adjust(2)
+
+    await message.reply("Надо чат выбрать:", reply_markup=kb.as_markup(resize_keyboard=True))
+
+
+@router.message(Command(commands="get_active_emails", ignore_case=True), IsAdmin())
+async def mails_cmd(message: types.Message, state: FSMContext):
+    await state.update_data(chatid=message.chat.id)
+    buttons = [
+        ("PRO (КОНТЕНТ ПО ПОДПИСКЕ)", "course_np_pro"),
+        ("ZOOM H5 #1 - Приморский EP", "course_zoom")
+    ]
+
+    kb = InlineKeyboardBuilder()
+    for text, callback_data in buttons:
+        kb.add(InlineKeyboardButton(text=text, callback_data=callback_data))
+    kb.adjust(2)
+
+    await message.reply("С какого курса тебе дать почты?",
+                        reply_markup=kb.as_markup(resize_keyboard=True))

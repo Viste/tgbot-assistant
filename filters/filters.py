@@ -39,10 +39,16 @@ class PrivateFilter(BaseFilter):
         return message.chat.type == 'private'
 
 
-class SubscribeChatFilter(BaseFilter):
+class IsAdmin(BaseFilter):
     async def __call__(self, message: types.Message) -> bool:
-        return (
-            message.chat.type in {'group', 'supergroup'} and
-            message.chat.id == -1001814931266 and
-            message.message_thread_id == 5472
-        )
+        # Список админов
+        admin_ids = {'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}
+
+        # Проверяем, что сообщение в приватном чате
+        is_private = message.chat.type == 'private'
+
+        # Проверяем, является ли пользователь админом
+        is_admin = str(message.from_user.id) in admin_ids
+
+        # Возвращаем True, если сообщение в приватном чате и пользователь является админом
+        return is_private and is_admin
