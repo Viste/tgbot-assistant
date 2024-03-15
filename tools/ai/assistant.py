@@ -3,7 +3,7 @@ import logging
 
 from openai import AsyncOpenAI
 
-from tools.utils import config
+from main import config
 
 logger = logging.getLogger(__name__)
 

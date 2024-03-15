@@ -4,8 +4,8 @@ import essentia.standard as es
 import numpy as np
 from openai import AsyncOpenAI
 
+from main import config
 from tools.ai.ai_tools import UserHistoryManager
-from tools.utils import config
 
 logger = logging.getLogger(__name__)
 
