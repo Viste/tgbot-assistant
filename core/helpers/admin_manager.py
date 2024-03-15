@@ -58,7 +58,7 @@ async def mails_get(message: types.Message, session: AsyncSession):
         await message.reply("Нет записей", parse_mode=None)
 
 
-@router.message(Command(commands="stream", ignore_case=True), F.from_user.id.in_('58800377', '350493882'), PrivateFilter())
+@router.message(Command(commands="stream", ignore_case=True), PrivateFilter(), F.from_user.id.in_({'58800377', '350493882'}))
 async def stream_cmd(message: types.Message):
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text="Нейропанк Академия", callback_data="academy_chat"))
