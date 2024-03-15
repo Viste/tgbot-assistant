@@ -58,7 +58,7 @@ async def mails_get(message: types.Message, session: AsyncSession):
         await message.reply("Нет записей", parse_mode=None)
 
 
-@router.message(Command(commands="stream", ignore_case=True), F.from_user.id.in_({'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}), PrivateFilter())
+@router.message(Command(commands="stream", ignore_case=True), F.from_user.id.in_('58800377', '350493882'), PrivateFilter())
 async def stream_cmd(message: types.Message):
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text="Нейропанк Академия", callback_data="academy_chat"))
@@ -75,7 +75,7 @@ async def stream_cmd(message: types.Message):
 
 
 @router.message(Command(commands="get_active_emails", ignore_case=True), F.from_user.id.in_({'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}), PrivateFilter())
-async def stream_cmd(message: types.Message, state: FSMContext):
+async def mails_cmd(message: types.Message, state: FSMContext):
     await state.update_data(chatid=message.chat.id)
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text="PRO (КОНТЕНТ ПО ПОДПИСКЕ)", callback_data="course_np_pro"))
