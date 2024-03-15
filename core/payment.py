@@ -2,19 +2,20 @@ import logging
 import uuid
 from datetime import datetime, timedelta
 
-from aiogram import types, Router, F
+from aiogram import types, Router, F, Bot
 from aiogram.fsm.context import FSMContext
+from aiogram.methods import CreateChatInviteLink
 from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import Robokassa, send_payment_message, update_or_create_user
 from core.helpers.tools import generate_robokassa_link, get_payment_status_message
-from database.models import NeuropunkPro, User
+from database.models import NeuropunkPro, User, Zoom
 from filters.filters import PrivateFilter
 from tools.data import Merchant, Order
 from tools.dependencies import container
 from tools.states import Payment, NpPayment, ZoomPayment
-from tools.utils import check_payment, gmail_patt, check
+from tools.utils import check_payment, gmail_patt, check, zoom_chat
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -68,7 +69,7 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
         check_link = await generate_robokassa_link(config.rb_login, random_id, config.rb_pass2)
         await state.update_data(check_link=check_link, email=email)
         logger.info("Current robokassa link: %s ", link)
-        await send_payment_message(message, link, l10n, "pay-course-sub", "check-pay-answer")
+        await send_payment_message(message, link, l10n, "pay-np-pro-sub", "check-pay-answer")
         await state.set_state(NpPayment.end)
     else:
         await message.reply(f"{message.from_user.first_name}, это не похоже на Email попробуй снова")
@@ -104,12 +105,12 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
     random_id = uuid.uuid4().int & (1 << 24) - 1
     email = message.text
     if check(email, gmail_patt):
-        order = Order(random_id, 'Альбом: Приморский EP + плагины', 20000.0)
+        order = Order(random_id, 'Альбом: Приморский EP + плагины', 100.0)
         link = await robokassa_payment.generate_payment_link(order)
         check_link = await generate_robokassa_link(config.rb_login, random_id, config.rb_pass2)
         await state.update_data(check_link=check_link, email=email)
         logger.info("Current robokassa link: %s ", link)
-        await send_payment_message(message, link, l10n, "pay-course-sub", "check-pay-answer")
+        await send_payment_message(message, link, l10n, "pay-zoom-sub", "check-pay-answer")
         await state.set_state(ZoomPayment.end)
     else:
         await message.reply(f"{message.from_user.first_name}, это не похоже на Email попробуй снова")
@@ -118,7 +119,7 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
 @router.message(ZoomPayment.end,
                 (F.text.regexp(r"^(о|О)платил") | F.text.startswith("оплатил") | F.text.startswith("Оплатил")),
                 PrivateFilter())
-async def pay_course_end(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
+async def pay_course_end(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization, bot: Bot):
     data = await state.get_data()
     check_link = data['check_link']
     email = data['email']
@@ -127,12 +128,13 @@ async def pay_course_end(message: types.Message, state: FSMContext, session: Asy
     logger.info("Payment result in course %s", result)
     result_code = int(result.get("Result", {}).get("Code", "-1"))
     status_message = get_payment_status_message(result_code, l10n)
-
+    link = await bot(CreateChatInviteLink(chat_id=zoom_chat, member_limit=1))
     if result_code == 0:
         user_data = {
             'telegram_id': message.from_user.id, 'telegram_username': message.from_user.username,
             'email': email}
-        await message.reply(status_message)
-        await update_or_create_user(session, user_data, NeuropunkPro)
+        # await message.reply(status_message)
+        await message.answer(text=f"Для входа в чат курса перейди по ссылке: {link.invite_link}")
+        await update_or_create_user(session, user_data, Zoom)
     else:
         await message.reply(status_message)

@@ -152,7 +152,7 @@ async def process_dialogue(message: types.Message) -> None:
             await send_reply(message, chunk)
 
 
-@router.message(PrivateFilter(), F.text.startswith("нарисуй, "), F.from_user.id.in_({'58800377', '273896204', '910007939', '350493882', '824834852', '766871228'}))
+@router.message(PrivateFilter(), F.text.startswith("нарисуй, "), IsAdmin())
 async def paint(message: types.Message, state: FSMContext) -> None:
     logger.info("Message: %s", message)
     await state.set_state(DAImage.get)
@@ -232,6 +232,7 @@ async def state_course(message: types.Message, session: AsyncSession) -> None:
 
 @router.message(Command(commands="help"))
 async def info_user(message: types.Message, l10n: FluentLocalization):
+    logger.info("Loh pidar Anime: %s", message)
     await message.answer(l10n.format_value("help"))
 
 
@@ -384,7 +385,8 @@ async def stream_cmd(message: types.Message):
         ("SUPER PRO#1 (DNB)", "super_pro"),
         ("НЕЙРОФАНК КУРС", "neuro"),
         ("NERV3 Продуктивность Level 99 #1", "nerve"),
-        ("DNB Курс - только девушки!", "girls")
+        ("DNB Курс - только девушки!", "girls"),
+        ("ZOOM #1", "zoom")
     ]
 
     kb = InlineKeyboardBuilder()
@@ -400,7 +402,7 @@ async def mails_cmd(message: types.Message, state: FSMContext):
     await state.update_data(chatid=message.chat.id)
     buttons = [
         ("PRO (КОНТЕНТ ПО ПОДПИСКЕ)", "course_np_pro"),
-        ("ZOOM H5 #1 - Приморский EP", "course_zoom")
+        ("ZOOM - Приморский EP", "course_zoom")
     ]
 
     kb = InlineKeyboardBuilder()

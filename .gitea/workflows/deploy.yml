@@ -11,9 +11,6 @@ jobs:
   build-image:
     runs-on: self-hosted
     steps:
-      - name: Prepare
-        uses: https://${{ secrets.TOKEN }}@git.pprfnk.tech/PPRFNK-Tech/prepare-action@master
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 

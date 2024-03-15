@@ -35,8 +35,15 @@ class Manager:
         return user
 
     async def get_active_emails(self, model: Type[DeclarativeMeta]) -> list[str]:
-        stmt = select(model.email).where(model.subscription_end > datetime.utcnow(),
-                                         model.email.isnot(None))
+        if 'subscription_end' in inspect(model).columns:
+            stmt = select(model.email).where(model.subscription_end > datetime.utcnow(),
+                                             model.email.isnot(None))
+            result = await self.session.execute(stmt)
+            emails = [email[0] for email in result.all() if email[0] is not None]
+            return emails
+        else:
+            stmt = select(model.email).where(model.email.isnot(None))
+
         result = await self.session.execute(stmt)
         emails = [email[0] for email in result.all() if email[0] is not None]
         return emails

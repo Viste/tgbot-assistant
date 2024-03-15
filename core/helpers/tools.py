@@ -25,6 +25,7 @@ chat_settings = {
     "neuro": {"active_chat": -1001961684542, "thread_id": 4048},
     "nerve": {"active_chat": -1002094481198, "thread_id": 72},
     "girls": {"active_chat": -1001921488615, "thread_id": 9075},
+    "zoom": {"active_chat": -1002085114945, "thread_id": 30},
 }
 
 robokassa_payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx'

@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 email_patt = re.compile("^(\w+?|\w+?\.\w+?|\w+?\.\w+?\.\w+?)@\w+?\.\w{2,12}$")
 gmail_patt = re.compile("^[a-zA-Z0-9._%+-]+?@gmail\.com")
 np_pro_chat = -1001814931266
+zoom_chat = -1002085114945
 
 
 class JSONObject:
