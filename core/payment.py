@@ -15,7 +15,7 @@ from filters.filters import PrivateFilter
 from tools.data import Merchant, Order
 from tools.dependencies import container
 from tools.states import Payment, NpPayment, ZoomPayment
-from tools.utils import check_payment, gmail_patt, check, zoom_chat
+from tools.utils import check_payment, gmail_patt, check, zoom_chat, np_pro_chat
 
 router = Router()
 logger = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ async def pay_course(message: types.Message, state: FSMContext, l10n: FluentLoca
 @router.message(NpPayment.end,
                 (F.text.regexp(r"^(о|О)платил") | F.text.startswith("оплатил") | F.text.startswith("Оплатил")),
                 PrivateFilter())
-async def pay_course_end(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization):
+async def pay_course_end(message: types.Message, state: FSMContext, session: AsyncSession, l10n: FluentLocalization, bot: Bot):
     data = await state.get_data()
     now = datetime.utcnow()
     check_link = data['check_link']
@@ -88,12 +88,14 @@ async def pay_course_end(message: types.Message, state: FSMContext, session: Asy
     logger.info("Payment result in course %s", result)
     result_code = int(result.get("Result", {}).get("Code", "-1"))
     status_message = get_payment_status_message(result_code, l10n)
+    link = await bot(CreateChatInviteLink(chat_id=np_pro_chat, member_limit=1))
 
     if result_code == 0:
         user_data = {
             'telegram_id': message.from_user.id, 'telegram_username': message.from_user.username,
             'email': email, 'subscription_start': now, 'subscription_end': now + timedelta(days=30),
             'subscription_status': 'active'}
+        await message.answer(text=f"Для входа в чат курса перейди по ссылке: {link.invite_link}")
         await message.reply(status_message)
         await update_or_create_user(session, user_data, NeuropunkPro)
     else:
