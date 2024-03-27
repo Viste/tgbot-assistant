@@ -6,6 +6,7 @@ WORKDIR /app
 
 COPY . /app
 
+RUN mkdir -p /app/logs
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
