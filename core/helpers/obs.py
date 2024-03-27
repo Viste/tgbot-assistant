@@ -8,7 +8,7 @@ class ClientOBS:
     def __init__(self):
         super().__init__()
         self.key = "cdysXNXibLWg1dgGfLVyCW0r2eXrNhG466QPZ2Hn4yYJx5hFqnuVMz0e"
-        self.url = "https://obs2.pprfnk.tech/telegram"
+        self.url = "https://chat.pprfnk.tech/telegram"
         self.session = aiohttp.ClientSession()
 
     async def __aenter__(self):

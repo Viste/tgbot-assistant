@@ -3,6 +3,7 @@ import logging
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+from threading import Thread
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ChatMemberStatus
@@ -80,6 +81,11 @@ async def task_wrapper():
         await manager.remove_duplicate_chat_members()
 
 
+def run_flask_app():
+    from web.app import app
+    app.run(debug=True, use_reloader=False)
+
+
 async def main():
     locales_dir = Path(__file__).parent.joinpath("locales")
     l10n_loader = FluentResourceLoader(str(locales_dir) + "/{locale}")
@@ -108,6 +114,9 @@ async def main():
 
 
 if __name__ == '__main__':
+    t = Thread(target=run_flask_app)
+    t.start()
+
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):

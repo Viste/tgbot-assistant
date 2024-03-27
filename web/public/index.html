@@ -1,0 +1,86 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Админка бота</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <h1>Управление ботом</h1>
+    <button id="setOnlineBtn" class="btn btn-success">Установить время окончания приема демок</button>
+    <button id="offlineBtn" class="btn btn-danger">Выключить прием демок</button>
+    <button id="getEmailsBtn" class="btn btn-primary">Получить список email'ов</button>
+    <button id="setStreamBtn" class="btn btn-info">Установить чат стрима</button>
+    <button id="addEmailBtn" class="btn btn-warning">Добавить email</button>
+    <button id="deleteEmailBtn" class="btn btn-danger">Удалить email</button>
+    <div id="emailsList"></div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script>
+    document.getElementById('setOnlineBtn').addEventListener('click', function() {
+        const endTime = prompt("Введите время окончания приема демок в формате YYYY-MM-DDTHH:MM:SS");
+        fetch('/api/online', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({end_time: endTime})
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message));
+    });
+
+    document.getElementById('offlineBtn').addEventListener('click', function() {
+        fetch('/api/offline', {method: 'POST'})
+            .then(response => response.json())
+            .then(data => alert(data.message));
+    });
+
+    document.getElementById('getEmailsBtn').addEventListener('click', function() {
+        fetch('/api/emails')
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    const emailsList = document.getElementById('emailsList');
+                    emailsList.innerHTML = '<ul>' + data.emails.map(email => `<li>${email}</li>`).join('') + '</ul>';
+                }
+            });
+    });
+
+    document.getElementById('setStreamBtn').addEventListener('click', function() {
+        const chatName = prompt("Введите название чата:");
+        fetch('/api/stream', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({chat_name: chatName})
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message));
+    });
+
+    document.getElementById('addEmailBtn').addEventListener('click', function() {
+        const email = prompt("Введите email для добавления:");
+        fetch('/api/emails/add', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email: email})
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message));
+    });
+
+    document.getElementById('deleteEmailBtn').addEventListener('click', function() {
+        const email = prompt("Введите email для удаления:");
+        fetch('/api/emails/delete', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({email: email})
+        })
+        .then(response => response.json())
+        .then(data => alert(data.message));
+    });
+
+</script>
+</body>
+</html>

@@ -5,12 +5,12 @@ from datetime import datetime
 
 from aiogram import types, F, Router, Bot
 from aiogram.enums import ParseMode
-from aiogram.filters import Command, StateFilter, CommandObject
+from aiogram.filters import Command, StateFilter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from fluent.runtime import FluentLocalization
-from sqlalchemy import desc, select, delete
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.obs import ClientOBS
@@ -23,7 +23,7 @@ from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.ai.vision import OpenAIVision
 from tools.dependencies import container
 from tools.states import Text, Dialogue, DAImage, Demo
-from tools.utils import split_into_chunks, check_bit_rate, email_patt, check, get_dt
+from tools.utils import split_into_chunks, check_bit_rate, email_patt, check
 
 config = container.get('config')
 
@@ -332,28 +332,6 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
         await message.reply(l10n.format_value("demo-thanks-message"))
         os.remove(f"{str(uid)}.mp3")
         await state.clear()
-
-
-@router.message(Command(commands="online", ignore_case=True), IsAdmin())
-async def online_cmd(message: types.Message, command: CommandObject, session: AsyncSession):
-    first_name = message.chat.first_name
-    dt = get_dt(command.args)
-    new_date = Calendar(end_time=dt)
-    async with session.begin():
-        session.add(new_date)
-        await session.commit()
-    text = f"Личность подтверждена! Уважаемый, {first_name}, включаю прием дэмок.\nВремя окончания приема демок {dt}"
-    await message.reply(text)
-
-
-@router.message(Command(commands="offline", ignore_case=True), IsAdmin())
-async def offline_cmd(message: types.Message, session: AsyncSession):
-    first_name = message.chat.first_name
-    await session.execute(delete(Calendar))
-    await session.execute(delete(StreamEmails))
-    await session.commit()
-    text = f"Личность подтверждена! Уважаемый, {first_name}, выключаю прием дэмок"
-    await message.reply(text)
 
 
 @router.message(Command(commands="help"), IsAdmin())
