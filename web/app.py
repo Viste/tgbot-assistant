@@ -1,11 +1,11 @@
-from flask import AsyncFlask, jsonify, request, render_template
+from aioflask import Flask, jsonify, request, render_template
 from sqlalchemy import delete
 
 from database.manager import Manager
 from database.models import Calendar, StreamEmails
 from main import session_maker
 
-app = AsyncFlask(__name__)
+app = Flask(__name__)
 
 
 @app.route('/')

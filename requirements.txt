@@ -18,4 +18,4 @@ fluent.runtime
 requests
 apscheduler
 elevenlabs
-flask
+aioflask
