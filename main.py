@@ -3,7 +3,6 @@ import logging
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-from threading import Thread
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ChatMemberStatus
@@ -42,16 +41,6 @@ async def set_bot_commands(bot: Bot):
                 BotCommand(command="demo", description="Прислать демку"), ]
     await bot.set_my_commands(commands)
 
-
-# async def set_bot_admin_commands(bot: Bot):
-#    commands = [BotCommand(command="online", description="+ дата включить прием демок"),
-#                BotCommand(command="offline", description="Выключить прием демок"),
-#                BotCommand(command="stream", description="Переключить чат стрима"),
-#                BotCommand(command="/get_active_emails", description="получить список адресов мужиков с подпиской"), ]
-#    for admin in config.admins:
-#        await bot.set_my_commands(commands, scope=BotCommandScopeChat(chat_id=admin))
-
-
 async def check_subscriptions_and_unban():
     async with session_maker() as session:
         manager = Manager(session)
@@ -79,11 +68,6 @@ async def task_wrapper():
     async with session_maker() as session:
         manager = Manager(session)
         await manager.remove_duplicate_chat_members()
-
-
-def run_flask_app():
-    from web.app import app
-    app.run(debug=True, use_reloader=False)
 
 
 async def main():
@@ -114,9 +98,6 @@ async def main():
 
 
 if __name__ == '__main__':
-    t = Thread(target=run_flask_app)
-    t.start()
-
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):

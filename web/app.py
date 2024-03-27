@@ -46,3 +46,6 @@ async def set_stream():
     chat_name = data.get('chat_name')
     # Здесь должен быть асинхронный код для установки чата стрима
     return jsonify({"success": True, "message": f"Чат стрима установлен на {chat_name}"})
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=True)
