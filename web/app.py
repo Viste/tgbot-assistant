@@ -6,6 +6,7 @@ from database.models import Calendar, StreamEmails
 from main import session_maker
 
 app = Flask(__name__)
+app.env = "production"
 
 
 @app.route('/')
