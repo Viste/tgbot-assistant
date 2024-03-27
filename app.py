@@ -5,13 +5,13 @@ from database.manager import Manager
 from database.models import Calendar, StreamEmails
 from main import session_maker
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='public', template_folder='public')
 app.env = "production"
 
 
 @app.route('/')
 async def index():
-    return render_template('/app/public/index.html')
+    return render_template('index.html')
 
 
 @app.route('/api/online', methods=['POST'])
