@@ -11,7 +11,7 @@ app.env = "production"
 
 @app.route('/')
 async def index():
-    return render_template('index.html')
+    return render_template('public/index.html')
 
 
 @app.route('/api/online', methods=['POST'])
