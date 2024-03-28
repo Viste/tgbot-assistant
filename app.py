@@ -1,7 +1,7 @@
-from flask import Flask, request, redirect, url_for, render_template_string, jsonify, render_template, flash
-from flask_admin import Admin
-from flask_admin import AdminIndexView
+from flask import Flask, request, redirect, url_for, jsonify, render_template, flash
+from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
+from flask_admin.menu import MenuLink
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from sqlalchemy import delete
 
@@ -21,17 +21,25 @@ login_manager.login_view = 'login'
 
 
 class MyAdminIndexView(AdminIndexView):
+    @expose('/')
+    def index(self):
+        if not current_user.is_authenticated:
+            return redirect(url_for('login'))
+        return super(MyAdminIndexView, self).index()
+
+
+class MyModelView(ModelView):
     def is_accessible(self):
-        return current_user.is_admin
+        return current_user.is_authenticated and current_user.is_admin
 
 
-admin = Admin(app, name='Моя Админка', template_mode='bootstrap3', index_view=MyAdminIndexView(), url='/')
-
+admin = Admin(app, name='Моя Админка', template_mode='bootstrap3', index_view=MyAdminIndexView(), url='/admin')
 admin.add_view(ModelView(Calendar, session_maker()))
 admin.add_view(ModelView(NeuropunkPro, session_maker()))
 admin.add_view(ModelView(Zoom, session_maker()))
 admin.add_view(ModelView(StreamEmails, session_maker()))
 admin.add_view(ModelView(Admins, session_maker()))
+admin.add_link(MenuLink(name='Logout', url='/logout'))
 
 
 @login_manager.user_loader
@@ -42,54 +50,27 @@ async def load_user(user_id):
         return user
 
 
-@app.route('/')
-async def index():
-    return render_template('index.html')
+# @app.route('/')
+# async def index():
+#    return render_template('index.html')
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST'])
 async def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('admin.index'))
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        async with session_maker() as session:
+        with session_maker() as session:
             manager = Manager(session)
-            user = await manager.get_user_by_username(username)
-            if user and await manager.check_user_credentials(username, password):
+            user = manager.get_user_by_username(username)
+            if user and manager.check_user_credentials(username, password):
                 login_user(user)
-                next_page = request.args.get('next')
-                return redirect(next_page) if next_page else redirect(url_for('admin.index'))
+                return redirect(url_for('admin.index'))
             else:
                 flash('Invalid username or password')
-    return render_template_string('''
-<!-- templates/login.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Login</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-</head>
-<body>
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <h2 class="text-center">Login</h2>
-            <form method="post">
-                <div class="form-group">
-                    <label for="username">Username</label>
-                    <input type="text" class="form-control" id="username" name="username" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Login</button>
-            </form>
-        </div>
-    </div>
-</div>
-</body>
-</html>''')
+    return render_template('login.html')
 
 
 @app.route('/logout')
