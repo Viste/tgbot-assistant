@@ -334,12 +334,6 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
         await state.clear()
 
 
-@router.message(Command(commands="help"), IsAdmin())
-async def info(message: types.Message, l10n: FluentLocalization):
-    text = l10n.format_value("admin-help")
-    await message.reply(text, parse_mode=None)
-
-
 @router.message(Command(commands="emails"), IsAdmin())
 async def mails_get(message: types.Message, session: AsyncSession):
     stmt = select(StreamEmails.email)
@@ -351,42 +345,3 @@ async def mails_get(message: types.Message, session: AsyncSession):
         await message.reply(all_emails_str, parse_mode=None)
     else:
         await message.reply("Нет записей", parse_mode=None)
-
-
-@router.message(Command(commands="stream", ignore_case=True), IsAdmin())
-async def stream_cmd(message: types.Message):
-    buttons = [
-        ("Нейропанк Академия", "academy_chat"),
-        ("PRO (КОНТЕНТ ПО ПОДПИСКЕ)", "np_pro"),
-        ("ЛИКВИД КУРС", "liquid_chat"),
-        ("НАЧАЛЬНЫЙ #1 - от 0 до паладина!", "np_basic"),
-        ("SUPER PRO#1 (DNB)", "super_pro"),
-        ("НЕЙРОФАНК КУРС", "neuro"),
-        ("NERV3 Продуктивность Level 99 #1", "nerve"),
-        ("DNB Курс - только девушки!", "girls"),
-        ("ZOOM #1", "zoom")
-    ]
-
-    kb = InlineKeyboardBuilder()
-    for text, callback_data in buttons:
-        kb.add(InlineKeyboardButton(text=text, callback_data=callback_data))
-    kb.adjust(2)
-
-    await message.reply("Надо чат выбрать:", reply_markup=kb.as_markup(resize_keyboard=True))
-
-
-@router.message(Command(commands="get_active_emails", ignore_case=True), IsAdmin())
-async def mails_cmd(message: types.Message, state: FSMContext):
-    await state.update_data(chatid=message.chat.id)
-    buttons = [
-        ("PRO (КОНТЕНТ ПО ПОДПИСКЕ)", "course_np_pro"),
-        ("ZOOM - Приморский EP", "course_zoom")
-    ]
-
-    kb = InlineKeyboardBuilder()
-    for text, callback_data in buttons:
-        kb.add(InlineKeyboardButton(text=text, callback_data=callback_data))
-    kb.adjust(2)
-
-    await message.reply("С какого курса тебе дать почты?",
-                        reply_markup=kb.as_markup(resize_keyboard=True))
