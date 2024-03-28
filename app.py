@@ -21,10 +21,10 @@ login_manager.login_view = 'login'
 
 class OnlineView(BaseView):
     @expose('/', methods=('GET', 'POST'))
-    def index(self):
+    async def index(self):
         if request.method == 'POST':
             dt = request.form.get('end_time')
-            with session_maker() as session:
+            async with session_maker() as session:
                 new_date = Calendar(end_time=dt)
                 session.add(new_date)
                 session.commit()
@@ -35,8 +35,8 @@ class OnlineView(BaseView):
 
 class OfflineView(BaseView):
     @expose('/', methods=('POST',))
-    def index(self):
-        with session_maker() as session:
+    async def index(self):
+        async with session_maker() as session:
             session.execute(delete(Calendar))
             session.execute(delete(StreamEmails))
             session.commit()
@@ -62,7 +62,7 @@ class StreamChatView(BaseView):
 
 class EmailsView(BaseView):
     @expose('/', methods=['GET'])
-    def index(self):
+    async def index(self):
         course_name = request.args.get('course')
         course_models = {
             "np_pro": NeuropunkPro,
@@ -70,9 +70,9 @@ class EmailsView(BaseView):
         }
         emails = []
         if course_name in course_models:
-            with session_maker() as session:
+            async with session_maker() as session:
                 manager = Manager(session)
-                emails = manager.get_active_emails(course_models[course_name])
+                emails = await manager.get_active_emails(course_models[course_name])
         else:
             flash('Неверное имя курса', 'error')
             return redirect(url_for('.index'))
@@ -83,10 +83,10 @@ class LoginForm(form.Form):
     username = fields.StringField(validators=[validators.InputRequired()])
     password = fields.PasswordField(validators=[validators.InputRequired()])
 
-    def validate_login(self):
-        with session_maker() as session:
+    async def validate_login(self):
+        async with session_maker() as session:
             manager = Manager(session)
-            valid, user = manager.check_user_credentials(self.username.data, self.password.data)
+            valid, user = await manager.check_user_credentials(self.username.data, self.password.data)
             return valid, user
 
 
@@ -94,10 +94,10 @@ class RegistrationForm(form.Form):
     username = fields.StringField(validators=[validators.InputRequired()])
     password = fields.PasswordField(validators=[validators.InputRequired()])
 
-    def validate_username(self, field):
-        with session_maker() as session:
+    async def validate_username(self, field):
+        async with session_maker() as session:
             manager = Manager(session)
-            user_exists = manager.check_user_exists(field.data)
+            user_exists = await manager.check_user_exists(field.data)
             if user_exists:
                 raise validators.ValidationError('Duplicate username')
 
@@ -106,12 +106,12 @@ def init_login(application):
     login_manager.init_app(application)
 
     @login_manager.user_loader
-    def load_user(user_id):
-        def get_user():
-            with session_maker() as session:
+    async def load_user(user_id):
+        async def get_user():
+            async with session_maker() as session:
                 manager = Manager(session)
-                return manager.get_user_by_id(int(user_id))
-        return get_user()
+                return await manager.get_user_by_id(int(user_id))
+        return await get_user()
 
 
 class MyAdminIndexView(AdminIndexView):
@@ -138,14 +138,14 @@ class MyAdminIndexView(AdminIndexView):
         return super(MyAdminIndexView, self).index()
 
     @expose('/login/', methods=('GET', 'POST'))
-    def login_view(self):
+    async def login_view(self):
         form = LoginForm(request.form)
         if request.method == 'POST':
             username = request.form['username']
             password = request.form['password']
-            with session_maker() as session:
+            async with session_maker() as session:
                 manager = Manager(session)
-                valid, user = manager.check_user_credentials(username, password)
+                valid, user = await manager.check_user_credentials(username, password)
                 if valid:
                     login_user(user)
                     return redirect(url_for('.index'))
@@ -161,7 +161,7 @@ class MyAdminIndexView(AdminIndexView):
 
 
 @app.route('/')
-def index():
+async def index():
     return render_template('index.html')
 
 
