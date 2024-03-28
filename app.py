@@ -1,18 +1,17 @@
-from flask import Flask, request, redirect, url_for, render_template_string, jsonify, render_template
+from flask import Flask, request, redirect, url_for, render_template_string, jsonify, render_template, flash
 from flask_admin import Admin
 from flask_admin import AdminIndexView
 from flask_admin.contrib.sqla import ModelView
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from sqlalchemy import delete
 
 from core.helpers.tools import chat_settings, ChatState
 from database.manager import Manager
-from database.models import Calendar, NeuropunkPro, Zoom, StreamEmails
+from database.models import Calendar, NeuropunkPro, Zoom, StreamEmails, Admins
 from tools.shared import session_maker
 
 app = Flask(__name__, static_folder='public', template_folder='public')
 app.secret_key = 'pprfnktechsekta2024'
-users = {'admin': {'password': 'pprfnktechsekta2024'}}
 app.env = "production"
 chat_state = ChatState()
 
@@ -26,7 +25,7 @@ class MyAdminIndexView(AdminIndexView):
         return current_user.is_authenticated
 
 
-admin = Admin(app, name='Моя Админка', template_mode='bootstrap3', index_view=MyAdminIndexView())
+admin = Admin(app, name='Моя Админка', template_mode='bootstrap3', index_view=MyAdminIndexView(), url='/')
 
 admin.add_view(ModelView(Calendar, session_maker()))
 admin.add_view(ModelView(NeuropunkPro, session_maker()))
@@ -34,14 +33,9 @@ admin.add_view(ModelView(Zoom, session_maker()))
 admin.add_view(ModelView(StreamEmails, session_maker()))
 
 
-class Admin(UserMixin):
-    def __init__(self, uid):
-        self.uid = uid
-
-
 @login_manager.user_loader
 def load_user(user_id):
-    return Admin(user_id)
+    return Admins.query.get(int(user_id))
 
 
 @app.route('/')
@@ -54,12 +48,13 @@ async def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        if username in users and users[username]['password'] == password:
-            user = Admin(username)
+        user = Admins.query.filter_by(username=username).first()
+        if user and user.check_password(password):
             login_user(user)
-            return redirect(url_for('admin.index'))
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('admin.index'))
         else:
-            return 'Invalid username or password'
+            flash('Invalid username or password')
     return render_template_string('''
         <form method="post">
             Username: <input type="text" name="username"><br>
