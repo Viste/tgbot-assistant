@@ -23,10 +23,10 @@ login_manager.login_view = 'login'
 
 class OnlineView(BaseView):
     @expose('/', methods=('GET', 'POST'))
-    def index(self):
+    async def index(self):
         if request.method == 'POST':
             dt = request.form.get('end_time')
-            with session_maker() as session:
+            async with session_maker() as session:
                 new_date = Calendar(end_time=dt)
                 session.add(new_date)
                 session.commit()
@@ -37,8 +37,8 @@ class OnlineView(BaseView):
 
 class OfflineView(BaseView):
     @expose('/', methods=('POST',))
-    def index(self):
-        with session_maker() as session:
+    async def index(self):
+        async with session_maker() as session:
             session.execute(delete(Calendar))
             session.execute(delete(StreamEmails))
             session.commit()
@@ -48,7 +48,7 @@ class OfflineView(BaseView):
 
 class StreamChatView(BaseView):
     @expose('/', methods=('GET', 'POST'))
-    def index(self):
+    async def index(self):
         if request.method == 'POST':
             chat_name = request.form.get('chat_name')
             if chat_name in chat_settings:
@@ -64,7 +64,7 @@ class StreamChatView(BaseView):
 
 class EmailsView(BaseView):
     @expose('/', methods=['GET'])
-    def index(self):
+    async def index(self):
         course_name = request.args.get('course')
         course_models = {
             "np_pro": NeuropunkPro,
@@ -72,7 +72,7 @@ class EmailsView(BaseView):
         }
         emails = []
         if course_name in course_models:
-            with session_maker() as session:
+            async with session_maker() as session:
                 manager = Manager(session)
                 emails = manager.get_active_emails(course_models[course_name])
         else:
@@ -118,7 +118,7 @@ async def init_login(application):
 
 class MyAdminIndexView(AdminIndexView):
     @expose('/')
-    def index(self):
+    async def index(self):
         if not current_user.is_authenticated:
             return redirect(url_for('login'))
         return super(MyAdminIndexView, self).index()
@@ -137,7 +137,7 @@ class MyAdminIndexView(AdminIndexView):
     async def index(self):
         if not current_user.is_authenticated:
             return redirect(url_for('.login_view'))
-        return super(MyAdminIndexView, self).index()
+        return await super(MyAdminIndexView, self).index()
 
     @expose('/login/', methods=('GET', 'POST'))
     async def login_view(self):
@@ -163,7 +163,7 @@ class MyAdminIndexView(AdminIndexView):
 
 
 @app.route('/')
-def index():
+async def index():
     return render_template('index.html')
 
 
