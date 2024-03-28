@@ -1,7 +1,53 @@
+<!DOCTYPE html>
 <html>
-    <body>
-        <div>
-            <a href="{{ url_for('admin.index') }}">Go to admin!</a>
-        </div>
-    </body>
+<head>
+    <title>Admin Page</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .bg {
+            /* Градиентный фон */
+            background-image: linear-gradient(to right, #74ebd5, #ACB6E5);
+
+            /* Полный экран */
+            height: 100%;
+
+            /* Центрирование содержимого */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .button {
+            background-color: #4CAF50; /* Зеленый */
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 12px; /* Скругленные углы */
+            transition: all 0.3s ease-in-out; /* Плавное изменение */
+        }
+
+        .button:hover {
+            background-color: #45a049; /* Темнее при наведении */
+            transform: scale(1.05); /* Немного увеличивается */
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg">
+    <a href="{{ url_for('admin.index') }}" class="button">Go to admin!</a>
+</div>
+
+</body>
 </html>
