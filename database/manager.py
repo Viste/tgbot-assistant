@@ -2,11 +2,11 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional, Type
 
-from sqlalchemy import select, func, and_, inspect
+from sqlalchemy import select, inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
-from database.models import ChatMember, Config
+from database.models import ChatMember, Config, NeuropunkPro
 
 logger = logging.getLogger(__name__)
 
@@ -109,20 +109,6 @@ class Manager:
         logger.info(f"Retrieved {len(telegram_ids)} unique telegram_ids from chat_members")
         return telegram_ids
 
-    async def remove_duplicate_chat_members(self) -> None:
-        subquery = select(ChatMember.telegram_id, ChatMember.chat_id, func.max(ChatMember.id).label('max_id')).group_by(ChatMember.telegram_id,
-                                                                                                                        ChatMember.chat_id).subquery()
-        stmt = select(ChatMember).join(subquery, and_(ChatMember.telegram_id == subquery.c.telegram_id,
-                                                      ChatMember.chat_id == subquery.c.chat_id,
-                                                      ChatMember.id != subquery.c.max_id))
-
-        result = await self.session.execute(stmt)
-        duplicates = result.scalars().all()
-
-        for duplicate in duplicates:
-            await self.session.delete(duplicate)
-        await self.session.commit()
-
     async def is_user_banned(self, telegram_id: int) -> bool:
         result = await self.session.execute(select(ChatMember.banned).where(ChatMember.telegram_id == telegram_id))
         chat_member_bans = result.scalars().all()
@@ -142,3 +128,15 @@ class Manager:
             return config_entry.value
         else:
             return None
+
+    async def delete_neuropunk_pro_user(self, telegram_id: int) -> None:
+        stmt = select(NeuropunkPro).where(NeuropunkPro.telegram_id == telegram_id)
+        result = await self.session.execute(stmt)
+        user_to_delete = result.scalar_one_or_none()
+
+        if user_to_delete:
+            await self.session.delete(user_to_delete)
+            await self.session.commit()
+            logger.info(f"NeuropunkPro user deleted: telegram_id={telegram_id}")
+        else:
+            logger.info(f"No NeuropunkPro user found with telegram_id={telegram_id} to delete")

@@ -61,13 +61,9 @@ async def check_subscriptions_and_unban():
                     # Если пользователь не найден в таблице или подписка истекла более чем на 2 дня
                     if user is None or (user.subscription_end and datetime.utcnow() - user.subscription_end > timedelta(days=2)):
                         await paper.unban_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
+                        await paper.send_message(chat_id=telegram_id, text="Подписка на Нейропанк Про закончилась")
+                        await manager.delete_neuropunk_pro_user(telegram_id)
                         logger.info(f"Unbanned user {telegram_id} in chat -1001814931266")
-
-
-async def task_wrapper():
-    async with session_maker() as session:
-        manager = Manager(session)
-        await manager.remove_duplicate_chat_members()
 
 
 def run_flask():
@@ -100,8 +96,7 @@ async def main():
     # await set_bot_admin_commands(paper)
     logger.info("Starting bot")
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_subscriptions_and_unban, 'interval', hours=12)
-    scheduler.add_job(task_wrapper, 'interval', minutes=45)
+    scheduler.add_job(check_subscriptions_and_unban, 'interval', hours=6)
 
     scheduler.start()
     await worker.start_polling(paper, allowed_updates=useful_updates, handle_signals=True)

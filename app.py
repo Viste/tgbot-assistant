@@ -2,9 +2,11 @@ import flask_admin as admin
 import flask_login as login
 from flask import Flask, request, redirect, url_for, render_template, flash
 from flask_admin import AdminIndexView, expose, BaseView, helpers
+from flask_admin.contrib import rediscli
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
 from flask_sqlalchemy import SQLAlchemy
+from redis import Redis
 from werkzeug.security import check_password_hash
 from wtforms import form, fields, validators
 
@@ -218,4 +220,5 @@ admin.add_view(MyModelView(menu_class_name='Таблица c админами', 
 admin.add_view(MyModelView(menu_class_name='Таблица конфига', model=Config, session=db.session, category="Управление базой"))
 admin.add_view(MyModelView(menu_class_name='Таблица подписок на приват', model=User, session=db.session, category="Управление базой"))
 admin.add_view(MyModelView(menu_class_name='Таблица всех пользователей', model=ChatMember, session=db.session, category="Управление базой"))
+admin.add_view(rediscli.RedisCli(Redis()))
 admin.add_link(MenuLink(name='Logout', url='/logout'))
