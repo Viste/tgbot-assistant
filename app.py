@@ -50,15 +50,6 @@ class Admins(db.Model):
         return self.username
 
 
-def get_user_by_username(username: str):
-    return db.session.query(Admins).filter_by(username=username).first()
-
-
-def check_user_exists(username: str) -> bool:
-    user = db.session.query(Admins).filter_by(username=username).first()
-    return user is not None
-
-
 class LoginForm(form.Form):
     login = fields.StringField(validators=[validators.InputRequired()])
     password = fields.PasswordField(validators=[validators.InputRequired()])
@@ -74,17 +65,6 @@ class LoginForm(form.Form):
 
     def get_user(self):
         return db.session.query(Admins).filter_by(username=self.login.data).first()
-
-
-class RegistrationForm(form.Form):
-    username = fields.StringField(validators=[validators.InputRequired()])
-    password = fields.PasswordField(validators=[validators.InputRequired()])
-
-    @staticmethod
-    def validate_username(field):
-        user_exists = check_user_exists(field.data)
-        if user_exists:
-            raise validators.ValidationError('Duplicate username')
 
 
 def init_login():
@@ -155,6 +135,7 @@ class OnlineView(BaseView):
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('login'))
 
+
 class OfflineView(BaseView):
     @expose('/', methods=('POST',))
     def index(self):
@@ -224,17 +205,17 @@ def index():
 init_login()
 
 admin = admin.Admin(app, name='Cyberpaper', index_view=MyAdminIndexView(), base_template='my_master.html', template_mode='bootstrap4', url='/admin')
-admin.add_view(OnlineView(name='Включение приема демок', endpoint='online'))
-admin.add_view(OfflineView(name='Выключение приема демок', endpoint='offline'))
-admin.add_view(StreamChatView(name='Управлением Чатом', endpoint='stream_chat'))
-admin.add_view(EmailsView(name='Получение Email c курсов', endpoint='emails'))
+admin.add_view(OnlineView(name='Включение приема демок', endpoint='online', category='Управление Ботом'))
+admin.add_view(OfflineView(name='Выключение приема демок', endpoint='offline', category='Управление Ботом'))
+admin.add_view(StreamChatView(name='Управлением Чатом', endpoint='stream_chat', category='Управление Ботом'))
+admin.add_view(EmailsView(name='Получение Email c курсов', endpoint='emails', category='Управление Ботом'))
 
-admin.add_view(MyModelView(menu_class_name='Таблица даты окончания приема демок', model=Calendar, session=db.session, category="Таблицы"))
-admin.add_view(MyModelView(menu_class_name='Таблица курса Pro по подписке', model=NeuropunkPro, session=db.session, category="Таблицы"))
-admin.add_view(MyModelView(menu_class_name='Таблица курса Zoom', model=Zoom, session=db.session, category="Таблицы"))
-admin.add_view(MyModelView(menu_class_name='Таблица с эмейлами', model=StreamEmails, session=db.session, category="Таблицы"))
-admin.add_view(MyModelView(menu_class_name='Таблица c админами', model=Admins, session=db.session, category="Таблицы"))
-admin.add_view(MyModelView(menu_class_name='Таблица конфига', model=Config, session=db.session, category="Таблицы"))
-admin.add_view(MyModelView(menu_class_name='Таблица подписок на приват', model=User, session=db.session, category="Таблицы"))
-admin.add_view(MyModelView(menu_class_name='Таблица всех пользователей', model=ChatMember, session=db.session, category="Таблицы"))
+admin.add_view(MyModelView(menu_class_name='Таблица даты окончания приема демок', model=Calendar, session=db.session, category="Управление базой"))
+admin.add_view(MyModelView(menu_class_name='Таблица курса Pro по подписке', model=NeuropunkPro, session=db.session, category="Управление базой"))
+admin.add_view(MyModelView(menu_class_name='Таблица курса Zoom', model=Zoom, session=db.session, category="Управление базой"))
+admin.add_view(MyModelView(menu_class_name='Таблица с эмейлами', model=StreamEmails, session=db.session, category="Управление базой"))
+admin.add_view(MyModelView(menu_class_name='Таблица c админами', model=Admins, session=db.session, category="Управление базой"))
+admin.add_view(MyModelView(menu_class_name='Таблица конфига', model=Config, session=db.session, category="Управление базой"))
+admin.add_view(MyModelView(menu_class_name='Таблица подписок на приват', model=User, session=db.session, category="Управление базой"))
+admin.add_view(MyModelView(menu_class_name='Таблица всех пользователей', model=ChatMember, session=db.session, category="Управление базой"))
 admin.add_link(MenuLink(name='Logout', url='/logout'))
