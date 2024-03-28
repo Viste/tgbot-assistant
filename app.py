@@ -54,10 +54,6 @@ def get_user_by_username(username: str):
     return db.session.query(Admins).filter_by(username=username).first()
 
 
-def get_user_by_id(user_id: int):
-    return db.session.query(Admins).get(user_id)
-
-
 def check_user_exists(username: str) -> bool:
     user = db.session.query(Admins).filter_by(username=username).first()
     return user is not None
@@ -68,9 +64,16 @@ class LoginForm(form.Form):
     password = fields.PasswordField(validators=[validators.InputRequired()])
 
     def validate_login(self, field):
-        user = db.session.query(Admins).filter_by(username=login.data).first()
+        user = self.get_user()
+
+        if user is None:
+            raise validators.ValidationError('Invalid user')
+
         if not check_password_hash(user.password_hash, self.password.data):
             raise validators.ValidationError('Invalid password')
+
+    def get_user(self):
+        return db.session.query(Admins).filter_by(username=self.login.data).first()
 
 
 class RegistrationForm(form.Form):
@@ -90,7 +93,7 @@ def init_login():
 
     @login_manager.user_loader
     def load_user(user_id):
-        return get_user_by_id(int(user_id))
+        return db.session.query(Admins).get(user_id)
 
 
 class MyAdminIndexView(AdminIndexView):
@@ -120,12 +123,9 @@ class MyAdminIndexView(admin.AdminIndexView):
     def login_view(self):
         form = LoginForm(request.form)
         if helpers.validate_form_on_submit(form):
-            user = get_user_by_username(form.login.data)
-            if user and check_password_hash(user.password_hash, form.password.data):
-                login.login_user(user)
-                return redirect(url_for('.index'))
-            else:
-                flash('Invalid username or password.')
+            user = form.get_user()
+            login.login_user(user)
+
         if login.current_user.is_authenticated:
             return redirect(url_for('.index'))
         self._template_args['form'] = form
