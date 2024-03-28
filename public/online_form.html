@@ -1,0 +1,10 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+    <form method="POST">
+        <div class="form-group">
+            <label for="end_time">Время окончания приема демок:</label>
+            <input type="datetime-local" class="form-control" id="end_time" name="end_time" required>
+        </div>
+        <button type="submit" class="btn btn-success">Установить</button>
+    </form>
+{% endblock %}

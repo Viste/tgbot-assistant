@@ -1,5 +1,5 @@
 from flask import Flask, request, redirect, url_for, jsonify, render_template, flash
-from flask_admin import Admin, AdminIndexView, expose
+from flask_admin import Admin, AdminIndexView, expose, BaseView
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -33,12 +33,77 @@ class MyModelView(ModelView):
         return current_user.is_authenticated and current_user.is_admin
 
 
+class OnlineView(BaseView):
+    @expose('/', methods=('GET', 'POST'))
+    def index(self):
+        if request.method == 'POST':
+            dt = request.form.get('end_time')
+            with session_maker() as session:
+                new_date = Calendar(end_time=dt)
+                session.add(new_date)
+                session.commit()
+            flash('Время окончания приема демок установлено.')
+            return redirect(url_for('.index'))
+        return self.render('admin/online_form.html')
+
+
+class OfflineView(BaseView):
+    @expose('/', methods=('POST',))
+    def index(self):
+        with session_maker() as session:
+            session.execute(delete(Calendar))
+            session.execute(delete(StreamEmails))
+            session.commit()
+        flash('Прием демок выключен.')
+        return redirect(url_for('admin.index'))
+
+
+class StreamChatView(BaseView):
+    @expose('/', methods=('GET', 'POST'))
+    def index(self):
+        if request.method == 'POST':
+            chat_name = request.form.get('chat_name')
+            if chat_name in chat_settings:
+                settings = chat_settings[chat_name]
+                chat_state.active_chat = settings["active_chat"]
+                chat_state.thread_id = settings.get("thread_id")
+                flash(f'Чат стрима установлен на {chat_name}.')
+            else:
+                flash('Неверное имя чата.')
+            return redirect(url_for('.index'))
+        return self.render('admin/stream_chat_form.html')
+
+
+class EmailsView(BaseView):
+    @expose('/', methods=['GET'])
+    def index(self):
+        course_name = request.args.get('course')
+        course_models = {
+            "np_pro": NeuropunkPro,
+            "zoom": Zoom,
+        }
+        emails = []
+        if course_name in course_models:
+            with session_maker() as session:
+                manager = Manager(session)
+                emails = manager.get_active_emails(course_models[course_name])
+        else:
+            flash('Неверное имя курса', 'error')
+            return redirect(url_for('.index'))
+        return self.render('admin/emails_list.html', emails=emails, course_name=course_name)
+
+
 admin = Admin(app, name='Моя Админка', template_mode='bootstrap3', index_view=MyAdminIndexView(), url='/admin')
+
 admin.add_view(ModelView(Calendar, session_maker()))
 admin.add_view(ModelView(NeuropunkPro, session_maker()))
 admin.add_view(ModelView(Zoom, session_maker()))
 admin.add_view(ModelView(StreamEmails, session_maker()))
 admin.add_view(ModelView(Admins, session_maker()))
+admin.add_view(OnlineView(name='Online', endpoint='online'))
+admin.add_view(OfflineView(name='Offline', endpoint='offline'))
+admin.add_view(StreamChatView(name='Stream Chat', endpoint='stream_chat'))
+admin.add_view(EmailsView(name='Emails', endpoint='emails'))
 admin.add_link(MenuLink(name='Logout', url='/logout'))
 
 

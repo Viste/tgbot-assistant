@@ -1,0 +1,13 @@
+{% extends 'admin/master.html' %}
+{% block body %}
+    <form method="POST">
+        <div class="form-group">
+            <label for="chat_name">Выберите чат:</label>
+            <select id="chat_name" name="chat_name" class="form-control">
+                <option value="academy_chat">Нейропанк Академия</option>
+                <!-- Добавьте другие опции сюда -->
+            </select>
+        </div>
+        <button type="submit" class="btn btn-info">Установить чат стрима</button>
+    </form>
+{% endblock %}
