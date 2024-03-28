@@ -19,3 +19,4 @@ requests
 apscheduler
 elevenlabs
 flask[async]
+flask-admin[async]

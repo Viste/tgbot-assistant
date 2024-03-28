@@ -1,4 +1,6 @@
 from flask import Flask, jsonify, request, render_template
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
 from sqlalchemy import delete
 
 from core.helpers.tools import chat_settings, ChatState
@@ -9,6 +11,14 @@ from tools.shared import session_maker
 app = Flask(__name__, static_folder='public', template_folder='public')
 app.env = "production"
 chat_state = ChatState()
+
+admin = Admin(app, name='Моя Админка', template_mode='bootstrap3')
+Session = session_maker()
+
+admin.add_view(ModelView(Calendar, Session()))
+admin.add_view(ModelView(NeuropunkPro, Session()))
+admin.add_view(ModelView(Zoom, Session()))
+admin.add_view(ModelView(StreamEmails, Session()))
 
 
 @app.route('/')
