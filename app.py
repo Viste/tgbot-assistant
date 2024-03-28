@@ -1,5 +1,3 @@
-import asyncio
-
 from flask import Flask, request, redirect, url_for, render_template, flash
 from flask_admin import Admin, AdminIndexView, expose, BaseView
 from flask_admin.contrib.sqla import ModelView
@@ -26,7 +24,7 @@ class OnlineView(BaseView):
     def index(self):
         if request.method == 'POST':
             dt = request.form.get('end_time')
-            async with session_maker() as session:
+            with session_maker() as session:
                 new_date = Calendar(end_time=dt)
                 session.add(new_date)
                 session.commit()
@@ -38,7 +36,7 @@ class OnlineView(BaseView):
 class OfflineView(BaseView):
     @expose('/', methods=('POST',))
     def index(self):
-        async with session_maker() as session:
+        with session_maker() as session:
             session.execute(delete(Calendar))
             session.execute(delete(StreamEmails))
             session.commit()
@@ -72,7 +70,7 @@ class EmailsView(BaseView):
         }
         emails = []
         if course_name in course_models:
-            async with session_maker() as session:
+            with session_maker() as session:
                 manager = Manager(session)
                 emails = manager.get_active_emails(course_models[course_name])
         else:
@@ -86,7 +84,7 @@ class LoginForm(form.Form):
     password = fields.PasswordField(validators=[validators.InputRequired()])
 
     def validate_login(self):
-        async with session_maker() as session:
+        with session_maker() as session:
             manager = Manager(session)
             valid, user = manager.check_user_credentials(self.username.data, self.password.data)
             return valid, user
@@ -97,7 +95,7 @@ class RegistrationForm(form.Form):
     password = fields.PasswordField(validators=[validators.InputRequired()])
 
     def validate_username(self, field):
-        async with session_maker() as session:
+        with session_maker() as session:
             manager = Manager(session)
             user_exists = manager.check_user_exists(field.data)
             if user_exists:
@@ -110,10 +108,10 @@ def init_login(application):
     @login_manager.user_loader
     def load_user(user_id):
         def get_user():
-            async with session_maker() as session:
+            with session_maker() as session:
                 manager = Manager(session)
                 return manager.get_user_by_id(int(user_id))
-        return asyncio.run(get_user())
+        return get_user()
 
 
 class MyAdminIndexView(AdminIndexView):
@@ -145,7 +143,7 @@ class MyAdminIndexView(AdminIndexView):
         if request.method == 'POST':
             username = request.form['username']
             password = request.form['password']
-            async with session_maker() as session:
+            with session_maker() as session:
                 manager = Manager(session)
                 valid, user = manager.check_user_credentials(username, password)
                 if valid:
@@ -157,13 +155,13 @@ class MyAdminIndexView(AdminIndexView):
         return self.render('admin/login.html', form=form, link=link)
 
     @expose('/logout/')
-    async def logout_view(self):
+    def logout_view(self):
         logout_user()
         return redirect(url_for('.index'))
 
 
 @app.route('/')
-async def index():
+def index():
     return render_template('index.html')
 
 
