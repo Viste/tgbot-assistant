@@ -1,9 +1,12 @@
-from flask import Flask, request, redirect, url_for, jsonify, render_template, flash
+import asyncio
+
+from flask import Flask, request, redirect, url_for, render_template, flash
 from flask_admin import Admin, AdminIndexView, expose, BaseView
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_login import LoginManager, login_user, logout_user, current_user
 from sqlalchemy import delete
+from wtforms import form, fields, validators
 
 from core.helpers.tools import chat_settings, ChatState
 from database.manager import Manager
@@ -14,23 +17,8 @@ app = Flask(__name__, static_folder='public', template_folder='public')
 app.secret_key = 'pprfnktechsekta2024'
 app.env = "production"
 chat_state = ChatState()
-
 login_manager = LoginManager()
-login_manager.init_app(app)
 login_manager.login_view = 'login'
-
-
-class MyAdminIndexView(AdminIndexView):
-    @expose('/')
-    def index(self):
-        if not current_user.is_authenticated:
-            return redirect(url_for('login'))
-        return super(MyAdminIndexView, self).index()
-
-
-class MyModelView(ModelView):
-    def is_accessible(self):
-        return current_user.is_authenticated and current_user.is_admin
 
 
 class OnlineView(BaseView):
@@ -93,6 +81,94 @@ class EmailsView(BaseView):
         return self.render('admin/emails_list.html', emails=emails, course_name=course_name)
 
 
+class LoginForm(form.Form):
+    username = fields.StringField(validators=[validators.InputRequired()])
+    password = fields.PasswordField(validators=[validators.InputRequired()])
+
+    async def validate_login(self):
+        async with session_maker() as session:
+            manager = Manager(session)
+            valid, user = await manager.check_user_credentials(self.username.data, self.password.data)
+            return valid, user
+
+
+class RegistrationForm(form.Form):
+    username = fields.StringField(validators=[validators.InputRequired()])
+    password = fields.PasswordField(validators=[validators.InputRequired()])
+
+    async def validate_username(self, field):
+        async with session_maker() as session:
+            manager = Manager(session)
+            user_exists = await manager.check_user_exists(field.data)
+            if user_exists:
+                raise validators.ValidationError('Duplicate username')
+
+
+async def init_login(application):
+    login_manager.init_app(application)
+
+    @login_manager.user_loader
+    async def load_user(user_id):
+        async def get_user():
+            async with session_maker() as session:
+                manager = Manager(session)
+                return await manager.get_user_by_id(int(user_id))
+        return asyncio.run(get_user())
+
+
+class MyAdminIndexView(AdminIndexView):
+    @expose('/')
+    def index(self):
+        if not current_user.is_authenticated:
+            return redirect(url_for('login'))
+        return super(MyAdminIndexView, self).index()
+
+
+class MyModelView(ModelView):
+    def is_accessible(self):
+        return login.current_user.is_authenticated
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('login', next=request.url))
+
+
+class MyAdminIndexView(AdminIndexView):
+    @expose('/')
+    async def index(self):
+        if not current_user.is_authenticated:
+            return redirect(url_for('.login_view'))
+        return super(MyAdminIndexView, self).index()
+
+    @expose('/login/', methods=('GET', 'POST'))
+    async def login_view(self):
+        form = LoginForm(request.form)
+        if request.method == 'POST':
+            username = request.form['username']
+            password = request.form['password']
+            async with session_maker() as session:
+                manager = Manager(session)
+                valid, user = await manager.check_user_credentials(username, password)
+                if valid:
+                    login_user(user)
+                    return redirect(url_for('.index'))
+                else:
+                    flash('Invalid username or password')
+        link = '<p>Don\'t have an account? <a href="' + url_for('.register_view') + '">Click here to register.</a></p>'
+        return self.render('admin/login.html', form=form, link=link)
+
+    @expose('/logout/')
+    async def logout_view(self):
+        logout_user()
+        return redirect(url_for('.index'))
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
+init_login(app)
+
 admin = Admin(app, name='Моя Админка', template_mode='bootstrap3', index_view=MyAdminIndexView(), url='/admin')
 
 admin.add_view(ModelView(Calendar, session_maker()))
@@ -105,89 +181,3 @@ admin.add_view(OfflineView(name='Offline', endpoint='offline'))
 admin.add_view(StreamChatView(name='Stream Chat', endpoint='stream_chat'))
 admin.add_view(EmailsView(name='Emails', endpoint='emails'))
 admin.add_link(MenuLink(name='Logout', url='/logout'))
-
-
-@login_manager.user_loader
-async def load_user(user_id):
-    async with session_maker() as session:
-        manager = Manager(session)
-        user = await manager.get_user_by_id(int(user_id))
-        return user
-
-
-# @app.route('/')
-# async def index():
-#    return render_template('index.html')
-
-
-@app.route('/', methods=['GET', 'POST'])
-async def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('admin.index'))
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        with session_maker() as session:
-            manager = Manager(session)
-            user = manager.get_user_by_username(username)
-            if user and manager.check_user_credentials(username, password):
-                login_user(user)
-                return redirect(url_for('admin.index'))
-            else:
-                flash('Invalid username or password')
-    return render_template('login.html')
-
-
-@app.route('/logout')
-@login_required
-async def logout():
-    logout_user()
-    return redirect(url_for('login'))
-
-
-@app.route('/api/online', methods=['POST'])
-async def online():
-    async with session_maker() as session:
-        dt = request.json.get('end_time')
-        new_date = Calendar(end_time=dt)
-        session.add(new_date)
-        await session.commit()
-    return jsonify({"success": True, "message": "Прием демок включен"})
-
-
-@app.route('/api/offline', methods=['POST'])
-async def offline():
-    async with session_maker() as session:
-        await session.execute(delete(Calendar))
-        await session.execute(delete(StreamEmails))
-        await session.commit()
-    return jsonify({"success": True, "message": "Прием демок выключен"})
-
-
-@app.route('/api/emails', methods=['GET'])
-async def get_emails():
-    course_name = request.args.get('course')
-    course_models = {
-        "np_pro": NeuropunkPro,
-        "zoom": Zoom,
-    }
-    if course_name in course_models:
-        async with session_maker() as session:
-            manager = Manager(session)
-            emails = await manager.get_active_emails(course_models[course_name])
-        return jsonify({"success": True, "emails": emails})
-    else:
-        return jsonify({"success": False, "message": "Неверное имя курса"}), 400
-
-
-@app.route('/api/stream', methods=['POST'])
-async def set_stream():
-    data = request.json
-    chat_name = data.get('chat_name')
-    if chat_name in chat_settings:
-        settings = chat_settings[chat_name]
-        chat_state.active_chat = settings["active_chat"]
-        chat_state.thread_id = settings.get("thread_id")
-        return jsonify({"success": True, "message": f"Чат стрима установлен на {chat_name}"})
-    else:
-        return jsonify({"success": False, "message": "Неверное имя чата"}), 400

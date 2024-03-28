@@ -22,3 +22,4 @@ flask[async]
 flask-admin[async]
 flask-login[async]
 werkzeug
+wtforms

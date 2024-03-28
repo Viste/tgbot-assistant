@@ -161,3 +161,9 @@ class Manager:
         stmt = select(Admins).where(Admins.id == user_id)
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
+
+    async def check_user_exists(self, username: str) -> bool:
+        stmt = select(Admins).where(Admins.username == username)
+        result = await self.session.execute(stmt)
+        user = result.scalar_one_or_none()
+        return user is not None
