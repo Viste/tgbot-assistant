@@ -9,7 +9,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from wtforms import form, fields, validators
 
 from core.helpers.tools import chat_settings, ChatState
-from database.models import Calendar, NeuropunkPro, Zoom, StreamEmails
+from database.models import Calendar, NeuropunkPro, Zoom, StreamEmails, User, Config, ChatMember
 from tools.utils import config
 
 app = Flask(__name__, static_folder='public', template_folder='public')
@@ -127,17 +127,16 @@ class MyAdminIndexView(admin.AdminIndexView):
     @expose('/login/', methods=('GET', 'POST'))
     def login_view(self):
         form = LoginForm(request.form)
-        if request.method == 'POST':
-            username = request.form['username']
-            password = request.form['password']
-            valid, user = check_user_credentials(username, password)
-            if valid:
-                login.login_user(user)
-                return redirect(url_for('.index'))
-            else:
-                flash('Invalid username or password')
+        if helpers.validate_form_on_submit(form):
+            user = check_user_exists(form.username)
+            login.login_user(user)
+
+        if login.current_user.is_authenticated:
+            return redirect(url_for('.index'))
         link = '<p>Don\'t have an account? <a href="' + url_for('.register_view') + '">Click here to register.</a></p>'
-        return self.render('admin/login.html', form=form, link=link)
+        self._template_args['form'] = form
+        self._template_args['link'] = link
+        return super(MyAdminIndexView, self).index()
 
     @expose('/register/', methods=('GET', 'POST'))
     def register_view(self):
@@ -230,13 +229,16 @@ def index():
 init_login()
 
 admin = admin.Admin(app, name='Админка Cyberpaper', template_mode='bootstrap4', index_view=MyAdminIndexView(), url='/admin')
-admin.add_view(ModelView(Calendar, db.session))
-admin.add_view(ModelView(NeuropunkPro, db.session))
-admin.add_view(ModelView(Zoom, db.session))
-admin.add_view(ModelView(StreamEmails, db.session))
-admin.add_view(ModelView(Admins, db.session))
-admin.add_view(OnlineView(name='Online', endpoint='online'))
-admin.add_view(OfflineView(name='Offline', endpoint='offline'))
-admin.add_view(StreamChatView(name='Stream Chat', endpoint='stream_chat'))
-admin.add_view(EmailsView(name='Emails', endpoint='emails'))
+admin.add_view(ModelView(menu_class_name='Таблица даты окончания приема демок', model=Calendar, session=db.session))
+admin.add_view(ModelView(menu_class_name='Таблица курса Pro по подписке', model=NeuropunkPro, session=db.session))
+admin.add_view(ModelView(menu_class_name='Таблица курса Zoom', model=Zoom, session=db.session))
+admin.add_view(ModelView(menu_class_name='Таблица с эмейлами', model=StreamEmails, session=db.session))
+admin.add_view(ModelView(menu_class_name='Таблица c админами', model=Admins, session=db.session))
+admin.add_view(ModelView(menu_class_name='Таблица конфига', model=Config, session=db.session))
+admin.add_view(ModelView(menu_class_name='Таблица подписок на приват', model=User, session=db.session))
+admin.add_view(ModelView(menu_class_name='Таблица всех пользователей', model=ChatMember, session=db.session))
+admin.add_view(OnlineView(name='Включение приема демок', endpoint='online'))
+admin.add_view(OfflineView(name='Выключение приема демок', endpoint='offline'))
+admin.add_view(StreamChatView(name='Управлением Чатом', endpoint='stream_chat'))
+admin.add_view(EmailsView(name='Получение Email c курсов', endpoint='emails'))
 admin.add_link(MenuLink(name='Logout', url='/logout'))
