@@ -178,6 +178,7 @@ class OnlineView(BaseView):
             return redirect(url_for('.index'))
         return self.render('admin/online_form.html')
 
+
 class OfflineView(BaseView):
     @expose('/', methods=('POST',))
     def index(self):
