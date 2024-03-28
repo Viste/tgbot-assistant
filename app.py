@@ -3,8 +3,8 @@ from sqlalchemy import delete
 
 from core.helpers.tools import chat_settings, ChatState
 from database.manager import Manager
-from database.models import Calendar, NeuropunkPro, Zoom
-from main import session_maker
+from database.models import Calendar, NeuropunkPro, Zoom, StreamEmails
+from tools.shared import session_maker
 
 app = Flask(__name__, static_folder='public', template_folder='public')
 app.env = "production"

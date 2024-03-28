@@ -14,7 +14,6 @@ from aiogram.types import BotCommand
 from aioredis.client import Redis
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fluent.runtime import FluentLocalization, FluentResourceLoader
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from app import app
 from core import setup_routers
@@ -24,13 +23,11 @@ from middlewares.basic import BasicMiddleware
 from middlewares.database import DbSessionMiddleware
 from middlewares.l10n import L10nMiddleware
 from tools.dependencies import container
+from tools.shared import session_maker
 from tools.utils import config as conf
 from tools.utils import np_pro_chat, load_config
 
 redis_client = Redis(host=conf.redis.host, port=conf.redis.port, db=conf.redis.db, decode_responses=True)
-engine = create_async_engine(url=conf.db_url, echo=True, echo_pool=False, pool_size=50, max_overflow=30,
-                             pool_timeout=30, pool_recycle=3600)
-session_maker = async_sessionmaker(engine, expire_on_commit=False)
 db_middleware = DbSessionMiddleware(session_pool=session_maker)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
                     stream=sys.stdout)
@@ -42,6 +39,7 @@ async def set_bot_commands(bot: Bot):
                 BotCommand(command="help", description="Помощь"),
                 BotCommand(command="demo", description="Прислать демку"), ]
     await bot.set_my_commands(commands)
+
 
 async def check_subscriptions_and_unban():
     async with session_maker() as session:
