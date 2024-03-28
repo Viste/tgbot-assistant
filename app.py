@@ -23,7 +23,7 @@ login_manager.login_view = 'login'
 
 class OnlineView(BaseView):
     @expose('/', methods=('GET', 'POST'))
-    async def index(self):
+    def index(self):
         if request.method == 'POST':
             dt = request.form.get('end_time')
             async with session_maker() as session:
@@ -37,7 +37,7 @@ class OnlineView(BaseView):
 
 class OfflineView(BaseView):
     @expose('/', methods=('POST',))
-    async def index(self):
+    def index(self):
         async with session_maker() as session:
             session.execute(delete(Calendar))
             session.execute(delete(StreamEmails))
@@ -48,7 +48,7 @@ class OfflineView(BaseView):
 
 class StreamChatView(BaseView):
     @expose('/', methods=('GET', 'POST'))
-    async def index(self):
+    def index(self):
         if request.method == 'POST':
             chat_name = request.form.get('chat_name')
             if chat_name in chat_settings:
@@ -64,7 +64,7 @@ class StreamChatView(BaseView):
 
 class EmailsView(BaseView):
     @expose('/', methods=['GET'])
-    async def index(self):
+    def index(self):
         course_name = request.args.get('course')
         course_models = {
             "np_pro": NeuropunkPro,
@@ -85,10 +85,10 @@ class LoginForm(form.Form):
     username = fields.StringField(validators=[validators.InputRequired()])
     password = fields.PasswordField(validators=[validators.InputRequired()])
 
-    async def validate_login(self):
+    def validate_login(self):
         async with session_maker() as session:
             manager = Manager(session)
-            valid, user = await manager.check_user_credentials(self.username.data, self.password.data)
+            valid, user = manager.check_user_credentials(self.username.data, self.password.data)
             return valid, user
 
 
@@ -96,29 +96,29 @@ class RegistrationForm(form.Form):
     username = fields.StringField(validators=[validators.InputRequired()])
     password = fields.PasswordField(validators=[validators.InputRequired()])
 
-    async def validate_username(self, field):
+    def validate_username(self, field):
         async with session_maker() as session:
             manager = Manager(session)
-            user_exists = await manager.check_user_exists(field.data)
+            user_exists = manager.check_user_exists(field.data)
             if user_exists:
                 raise validators.ValidationError('Duplicate username')
 
 
-async def init_login(application):
+def init_login(application):
     login_manager.init_app(application)
 
     @login_manager.user_loader
-    async def load_user(user_id):
-        async def get_user():
+    def load_user(user_id):
+        def get_user():
             async with session_maker() as session:
                 manager = Manager(session)
-                return await manager.get_user_by_id(int(user_id))
+                return manager.get_user_by_id(int(user_id))
         return asyncio.run(get_user())
 
 
 class MyAdminIndexView(AdminIndexView):
     @expose('/')
-    async def index(self):
+    def index(self):
         if not current_user.is_authenticated:
             return redirect(url_for('login'))
         return super(MyAdminIndexView, self).index()
@@ -134,20 +134,20 @@ class MyModelView(ModelView):
 
 class MyAdminIndexView(AdminIndexView):
     @expose('/')
-    async def index(self):
+    def index(self):
         if not current_user.is_authenticated:
             return redirect(url_for('.login_view'))
-        return await super(MyAdminIndexView, self).index()
+        return super(MyAdminIndexView, self).index()
 
     @expose('/login/', methods=('GET', 'POST'))
-    async def login_view(self):
+    def login_view(self):
         form = LoginForm(request.form)
         if request.method == 'POST':
             username = request.form['username']
             password = request.form['password']
             async with session_maker() as session:
                 manager = Manager(session)
-                valid, user = await manager.check_user_credentials(username, password)
+                valid, user = manager.check_user_credentials(username, password)
                 if valid:
                     login_user(user)
                     return redirect(url_for('.index'))
