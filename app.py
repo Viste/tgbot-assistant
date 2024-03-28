@@ -57,11 +57,11 @@ def check_user_credentials(username: str, password: str) -> bool:
     return False
 
 
-def get_user_by_username(username: str) -> Admins:
+def get_user_by_username(username: str):
     return db.session.query(Admins).filter_by(username=username).first()
 
 
-def get_user_by_id(user_id: int) -> Admins:
+def get_user_by_id(user_id: int):
     return db.session.query(Admins).get(user_id)
 
 
@@ -125,7 +125,7 @@ class MyAdminIndexView(admin.AdminIndexView):
         return super(MyAdminIndexView, self).index()
 
     @expose('/login/', methods=('GET', 'POST'))
-    async def login_view(self):
+    def login_view(self):
         form = LoginForm(request.form)
         if request.method == 'POST':
             username = request.form['username']
