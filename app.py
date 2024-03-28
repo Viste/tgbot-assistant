@@ -149,6 +149,11 @@ class OnlineView(BaseView):
             return redirect(url_for('.index'))
         return self.render('admin/online_form.html')
 
+    def is_accessible(self):
+        return login.current_user.is_authenticated
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('login'))
 
 class OfflineView(BaseView):
     @expose('/', methods=('POST',))
@@ -158,6 +163,12 @@ class OfflineView(BaseView):
         db.session.commit()
         flash('Прием демок выключен.')
         return redirect(url_for('.index'))
+
+    def is_accessible(self):
+        return login.current_user.is_authenticated
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('login'))
 
 
 class StreamChatView(BaseView):
@@ -175,6 +186,12 @@ class StreamChatView(BaseView):
             return redirect(url_for('.index'))
         return self.render('admin/stream_chat_form.html')
 
+    def is_accessible(self):
+        return login.current_user.is_authenticated
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('login'))
+
 
 class EmailsView(BaseView):
     @expose('/', methods=['GET'])
@@ -191,6 +208,12 @@ class EmailsView(BaseView):
             flash('Неверное имя курса', 'error')
             return redirect(url_for('.index'))
         return self.render('admin/emails_list.html', emails=emails, course_name=course_name)
+
+    def is_accessible(self):
+        return login.current_user.is_authenticated
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('login'))
 
 
 @app.route('/')
