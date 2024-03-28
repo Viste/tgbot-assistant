@@ -185,7 +185,7 @@ class OfflineView(BaseView):
         db.session.query(StreamEmails).delete()
         db.session.commit()
         flash('Прием демок выключен.')
-        return redirect(url_for('admin.index'))
+        return redirect(url_for('.index'))
 
 
 class StreamChatView(BaseView):
@@ -228,7 +228,7 @@ def index():
 
 init_login()
 
-admin = admin.Admin(app, name='Админка Cyberpaper', template_mode='bootstrap4', index_view=MyAdminIndexView(), url='/admin')
+admin = admin.Admin(app, name='Cyberpaper', index_view=MyAdminIndexView(), base_template='my_master.html', template_mode='bootstrap4', url='/admin')
 admin.add_view(OnlineView(name='Включение приема демок', endpoint='online'))
 admin.add_view(OfflineView(name='Выключение приема демок', endpoint='offline'))
 admin.add_view(StreamChatView(name='Управлением Чатом', endpoint='stream_chat'))
