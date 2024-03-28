@@ -24,4 +24,4 @@ flask-login[async]
 Flask-SQLAlchemy
 werkzeug
 wtforms
-mysqlclient
+PyMySQL
