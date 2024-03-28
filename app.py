@@ -105,6 +105,9 @@ class MyModelView(ModelView):
     def is_accessible(self):
         return login.current_user.is_authenticated
 
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('login', next=request.url))
+
 
 class MyAdminIndexView(admin.AdminIndexView):
     @expose('/')
@@ -200,12 +203,12 @@ admin.add_view(OfflineView(name='Выключение приема демок', 
 admin.add_view(StreamChatView(name='Управлением Чатом', endpoint='stream_chat'))
 admin.add_view(EmailsView(name='Получение Email c курсов', endpoint='emails'))
 
-admin.add_view(ModelView(menu_class_name='Таблица даты окончания приема демок', model=Calendar, session=db.session, category="Таблицы"))
-admin.add_view(ModelView(menu_class_name='Таблица курса Pro по подписке', model=NeuropunkPro, session=db.session, category="Таблицы"))
-admin.add_view(ModelView(menu_class_name='Таблица курса Zoom', model=Zoom, session=db.session, category="Таблицы"))
-admin.add_view(ModelView(menu_class_name='Таблица с эмейлами', model=StreamEmails, session=db.session, category="Таблицы"))
-admin.add_view(ModelView(menu_class_name='Таблица c админами', model=Admins, session=db.session, category="Таблицы"))
-admin.add_view(ModelView(menu_class_name='Таблица конфига', model=Config, session=db.session, category="Таблицы"))
-admin.add_view(ModelView(menu_class_name='Таблица подписок на приват', model=User, session=db.session, category="Таблицы"))
-admin.add_view(ModelView(menu_class_name='Таблица всех пользователей', model=ChatMember, session=db.session, category="Таблицы"))
+admin.add_view(MyModelView(menu_class_name='Таблица даты окончания приема демок', model=Calendar, session=db.session, category="Таблицы"))
+admin.add_view(MyModelView(menu_class_name='Таблица курса Pro по подписке', model=NeuropunkPro, session=db.session, category="Таблицы"))
+admin.add_view(MyModelView(menu_class_name='Таблица курса Zoom', model=Zoom, session=db.session, category="Таблицы"))
+admin.add_view(MyModelView(menu_class_name='Таблица с эмейлами', model=StreamEmails, session=db.session, category="Таблицы"))
+admin.add_view(MyModelView(menu_class_name='Таблица c админами', model=Admins, session=db.session, category="Таблицы"))
+admin.add_view(MyModelView(menu_class_name='Таблица конфига', model=Config, session=db.session, category="Таблицы"))
+admin.add_view(MyModelView(menu_class_name='Таблица подписок на приват', model=User, session=db.session, category="Таблицы"))
+admin.add_view(MyModelView(menu_class_name='Таблица всех пользователей', model=ChatMember, session=db.session, category="Таблицы"))
 admin.add_link(MenuLink(name='Logout', url='/logout'))
