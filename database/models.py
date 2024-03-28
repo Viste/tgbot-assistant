@@ -3,7 +3,6 @@ from enum import Enum, unique
 from flask_login import UserMixin
 from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime, Integer, Boolean, Text
 from sqlalchemy.sql import expression
-from werkzeug.security import generate_password_hash, check_password_hash
 
 from database.base import Base
 
@@ -24,15 +23,6 @@ class Admins(Base, UserMixin):
     password_hash = Column(String(256))
     is_admin = Column(Boolean, default=False)
     mariadb_engine = "InnoDB"
-
-    def get_id(self):
-        return str(self.id)
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
 
 
 class Calendar(Base):

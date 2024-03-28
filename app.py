@@ -31,11 +31,15 @@ admin.add_view(ModelView(Calendar, session_maker()))
 admin.add_view(ModelView(NeuropunkPro, session_maker()))
 admin.add_view(ModelView(Zoom, session_maker()))
 admin.add_view(ModelView(StreamEmails, session_maker()))
+admin.add_view(ModelView(Admins, session_maker()))
 
 
 @login_manager.user_loader
-def load_user(user_id):
-    return Admins.query.get(int(user_id))
+async def load_user(user_id):
+    async with session_maker() as session:
+        manager = Manager(session)
+        user = await manager.get_user_by_id(int(user_id))
+        return user
 
 
 @app.route('/')
@@ -48,20 +52,21 @@ async def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = Admins.query.filter_by(username=username).first()
-        if user and user.check_password(password):
-            login_user(user)
-            next_page = request.args.get('next')
-            return redirect(next_page) if next_page else redirect(url_for('admin.index'))
-        else:
-            flash('Invalid username or password')
+        async with session_maker() as session:
+            manager = Manager(session)
+            user = await manager.get_user_by_username(username)
+            if user and await manager.check_user_credentials(username, password):
+                login_user(user)
+                next_page = request.args.get('next')
+                return redirect(next_page) if next_page else redirect(url_for('admin.index'))
+            else:
+                flash('Invalid username or password')
     return render_template_string('''
         <form method="post">
             Username: <input type="text" name="username"><br>
             Password: <input type="password" name="password"><br>
             <input type="submit" value="Login">
-        </form>
-    ''')
+        </form>''')
 
 
 @app.route('/logout')
