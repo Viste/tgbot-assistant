@@ -1,4 +1,3 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,10 +10,27 @@
     <h1>Управление ботом</h1>
     <button id="setOnlineBtn" class="btn btn-success">Установить время окончания приема демок</button>
     <button id="offlineBtn" class="btn btn-danger">Выключить прием демок</button>
-    <button id="getEmailsBtn" class="btn btn-primary">Получить список email'ов</button>
-    <button id="setStreamBtn" class="btn btn-info">Установить чат стрима</button>
-    <button id="addEmailBtn" class="btn btn-warning">Добавить email</button>
-    <button id="deleteEmailBtn" class="btn btn-danger">Удалить email</button>
+
+    <!-- Dropdown for selecting chat for stream -->
+    <div>
+        <select id="chatSelect" class="custom-select">
+            <option value="academy_chat">Academy Chat</option>
+            <option value="np_pro">NP Pro</option>
+            <option value="np_basic">NP Basic</option>
+            <option value="liquid_chat">Liquid Chat</option>
+            <option value="super_pro">Super Pro</option>
+            <option value="neuro">Neuro</option>
+            <option value="nerve">Nerve</option>
+            <option value="girls">Girls</option>
+            <option value="zoom">Zoom</option>
+        </select>
+        <button id="setStreamBtn" class="btn btn-info">Установить чат стрима</button>
+    </div>
+
+    <!-- Buttons for fetching emails -->
+    <button id="getEmailsNpProBtn" class="btn btn-primary">Получить email'ы NP Pro</button>
+    <button id="getEmailsZoomBtn" class="btn btn-primary">Получить email'ы Zoom</button>
+
     <div id="emailsList"></div>
 </div>
 
@@ -37,19 +53,8 @@
             .then(data => alert(data.message));
     });
 
-    document.getElementById('getEmailsBtn').addEventListener('click', function() {
-        fetch('/api/emails')
-            .then(response => response.json())
-            .then(data => {
-                if(data.success) {
-                    const emailsList = document.getElementById('emailsList');
-                    emailsList.innerHTML = '<ul>' + data.emails.map(email => `<li>${email}</li>`).join('') + '</ul>';
-                }
-            });
-    });
-
     document.getElementById('setStreamBtn').addEventListener('click', function() {
-        const chatName = prompt("Введите название чата:");
+        const chatName = document.getElementById('chatSelect').value;
         fetch('/api/stream', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
@@ -59,28 +64,24 @@
         .then(data => alert(data.message));
     });
 
-    document.getElementById('addEmailBtn').addEventListener('click', function() {
-        const email = prompt("Введите email для добавления:");
-        fetch('/api/emails/add', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({email: email})
-        })
-        .then(response => response.json())
-        .then(data => alert(data.message));
+    document.getElementById('getEmailsNpProBtn').addEventListener('click', function() {
+        fetchEmails('np_pro');
     });
 
-    document.getElementById('deleteEmailBtn').addEventListener('click', function() {
-        const email = prompt("Введите email для удаления:");
-        fetch('/api/emails/delete', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({email: email})
-        })
-        .then(response => response.json())
-        .then(data => alert(data.message));
+    document.getElementById('getEmailsZoomBtn').addEventListener('click', function() {
+        fetchEmails('zoom');
     });
 
+    function fetchEmails(course) {
+        fetch(`/api/emails?course=${course}`)
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    const emailsList = document.getElementById('emailsList');
+                    emailsList.innerHTML = '<ul>' + data.emails.map(email => `<li>${email}</li>`).join('') + '</ul>';
+                }
+            });
+    }
 </script>
 </body>
 </html>
