@@ -120,9 +120,12 @@ class MyAdminIndexView(admin.AdminIndexView):
     def login_view(self):
         form = LoginForm(request.form)
         if helpers.validate_form_on_submit(form):
-            user = check_user_exists(form.login)
-            login.login_user(user)
-
+            user = get_user_by_username(form.login.data)
+            if user and check_password_hash(user.password_hash, form.password.data):
+                login.login_user(user)
+                return redirect(url_for('.index'))
+            else:
+                flash('Invalid username or password.')
         if login.current_user.is_authenticated:
             return redirect(url_for('.index'))
         self._template_args['form'] = form
