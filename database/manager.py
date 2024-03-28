@@ -5,9 +5,8 @@ from typing import Optional, Type
 from sqlalchemy import select, func, and_, inspect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.declarative import DeclarativeMeta
-from werkzeug.security import check_password_hash
 
-from database.models import ChatMember, Config, Admins
+from database.models import ChatMember, Config
 
 logger = logging.getLogger(__name__)
 
@@ -143,27 +142,3 @@ class Manager:
             return config_entry.value
         else:
             return None
-
-    async def check_user_credentials(self, username: str, password: str) -> bool:
-        stmt = select(Admins).where(Admins.username == username)
-        result = await self.session.execute(stmt)
-        user = result.scalar_one_or_none()
-        if user and check_password_hash(user.password_hash, password):
-            return True
-        return False
-
-    async def get_user_by_username(self, username: str) -> Admins:
-        stmt = select(Admins).where(Admins.username == username)
-        result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
-
-    async def get_user_by_id(self, user_id: int) -> Admins:
-        stmt = select(Admins).where(Admins.id == user_id)
-        result = await self.session.execute(stmt)
-        return result.scalar_one_or_none()
-
-    async def check_user_exists(self, username: str) -> bool:
-        stmt = select(Admins).where(Admins.username == username)
-        result = await self.session.execute(stmt)
-        user = result.scalar_one_or_none()
-        return user is not None
