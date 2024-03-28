@@ -5,7 +5,7 @@ from flask_admin import AdminIndexView, expose, BaseView, helpers
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
 from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.security import check_password_hash
 from wtforms import form, fields, validators
 
 from core.helpers.tools import chat_settings, ChatState
@@ -133,30 +133,7 @@ class MyAdminIndexView(admin.AdminIndexView):
 
         if login.current_user.is_authenticated:
             return redirect(url_for('.index'))
-        link = '<p>Don\'t have an account? <a href="' + url_for('.register_view') + '">Click here to register.</a></p>'
         self._template_args['form'] = form
-        self._template_args['link'] = link
-        return super(MyAdminIndexView, self).index()
-
-    @expose('/register/', methods=('GET', 'POST'))
-    def register_view(self):
-        form = RegistrationForm(request.form)
-        if helpers.validate_form_on_submit(form):
-            user = Admins()
-
-            form.populate_obj(user)
-            # we hash the users password to avoid saving it as plaintext in the db,
-            # remove to use plain text:
-            user.password = generate_password_hash(form.password.data)
-
-            db.session.add(user)
-            db.session.commit()
-
-            login.login_user(user)
-            return redirect(url_for('.index'))
-        link = '<p>Already have an account? <a href="' + url_for('.login_view') + '">Click here to log in.</a></p>'
-        self._template_args['form'] = form
-        self._template_args['link'] = link
         return super(MyAdminIndexView, self).index()
 
     @expose('/logout/')
