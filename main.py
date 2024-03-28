@@ -3,6 +3,7 @@ import logging
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+from threading import Thread
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ChatMemberStatus
@@ -15,6 +16,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from fluent.runtime import FluentLocalization, FluentResourceLoader
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
+from app import app
 from core import setup_routers
 from database.manager import Manager
 from database.models import NeuropunkPro
@@ -70,6 +72,10 @@ async def task_wrapper():
         await manager.remove_duplicate_chat_members()
 
 
+def run_flask():
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
+
+
 async def main():
     locales_dir = Path(__file__).parent.joinpath("locales")
     l10n_loader = FluentResourceLoader(str(locales_dir) + "/{locale}")
@@ -98,6 +104,8 @@ async def main():
 
 
 if __name__ == '__main__':
+    flask_thread = Thread(target=run_flask)
+    flask_thread.start()
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):

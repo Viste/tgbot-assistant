@@ -62,7 +62,3 @@ async def set_stream():
         return jsonify({"success": True, "message": f"Чат стрима установлен на {chat_name}"})
     else:
         return jsonify({"success": False, "message": "Неверное имя чата"}), 400
-
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
