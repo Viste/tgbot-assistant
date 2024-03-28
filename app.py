@@ -1,6 +1,8 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, request, redirect, url_for, render_template_string, jsonify, render_template
 from flask_admin import Admin
+from flask_admin import AdminIndexView
 from flask_admin.contrib.sqla import ModelView
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from sqlalchemy import delete
 
 from core.helpers.tools import chat_settings, ChatState
@@ -9,21 +11,69 @@ from database.models import Calendar, NeuropunkPro, Zoom, StreamEmails
 from tools.shared import session_maker
 
 app = Flask(__name__, static_folder='public', template_folder='public')
+app.secret_key = 'pprfnktechsekta2024'
+users = {'admin': {'password': 'pprfnktechsekta2024'}}
 app.env = "production"
 chat_state = ChatState()
 
-admin = Admin(app, name='Моя Админка', template_mode='bootstrap3')
-Session = session_maker()
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
-admin.add_view(ModelView(Calendar, Session()))
-admin.add_view(ModelView(NeuropunkPro, Session()))
-admin.add_view(ModelView(Zoom, Session()))
-admin.add_view(ModelView(StreamEmails, Session()))
+
+class MyAdminIndexView(AdminIndexView):
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+
+admin = Admin(app, name='Моя Админка', template_mode='bootstrap3', index_view=MyAdminIndexView())
+
+admin.add_view(ModelView(Calendar, session_maker()))
+admin.add_view(ModelView(NeuropunkPro, session_maker()))
+admin.add_view(ModelView(Zoom, session_maker()))
+admin.add_view(ModelView(StreamEmails, session_maker()))
+
+
+class Admin(UserMixin):
+    def __init__(self, uid):
+        self.uid = uid
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Admin(user_id)
 
 
 @app.route('/')
 async def index():
     return render_template('index.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+async def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        if username in users and users[username]['password'] == password:
+            user = Admin(username)
+            login_user(user)
+            return redirect(url_for('admin.index'))
+        else:
+            return 'Invalid username or password'
+    return render_template_string('''
+        <form method="post">
+            Username: <input type="text" name="username"><br>
+            Password: <input type="password" name="password"><br>
+            <input type="submit" value="Login">
+        </form>
+    ''')
+
+
+@app.route('/logout')
+@login_required
+async def logout():
+    logout_user()
+    return redirect(url_for('login'))
 
 
 @app.route('/api/online', methods=['POST'])
