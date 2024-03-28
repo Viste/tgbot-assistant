@@ -14,7 +14,7 @@ from tools.utils import config
 
 app = Flask(__name__, static_folder='public', template_folder='public')
 app.config['SECRET_KEY'] = 'pprfnktechsekta2024'
-app.config['SQLALCHEMY_DATABASE_URI'] = config.db_url
+app.config['SQLALCHEMY_DATABASE_URI'] = config.db_string
 app.config['SQLALCHEMY_ECHO'] = True
 db = SQLAlchemy(app)
 app.env = "production"
