@@ -1,7 +1,7 @@
 import flask_admin as admin
 import flask_login as login
 from flask import Flask, request, redirect, url_for, render_template, flash
-from flask_admin import AdminIndexView, expose, BaseView, helpers
+from flask_admin import expose, BaseView, helpers
 from flask_admin.contrib import rediscli
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.menu import MenuLink
@@ -78,7 +78,7 @@ def init_login():
         return db.session.query(Admins).get(user_id)
 
 
-class MyAdminIndexView(AdminIndexView):
+class MyAdminIndexView(admin.AdminIndexView):
     @expose('/')
     def index(self):
         if not login.current_user.is_authenticated:
@@ -184,13 +184,12 @@ class EmailsView(BaseView):
             "np_pro": NeuropunkPro,
             "zoom": Zoom,
         }
-        emails = []
         if course_name in course_models:
             emails = db.session.query(course_models[course_name]).filter_by(active=True).all()
+            return self.render('admin/emails_list.html', emails=emails, course_name=course_name)
         else:
             flash('Неверное имя курса', 'error')
-            return redirect(url_for('.index'))
-        return self.render('admin/emails_list.html', emails=emails, course_name=course_name)
+            return self.render('admin/error_page.html', error_message='Неверное имя курса')
 
     def is_accessible(self):
         return login.current_user.is_authenticated
