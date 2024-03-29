@@ -32,7 +32,7 @@ class ChatFilter(BaseFilter):
             message.chat.type in {'group', 'supergroup'} and ((message.chat.id == -1001647523732) or
                                                               (message.chat.id == -1001700103389) or
                                                               (message.chat.id == -1001537420102) or
-                                                              (message.chat.id == -4174140024) or
+                                                              (message.chat.id == -1002004353654) or
                                                               (message.chat.id == -1001170569681)))
 
 
