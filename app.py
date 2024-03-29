@@ -4,6 +4,7 @@ from flask import Flask, request, redirect, url_for, render_template, flash
 from flask_admin import expose, BaseView, helpers
 from flask_admin.contrib import rediscli
 from flask_admin.contrib.sqla import ModelView
+from flask_admin.form import SecureForm
 from flask_admin.menu import MenuLink
 from flask_sqlalchemy import SQLAlchemy
 from redis import Redis
@@ -87,6 +88,8 @@ class MyAdminIndexView(admin.AdminIndexView):
 
 
 class MyModelView(ModelView):
+    form_base_class = SecureForm
+
     def is_accessible(self):
         return login.current_user.is_authenticated
 
@@ -179,7 +182,7 @@ class StreamChatView(BaseView):
 class EmailsView(BaseView):
     @expose('/', methods=['GET'])
     def index(self):
-        course_name = request.args.get('course')
+        course_name = request.args.get('course', 'np_pro')
         course_models = {
             "np_pro": NeuropunkPro,
             "zoom": Zoom,
