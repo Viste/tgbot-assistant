@@ -16,12 +16,8 @@
         {% endif %}
     {% endwith %}
     {% if emails %}
-        <ul>
-        {% for email in emails %}
-            <!-- Обращаемся к атрибуту email объекта -->
-            <li>{{ email.email }}</li>
-        {% endfor %}
-        </ul>
+        <!-- Используем фильтр join для объединения адресов электронной почты в строку, разделенную запятыми -->
+        <p>{{ emails|map(attribute='email')|join(', ') }}</p>
     {% else %}
         <p>No emails found.</p>
     {% endif %}
