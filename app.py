@@ -204,6 +204,7 @@ def index():
     return render_template('index.html')
 
 
+my_redis = Redis(host='redis-master.redis.svc.pprfnk.local', port=6379, db=6)
 init_login()
 
 admin = admin.Admin(app, name='Cyberpaper', index_view=MyAdminIndexView(), base_template='my_master.html', template_mode='bootstrap4', url='/admin')
@@ -220,5 +221,5 @@ admin.add_view(MyModelView(menu_class_name='Таблица c админами', 
 admin.add_view(MyModelView(menu_class_name='Таблица конфига', model=Config, session=db.session, category="Управление базой"))
 admin.add_view(MyModelView(menu_class_name='Таблица подписок на приват', model=User, session=db.session, category="Управление базой"))
 admin.add_view(MyModelView(menu_class_name='Таблица всех пользователей', model=ChatMember, session=db.session, category="Управление базой"))
-admin.add_view(rediscli.RedisCli(Redis()))
+admin.add_view(rediscli.RedisCli(Redis(my_redis)))
 admin.add_link(MenuLink(name='Logout', url='/logout'))
