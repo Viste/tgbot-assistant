@@ -185,7 +185,7 @@ class EmailsView(BaseView):
             "zoom": Zoom,
         }
         if course_name in course_models:
-            emails = db.session.query(course_models[course_name]).filter_by(active=True).all()
+            emails = db.session.query(NeuropunkPro).filter(NeuropunkPro.subscription_status == 'active').all()
             return self.render('admin/emails_list.html', emails=emails, course_name=course_name)
         else:
             flash('Неверное имя курса', 'error')
