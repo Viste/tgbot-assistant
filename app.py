@@ -207,7 +207,7 @@ def index():
     return render_template('index.html')
 
 
-my_redis = Redis(host='redis-master.redis.svc.pprfnk.local', port=6379, db=6)
+my_redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)
 init_login()
 
 admin = admin.Admin(app, name='Cyberpaper', index_view=MyAdminIndexView(), base_template='my_master.html', template_mode='bootstrap4', url='/admin')
