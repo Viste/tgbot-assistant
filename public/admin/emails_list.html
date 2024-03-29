@@ -1,6 +1,20 @@
 {% extends 'admin/master.html' %}
 {% block body %}
     <h2>Emails for {{ course_name }}</h2>
+    <form action="" method="get">
+        <select name="course">
+            <option value="np_pro" {% if course_name == 'np_pro' %}selected{% endif %}>NP Pro</option>
+            <option value="zoom" {% if course_name == 'zoom' %}selected{% endif %}>Zoom</option>
+        </select>
+        <button type="submit">Get Emails</button>
+    </form>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
     {% if emails %}
         <ul>
         {% for email in emails %}

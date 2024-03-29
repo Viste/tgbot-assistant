@@ -179,7 +179,7 @@ class StreamChatView(BaseView):
 class EmailsView(BaseView):
     @expose('/', methods=['GET'])
     def index(self):
-        course_name = request.args.get('course')
+        course_name = request.args.get('course', 'np_pro')
         course_models = {
             "np_pro": NeuropunkPro,
             "zoom": Zoom,
@@ -189,7 +189,7 @@ class EmailsView(BaseView):
             return self.render('admin/emails_list.html', emails=emails, course_name=course_name)
         else:
             flash('Неверное имя курса', 'error')
-            return self.render('admin/error_page.html', error_message='Неверное имя курса')
+            return redirect(url_for('.index'))
 
     def is_accessible(self):
         return login.current_user.is_authenticated
