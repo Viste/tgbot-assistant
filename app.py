@@ -179,13 +179,14 @@ class StreamChatView(BaseView):
 class EmailsView(BaseView):
     @expose('/', methods=['GET'])
     def index(self):
-        course_name = request.args.get('course', 'np_pro')
+        course_name = request.args.get('course')
         course_models = {
             "np_pro": NeuropunkPro,
             "zoom": Zoom,
         }
+        emails = []
         if course_name in course_models:
-            emails = db.session.query(NeuropunkPro).filter(NeuropunkPro.subscription_status == 'active').all()
+            emails = db.session.query(course_models[course_name]).all()
             return self.render('admin/emails_list.html', emails=emails, course_name=course_name)
         else:
             flash('Неверное имя курса', 'error')
