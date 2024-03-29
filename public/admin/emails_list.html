@@ -18,7 +18,8 @@
     {% if emails %}
         <ul>
         {% for email in emails %}
-            <li>{{ email }}</li>
+            <!-- Обращаемся к атрибуту email объекта -->
+            <li>{{ email.email }}</li>
         {% endfor %}
         </ul>
     {% else %}
