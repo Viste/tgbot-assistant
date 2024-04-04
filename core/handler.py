@@ -249,23 +249,6 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
     else:
         await message.answer(f"Привет {first_name}!\nСейчас не время присылать демки, попробуй позже")
 
-
-# @router.message(PrivateFilter(), Demo.start)
-# async def process_cmd(message: types.Message, state: FSMContext, bot: Bot, l10n: FluentLocalization):
-#    openaiv = OpenAIVision()
-#    file_id = message.photo[-1].file_id
-#    file_info = await bot.get_file(file_id)
-#    file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
-#
-#    replay_text = await openaiv.get_vision(file_url)
-#    await state.update_data(photo=str(file_id))
-#    if "yes" in replay_text.lower():
-#        await message.reply(l10n.format_value("ask-email"))
-#        await state.set_state(Demo.process)
-#    else:
-#        await message.answer(f"Натяни нос клоуна и бахни селфи, не стесняйся!")
-
-
 @router.message(PrivateFilter(), Demo.process)
 async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession):
     email = message.text
@@ -296,7 +279,6 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
     title = message.audio.title
     data = await state.get_data()
     email = data['email']
-    file_id = data['photo']
 
     logger.info('Full message info: %s', message)
     logger.info('username: %s, duration: %s, artist: %s , title: %s, file_name: %s', message.chat.username,
@@ -325,7 +307,6 @@ async def get_and_send_from_state(message: types.Message, state: FSMContext, bot
                f"Длина файла: {duration} секунды\n" \
                f"title: {title}\n" \
                f"Artist: {artist}"
-        await bot.send_photo(config.channel, photo=file_id)
         await bot.send_audio(config.channel, audio=track, caption=text)
 
         await message.reply(l10n.format_value("demo-thanks-message"))
