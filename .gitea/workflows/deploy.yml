@@ -53,7 +53,7 @@ jobs:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBECONFIG }}
           context: kubernetes-admin@kubernetes
-          namespace: nastya
+          namespace: cyberpaper
 
       - name: Rollout pod in k8s
         shell: bash

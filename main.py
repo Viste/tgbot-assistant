@@ -60,7 +60,10 @@ async def check_subscriptions_and_unban():
                     logger.info("Info about User: %s", user)
                     # Если пользователь не найден в таблице или подписка истекла более чем на 2 дня
                     if user is None or (user.subscription_end and datetime.utcnow() - user.subscription_end > timedelta(days=2)):
-                        await paper.unban_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
+                        try:
+                            await paper.unban_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
+                        except Exception as e:
+                            logger.info(f"Unban user%: {telegram_id} failed because {e} in chat -1001814931266")
                         await paper.send_message(chat_id=telegram_id, text="Подписка на Нейропанк Про закончилась")
                         await manager.delete_neuropunk_pro_user(telegram_id)
                         logger.info(f"Unbanned user {telegram_id} in chat -1001814931266")
@@ -68,12 +71,6 @@ async def check_subscriptions_and_unban():
 
 def run_flask():
     app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
-
-
-def start_async_loop():
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_forever()
 
 
 async def main():

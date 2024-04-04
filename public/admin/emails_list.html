@@ -1,6 +1,6 @@
 {% extends 'admin/master.html' %}
 {% block body %}
-    <h2>Emails for {{ course_name }}</h2>
+    <h2>Почты с курса {{ course_name }}</h2>
     <form action="" method="get">
         <select name="course">
             <option value="np_pro" {% if course_name == 'np_pro' %}selected{% endif %}>NP Pro</option>
@@ -16,7 +16,6 @@
         {% endif %}
     {% endwith %}
     {% if emails %}
-        <!-- Используем фильтр join для объединения адресов электронной почты в строку, разделенную запятыми -->
         <p>{{ emails|map(attribute='email')|join(', ') }}</p>
     {% else %}
         <p>No emails found.</p>

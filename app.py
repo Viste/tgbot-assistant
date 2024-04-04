@@ -24,6 +24,29 @@ app.env = "production"
 chat_state = ChatState()
 
 
+class Course(db.Model):
+    __tablename__ = 'courses'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
+    name = db.Column(db.String)
+    description = db.Column(db.String, nullable=False)
+    video_path = db.Column(db.String)
+    is_live = db.Column(db.Boolean)
+    mariadb_engine = "InnoDB"
+
+
+class Customer(db.Model):
+    __tablename__ = 'customers'
+    id = db.Column(db.Integer, primary_key=True, unique=True, autoincrement=True)
+    username = db.Column(db.String, nullable=False, unique=True)
+    email = db.Column(db.String, nullable=False, unique=True)
+    password = db.Column(db.String)
+    allowed_courses = db.Column(db.String, nullable=False)
+    is_moderator = db.Column(db.Boolean)
+    is_admin = db.Column(db.Boolean)
+    is_banned = db.Column(db.Boolean)
+    mariadb_engine = "InnoDB"
+
+
 class Admins(db.Model):
     __tablename__ = 'admins'
 
@@ -224,5 +247,7 @@ admin.add_view(MyModelView(menu_class_name='Таблица c админами', 
 admin.add_view(MyModelView(menu_class_name='Таблица конфига', model=Config, session=db.session, category="Управление базой"))
 admin.add_view(MyModelView(menu_class_name='Таблица подписок на приват', model=User, session=db.session, category="Управление базой"))
 admin.add_view(MyModelView(menu_class_name='Таблица всех пользователей', model=ChatMember, session=db.session, category="Управление базой"))
+admin.add_view(MyModelView(menu_class_name='Таблица курсов', model=Course, session=db.session, category="Управление базой"))
+admin.add_view(MyModelView(menu_class_name='Таблица пользователей с курсов', model=Customer, session=db.session, category="Управление базой"))
 admin.add_view(rediscli.RedisCli(Redis(my_redis)))
 admin.add_link(MenuLink(name='Logout', url='/logout'))

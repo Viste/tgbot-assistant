@@ -20,7 +20,6 @@ from database.models import Calendar, StreamEmails, NeuropunkPro, User
 from filters.filters import ChatFilter, ForumFilter, PrivateFilter, IsActiveChatFilter, IsAdmin
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
 from tools.ai.listener_tools import OpenAIListener, Audio
-from tools.ai.vision import OpenAIVision
 from tools.dependencies import container
 from tools.states import Text, Dialogue, DAImage, Demo
 from tools.utils import split_into_chunks, check_bit_rate, email_patt, check
@@ -245,26 +244,26 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
 
     if close_date and now < close_date.end_time:
         await message.answer(f"Привет {first_name}!\nЯ принимаю демки на эфиры Нейропанк академии\n"
-                             f"Для начала пришли мне свое фото с клоунским носом, затем продолжим")
-        await state.set_state(Demo.start)
+                             f"Для начала пришли мне свою почту(gmail), чтобы я предоставил тебе доступ к стриму")
+        await state.set_state(Demo.process)
     else:
         await message.answer(f"Привет {first_name}!\nСейчас не время присылать демки, попробуй позже")
 
 
-@router.message(PrivateFilter(), Demo.start)
-async def process_cmd(message: types.Message, state: FSMContext, bot: Bot, l10n: FluentLocalization):
-    openaiv = OpenAIVision()
-    file_id = message.photo[-1].file_id
-    file_info = await bot.get_file(file_id)
-    file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
-
-    replay_text = await openaiv.get_vision(file_url)
-    await state.update_data(photo=str(file_id))
-    if "yes" in replay_text.lower():
-        await message.reply(l10n.format_value("ask-email"))
-        await state.set_state(Demo.process)
-    else:
-        await message.answer(f"Натяни нос клоуна и бахни селфи, не стесняйся!")
+# @router.message(PrivateFilter(), Demo.start)
+# async def process_cmd(message: types.Message, state: FSMContext, bot: Bot, l10n: FluentLocalization):
+#    openaiv = OpenAIVision()
+#    file_id = message.photo[-1].file_id
+#    file_info = await bot.get_file(file_id)
+#    file_url = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
+#
+#    replay_text = await openaiv.get_vision(file_url)
+#    await state.update_data(photo=str(file_id))
+#    if "yes" in replay_text.lower():
+#        await message.reply(l10n.format_value("ask-email"))
+#        await state.set_state(Demo.process)
+#    else:
+#        await message.answer(f"Натяни нос клоуна и бахни селфи, не стесняйся!")
 
 
 @router.message(PrivateFilter(), Demo.process)
