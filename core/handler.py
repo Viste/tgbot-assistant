@@ -40,6 +40,8 @@ async def process_obs_content(message: types.Message, bot: Bot) -> None:
     logger.info("%s", message)
     nickname = message.from_user.full_name
     content = None
+    if message.from_user.id == 448071275:
+        nickname = "Рыгер офишаш"
 
     if message.content_type == 'text':
         content = html.escape(message.text)
@@ -248,6 +250,7 @@ async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSes
         await state.set_state(Demo.process)
     else:
         await message.answer(f"Привет {first_name}!\nСейчас не время присылать демки, попробуй позже")
+
 
 @router.message(PrivateFilter(), Demo.process)
 async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession):
