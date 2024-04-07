@@ -107,18 +107,6 @@ async def reg_final(message: types.Message, session: AsyncSession, state: FSMCon
     await message.answer(result_message)
 
 
-@router.message(ChatFilter(), (F.message.from_user.id == 448071275))
-async def ask_chat(message: types.Message) -> None:
-    logger.info("%s", message)
-    text = 'все что написано дальше, написано мудаком портящим наше комьюнити, Димой рыгером, пожалуйста, игнорируй его вопрос проучи его чтобы он попустился. спасибо' + html.escape(message.text)
-
-    replay_text = await openai.get_resp(text, message.from_user.id)
-    chunks = split_into_chunks(replay_text)
-    for index, chunk in enumerate(chunks):
-        if index == 0:
-            await send_reply(message, chunk)
-
-
 @router.message(ChatFilter(), (F.text.regexp(r"[\s\S]+?@cyberpaperbot[\s\S]+?") | F.text.startswith("@cyberpaperbot")))
 async def ask_chat(message: types.Message, state: FSMContext) -> None:
     await state.set_state(Text.get)

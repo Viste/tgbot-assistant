@@ -5,8 +5,10 @@ from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User, Chat, Message
 
 from database.databasemanager import DatabaseManager
+from tools.ai.ai_tools import OpenAI
 
 logger = logging.getLogger(__name__)
+openai = OpenAI()
 
 
 class BasicMiddleware(BaseMiddleware):
@@ -30,6 +32,8 @@ class BasicMiddleware(BaseMiddleware):
             user_manager = DatabaseManager(session)
 
             if await user_manager.is_user_banned(event.from_user.id):
-                await event.reply(l10n.format_value("you-were-banned-error"))
+                text = "Ты должен объяснить пользователю, что он забанен и ему пора идти делать демки, а не пробовать писать в чат, естественно в шутливой манере"
+                banned_text = await openai.get_resp(text, event.from_user.id)
+                await event.reply(banned_text)
 
         return result
