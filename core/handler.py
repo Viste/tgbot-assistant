@@ -97,7 +97,12 @@ async def reg_final(message: types.Message, session: AsyncSession, state: FSMCon
     email = data['mail']
     uid = message.from_user.id
     password = message.text
-    name = message.from_user.username
+
+    if message.from_user.username is None:
+        name = email.split('@')[0]
+    else:
+        name = message.from_user.username
+
     result_message = await manager.create_customer(email, uid, password, name)
     await message.answer(result_message)
 

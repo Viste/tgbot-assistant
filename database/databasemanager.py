@@ -157,7 +157,9 @@ class DatabaseManager:
                                 allowed_courses='', is_moderator=False, is_admin=False, is_banned=False)
             self.session.add(new_user)
             await self.session.commit()
-            return "Вы успешно зарегистрированы!"
+            return ("Вы успешно зарегистрированы! Логин это твой username в телеграмм!\n"
+                    "Если username не установлен, используй свой ник из email(та часть что до собаки)\n"
+                    "Например: dave@mail.ru - твой логин будет dave")
         except IntegrityError:
             await self.session.rollback()
             return "Ошибка при создании пользователя."
