@@ -66,10 +66,12 @@ async def process_obs_content(message: types.Message, bot: Bot) -> None:
 
 @router.message(PrivateFilter(), Command(commands="start"))
 async def reg_start(message: types.Message, state: FSMContext, l10n: FluentLocalization):
-    payload = message.get_args()
-    if payload == 'reg_academy':
-        await message.answer(l10n.format_value("reg-hello"))
-        await state.set_state(RegisterStates.start)
+    args = message.text.split(maxsplit=1)
+    if len(args) > 1:
+        payload = args[1]
+        if payload == 'reg_academy':
+            await message.answer(l10n.format_value("reg-hello"))
+            await state.set_state(RegisterStates.start)
     else:
         pass
 
