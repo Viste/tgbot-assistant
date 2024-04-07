@@ -94,7 +94,7 @@ async def reg_process(message: types.Message, state: FSMContext) -> None:
 async def reg_final(message: types.Message, session: AsyncSession, state: FSMContext) -> None:
     manager = DatabaseManager(session)
     data = await state.get_data()
-    email = data['email']
+    email = data['mail']
     uid = message.from_user.id
     password = message.text
     name = message.from_user.username
