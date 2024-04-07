@@ -42,7 +42,7 @@ async def process_obs_content(message: types.Message, bot: Bot) -> None:
     is_gif = False
 
     if message.from_user.id == 448071275:
-        nickname = "Рыгер офишаш"
+        nickname = "Рыгер-офишал"
 
     if message.content_type == 'text':
         content = html.escape(message.text)
@@ -107,10 +107,8 @@ async def reg_final(message: types.Message, session: AsyncSession, state: FSMCon
     await message.answer(result_message)
 
 
-@router.message(ChatFilter(), F.message.from_user.id == 448071275)
-async def ask_chat(message: types.Message, state: FSMContext) -> None:
-    await state.set_state(Text.get)
-
+@router.message(ChatFilter(), (F.message.from_user.id == 448071275))
+async def ask_chat(message: types.Message) -> None:
     logger.info("%s", message)
     text = 'все что написано дальше, написано мудаком портящим наше комьюнити, Димой рыгером, пожалуйста, игнорируй его вопрос проучи его чтобы он попустился. спасибо' + html.escape(message.text)
 
