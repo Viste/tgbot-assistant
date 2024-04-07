@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OBS Chat</title>
+    <link rel="stylesheet" href="helveticaneuecyr-ultralight.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.7.8/lottie.min.js" integrity="sha512-w58XJ/0dVbEfZVJoJyBUOTMGBWmIW4jEYJSA0898d2L0Ghpum0FvwK7qTuHhkTctApzrchv3Neli+28ajI4+fg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        body {
+            background-color: #202430;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw; /* Исправлена точка с запятой */
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            --text-size: 15px;
+            --text-color: #ffffff;
+            --name-color: #ffff00;
+        }
+        #chat {
+            font-family: 'HelveticaNeueCyr-Medium', Helvetica, sans-serif;
+            font-size: var(--text-size);
+            color: var(--text-color);
+            padding: 10px;
+            height: 470px;
+            width: 400px;
+            overflow: auto;
+            word-wrap: break-word;
+        }
+        .message {
+            margin-bottom: 10px;
+        }
+        .message-text {
+            align-items: baseline;
+        }
+        .message-media {
+            display: flex;
+            flex-direction: column;
+        }
+        .name {
+            font-family: 'HelveticaNeueCyr-Bold', Helvetica, sans-serif;
+            margin-right: 15px;
+            color: var(--name-color);
+        }
+        .media {
+            margin-top: 10px;
+            margin-right: auto;
+            max-width: 90%;
+            max-height: 90%;
+        }
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat"></div>
+
+    <script>
+        let lastMessageCount = 0;
+        let scrollPromise = Promise.resolve();
+
+        function smoothScrollTo(element, target, duration) {
+            target = Math.round(target);
+            duration = Math.round(duration);
+            if (duration < 0) {
+                return Promise.reject("bad duration");
+            }
+            if (duration === 0) {
+                element.scrollTop = target;
+                return Promise.resolve();
+            }
+
+            const start_time = Date.now();
+            const end_time = start_time + duration;
+
+            const start_top = element.scrollTop;
+            const distance = target - start_top;
+
+            const smooth_step = function(start, end, point) {
+                if(point <= start) { return 0; }
+                if(point >= end) { return 1; }
+                let x = (point - start) / (end - start);
+                return x*x*(3 - 2*x);
+            }
+
+            return new Promise(function(resolve, reject) {
+                let previous_top = element.scrollTop;
+
+                function scroll_frame() {
+                    if(element.scrollTop != previous_top) {
+                        reject("interrupted");
+                        return;
+                    }
+
+                    let now = Date.now();
+                    let point = smooth_step(start_time, end_time, now);
+                    let frameTop = Math.round(start_top + (distance * point));
+                    element.scrollTop = frameTop;
+
+                    if(now >= end_time) {
+                        resolve();
+                        return;
+                    }
+
+                    if(element.scrollTop === previous_top
+                        && element.scrollTop !== frameTop) {
+                        resolve();
+                        return;
+                    }
+                    previous_top = element.scrollTop;
+
+                    setTimeout(scroll_frame, 0);
+                }
+                setTimeout(scroll_frame, 0);
+            });
+        }
+
+        function updateChat() {
+            fetch('/messages')
+                .then(response => response.json())
+                .then(data => {
+                    if (Array.isArray(data)) {
+                        const chat = document.getElementById('chat');
+                        if (data.length > lastMessageCount) {
+                            for (let i = lastMessageCount; i < data.length; i++) {
+                                const msg = data[i];
+                                const messageDiv = document.createElement('div');
+
+                                if (msg.isGif) {
+                                    messageDiv.className = 'message message-media';
+                                    const lowerCaseMessage = msg.message.toLowerCase();
+                                    if (lowerCaseMessage.endsWith('.mp4') || lowerCaseMessage.endsWith('.mov') || lowerCaseMessage.endsWith('.webm')) {
+                                        messageDiv.innerHTML = '<span class="name">' + msg.name + '</span><video class="media" autoplay loop muted playsinline><source src="' + msg.message + '" type="video/mp4"></video>';
+                                    } else if (lowerCaseMessage.endsWith('.gif') || lowerCaseMessage.endsWith('.jpg') || lowerCaseMessage.endsWith('.webp')) {
+                                        messageDiv.innerHTML = '<span class="name">' + msg.name + '</span><img class="media" src="' + msg.message + '" />';
+                                    }
+                                } else {
+                                    messageDiv.className = 'message message-text';
+                                    messageDiv.innerHTML = '<span class="name">' + msg.name + '</span>' + msg.message;
+                                }
+                                chat.appendChild(messageDiv);
+                            }
+                            lastMessageCount = data.length;
+                            scrollPromise = scrollPromise.then(() => {
+                                return smoothScrollTo(chat, chat.scrollHeight, 200);
+                            }).catch(error => {
+                                // Обработка ошибки прокрутки
+                                console.error('Scrolling was interrupted:', error);
+                            });
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    setTimeout(updateChat, 1000);
+                });
+        }
+
+        setInterval(updateChat, 1000);
+    </script>
+</body>
+</html>

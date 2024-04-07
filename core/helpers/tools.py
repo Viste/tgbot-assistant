@@ -156,3 +156,25 @@ async def update_or_create_user(session: AsyncSession, user_data: dict, model: T
         # Создаем нового пользователя, если он не найден
         user = await user_manager.create_user(user_data, model)
     await session.commit()
+
+
+class MessageProcessor:
+    _instance = None
+    messages = []
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(MessageProcessor, cls).__new__(cls)
+        return cls._instance
+
+    @classmethod
+    async def add_message(cls, name, message, isGif):
+        cls.messages.append({'name': name, 'message': message, 'isGif': isGif})
+
+    @classmethod
+    async def get_messages(cls):
+        return cls.messages
+
+    @classmethod
+    async def clear_messages(cls):
+        cls.messages.clear()

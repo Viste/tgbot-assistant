@@ -1,6 +1,9 @@
+import logging
+import os
+
 import flask_admin as admin
 import flask_login as login
-from flask import Flask, request, redirect, url_for, render_template, flash
+from flask import Flask, request, redirect, url_for, render_template, flash, send_from_directory, jsonify
 from flask_admin import expose, BaseView, helpers
 from flask_admin.contrib import rediscli
 from flask_admin.contrib.sqla import ModelView
@@ -11,9 +14,11 @@ from redis import Redis
 from werkzeug.security import check_password_hash
 from wtforms import form, fields, validators
 
-from core.helpers.tools import chat_settings, ChatState
+from core.helpers.tools import chat_settings, ChatState, MessageProcessor
 from database.models import Calendar, NeuropunkPro, Zoom, StreamEmails, User, Config, ChatMember
 from tools.utils import config
+
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='public', template_folder='public')
 app.config['SECRET_KEY'] = 'pprfnktechsekta2024'
@@ -228,6 +233,38 @@ class EmailsView(BaseView):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/messages', methods=['GET'])
+def obs():
+    messages = MessageProcessor.get_messages()
+    logger.info('response info', request.remote_addr, request.url, request.headers.get('User-Agent'))
+    return jsonify(messages), 200
+
+
+@app.route('/chat', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve(path):
+    if path != "" and os.path.exists(app.static_folder + '/' + path):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'chat.html')
+
+
+@app.route('/chat_admin', methods=['GET'])
+def admin():
+    return send_from_directory(app.static_folder, 'chat_admin.html')
+
+
+@app.route('/clear_chat', methods=['POST'])
+def clear_chat():
+    key = request.form.get('key')
+
+    if key != 'sharkubiseichas':
+        return jsonify({'status': 'Invalid admin key'}), 401
+
+    MessageProcessor.clear_messages()
+    return jsonify({'status': 'Chat cleared'}), 200
 
 
 my_redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)

@@ -13,8 +13,7 @@ from fluent.runtime import FluentLocalization
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.helpers.obs import ClientOBS
-from core.helpers.tools import send_reply, handle_exception
+from core.helpers.tools import send_reply, handle_exception, MessageProcessor
 from database.manager import Manager
 from database.models import Calendar, StreamEmails, NeuropunkPro, User
 from filters.filters import ChatFilter, ForumFilter, PrivateFilter, IsActiveChatFilter, IsAdmin
@@ -40,6 +39,8 @@ async def process_obs_content(message: types.Message, bot: Bot) -> None:
     logger.info("%s", message)
     nickname = message.from_user.full_name
     content = None
+    is_gif = False
+
     if message.from_user.id == 448071275:
         nickname = "Рыгер офишаш"
 
@@ -55,12 +56,12 @@ async def process_obs_content(message: types.Message, bot: Bot) -> None:
             content_id = message.sticker.thumbnail.file_id
 
         if content_id:
+            is_gif = True
             file_info = await bot.get_file(content_id)
             content = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
 
     if content:
-        async with ClientOBS() as client:
-            await client.send_request(nickname, content)
+        await MessageProcessor.add_message(nickname, content, is_gif)
 
 
 @router.message(ChatFilter(), (F.message.from_user.id == 448071275))
