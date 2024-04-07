@@ -4,7 +4,7 @@ import os
 import flask_admin as admin
 import flask_login as login
 from flask import Flask, request, redirect, url_for, render_template, flash, send_from_directory, jsonify
-from flask_admin import expose, BaseView, helpers
+from flask_admin import expose, BaseView, helpers, Admin
 from flask_admin.contrib import rediscli
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
@@ -262,7 +262,7 @@ def clear_chat():
 my_redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)
 init_login()
 
-admin_panel = admin.Admin(app, name='Cyberpaper', index_view=MyAdminIndexView(), base_template='my_master.html', template_mode='bootstrap4', url='/admin')
+admin_panel = Admin(app, name='Cyberpaper', index_view=MyAdminIndexView(), base_template='my_master.html', template_mode='bootstrap4', url='/admin')
 
 admin_panel.add_view(OnlineView(name='Включение приема демок', endpoint='online', category='Управление Ботом'))
 admin_panel.add_view(OfflineView(name='Выключение приема демок', endpoint='offline', category='Управление Ботом'))
