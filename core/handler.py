@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import send_reply, handle_exception, MessageProcessor
 from database.databasemanager import DatabaseManager
-from database.models import Calendar, StreamEmails, NeuropunkPro, User, Customer
+from database.models import Calendar, StreamEmails, NeuropunkPro, User
 from filters.filters import ChatFilter, ForumFilter, PrivateFilter, IsActiveChatFilter, IsAdmin
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
 from tools.ai.listener_tools import OpenAIListener, Audio
@@ -75,23 +75,32 @@ async def reg_start(message: types.Message, state: FSMContext, l10n: FluentLocal
 
 
 @router.message(PrivateFilter(), RegisterStates.start)
-async def reg_process(message: types.Message, session: AsyncSession) -> None:
-    manager = DatabaseManager(session)
+async def reg_process(message: types.Message, state: FSMContext) -> None:
     email = message.text
-    telegram_id = message.from_user.id
-    user_exists = Customer.query.filter((Customer.email == email) | (Customer.telegram_id == str(telegram_id))).first()
-    if user_exists:
-        await message.answer("Пользователь с таким email или Telegram ID уже существует.")
-        return
+    first_name = message.from_user.first_name
 
-    # Создаем нового пользователя
-    new_user = Customer(email=email, telegram_id=str(telegram_id), password=generate_password_hash("default_password"), username="default_username", allowed_courses='', is_moderator=False, is_admin=False, is_banned=False)
-    db.session.add(new_user)
-    db.session.commit()
-    await message.answer("Вы успешно зарегистрированы!")
+    if check(email, email_patt):
+        await state.update_data(mail=str(email))
+        await message.reply(f"{first_name}, записал твой Email! Самое время придумать пароль!\n"
+                            "Пожалуйста, придумай надежный пароль и отправь его в ответном сообщении")
+        await state.set_state(RegisterStates.process)
+    else:
+        await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
 
 
-@router.message(ChatFilter(), (F.message.from_user.id == 448071275))
+@router.message(PrivateFilter(), RegisterStates.process)
+async def reg_final(message: types.Message, session: AsyncSession, state: FSMContext) -> None:
+    manager = DatabaseManager(session)
+    data = await state.get_data()
+    email = data['email']
+    uid = message.from_user.id
+    password = message.text
+    name = message.from_user.username
+    result_message = await manager.create_customer(email, uid, password, name)
+    await message.answer(result_message)
+
+
+@router.message(ChatFilter(), F.message.from_user.id == 448071275)
 async def ask_chat(message: types.Message, state: FSMContext) -> None:
     await state.set_state(Text.get)
 

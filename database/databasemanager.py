@@ -143,21 +143,21 @@ class DatabaseManager:
         else:
             logger.info(f"No NeuropunkPro user found with telegram_id={telegram_id} to delete")
 
-    async def create_customer(self, email: str, telegram_id: int, password: str, username: str, message) -> None:
+    async def create_customer(self, email: str, telegram_id: int, password: str, name: str) -> str:
         # Проверяем, существует ли уже пользователь с таким email или Telegram ID
         stmt = select(Customer).where(or_(Customer.email == email, Customer.telegram_id == str(telegram_id)))
         result = await self.session.execute(stmt)
         user_exists = result.scalar_one_or_none()
 
         if user_exists:
-            await message.answer("Пользователь с таким email или Telegram ID уже существует.")
-            return
+            return "Пользователь с таким email или Telegram ID уже существует."
 
         try:
-            new_user = Customer(email=email, telegram_id=str(telegram_id), password=generate_password_hash(password),
-                                username=username, allowed_courses='', is_moderator=False, is_admin=False, is_banned=False)
+            new_user = Customer(email=email, telegram_id=str(telegram_id), password=generate_password_hash(password), username=name,
+                                allowed_courses='', is_moderator=False, is_admin=False, is_banned=False)
             self.session.add(new_user)
             await self.session.commit()
+            return "Вы успешно зарегистрированы!"
         except IntegrityError:
             await self.session.rollback()
-            await message.answer("Ошибка при создании пользователя.")
+            return "Ошибка при создании пользователя."
