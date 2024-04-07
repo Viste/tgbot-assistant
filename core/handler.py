@@ -61,7 +61,7 @@ async def process_obs_content(message: types.Message, bot: Bot) -> None:
             content = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
 
     if content:
-        await MessageProcessor.add_message(nickname, content, is_gif)
+        MessageProcessor.add_message(nickname, content, is_gif)
 
 
 @router.message(ChatFilter(), (F.message.from_user.id == 448071275))

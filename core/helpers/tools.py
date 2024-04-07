@@ -168,13 +168,13 @@ class MessageProcessor:
         return cls._instance
 
     @classmethod
-    async def add_message(cls, name, message, isGif):
+    def add_message(cls, name, message, isGif):
         cls.messages.append({'name': name, 'message': message, 'isGif': isGif})
 
     @classmethod
-    async def get_messages(cls):
+    def get_messages(cls):
         return cls.messages
 
     @classmethod
-    async def clear_messages(cls):
+    def clear_messages(cls):
         cls.messages.clear()
