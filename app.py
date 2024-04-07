@@ -42,6 +42,7 @@ class Course(db.Model):
 class Customer(db.Model):
     __tablename__ = 'customers'
     id = db.Column(db.Integer, primary_key=True, unique=True, autoincrement=True)
+    telegram_id = db.Column(db.String, unique=True)
     username = db.Column(db.String, nullable=False, unique=True)
     email = db.Column(db.String, nullable=False, unique=True)
     password = db.Column(db.String)
