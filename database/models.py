@@ -87,3 +87,27 @@ class Zoom(Base):
     telegram_username = Column(String(255), nullable=True, unique=True)
     email = Column(String(255), nullable=True)
     mariadb_engine = "InnoDB"
+
+
+class Course(Base):
+    __tablename__ = 'courses'
+    id = Column(Integer, primary_key=True, autoincrement=True, unique=True)
+    name = Column(String)
+    description = Column(String, nullable=False)
+    video_path = Column(String)
+    is_live = Column(Boolean)
+    mariadb_engine = "InnoDB"
+
+
+class Customer(Base):
+    __tablename__ = 'customers'
+    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
+    telegram_id = Column(String, unique=True)
+    username = Column(String, nullable=False, unique=True)
+    email = Column(String, nullable=False, unique=True)
+    password = Column(String)
+    allowed_courses = Column(String, nullable=False)
+    is_moderator = Column(Boolean)
+    is_admin = Column(Boolean)
+    is_banned = Column(Boolean)
+    mariadb_engine = "InnoDB"

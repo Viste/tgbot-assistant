@@ -2,16 +2,18 @@ import logging
 from datetime import datetime, timedelta
 from typing import Optional, Type
 
-from sqlalchemy import select, inspect
+from sqlalchemy import select, inspect, or_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.declarative import DeclarativeMeta
+from werkzeug.security import generate_password_hash
 
-from database.models import ChatMember, Config, NeuropunkPro
+from database.models import ChatMember, Config, NeuropunkPro, Customer
 
 logger = logging.getLogger(__name__)
 
 
-class Manager:
+class DatabaseManager:
     def __init__(self, session: AsyncSession):
         self.session = session
 
@@ -140,3 +142,22 @@ class Manager:
             logger.info(f"NeuropunkPro user deleted: telegram_id={telegram_id}")
         else:
             logger.info(f"No NeuropunkPro user found with telegram_id={telegram_id} to delete")
+
+    async def create_customer(self, email: str, telegram_id: int, password: str, username: str, message) -> None:
+        # Проверяем, существует ли уже пользователь с таким email или Telegram ID
+        stmt = select(Customer).where(or_(Customer.email == email, Customer.telegram_id == str(telegram_id)))
+        result = await self.session.execute(stmt)
+        user_exists = result.scalar_one_or_none()
+
+        if user_exists:
+            await message.answer("Пользователь с таким email или Telegram ID уже существует.")
+            return
+
+        try:
+            new_user = Customer(email=email, telegram_id=str(telegram_id), password=generate_password_hash(password),
+                                username=username, allowed_courses='', is_moderator=False, is_admin=False, is_banned=False)
+            self.session.add(new_user)
+            await self.session.commit()
+        except IntegrityError:
+            await self.session.rollback()
+            await message.answer("Ошибка при создании пользователя.")

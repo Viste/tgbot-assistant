@@ -4,7 +4,7 @@ from typing import Callable, Optional, Any, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, User, Chat, Message
 
-from database.manager import Manager
+from database.databasemanager import DatabaseManager
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class BasicMiddleware(BaseMiddleware):
         l10n = data.get('l10n')
         async with self.session_maker() as session:
             data['session'] = session
-            user_manager = Manager(session)
+            user_manager = DatabaseManager(session)
 
             if await user_manager.is_user_banned(event.from_user.id):
                 await event.reply(l10n.format_value("you-were-banned-error"))

@@ -14,13 +14,13 @@ from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import send_reply, handle_exception, MessageProcessor
-from database.manager import Manager
-from database.models import Calendar, StreamEmails, NeuropunkPro, User
+from database.databasemanager import DatabaseManager
+from database.models import Calendar, StreamEmails, NeuropunkPro, User, Customer
 from filters.filters import ChatFilter, ForumFilter, PrivateFilter, IsActiveChatFilter, IsAdmin
 from tools.ai.ai_tools import OpenAI, OpenAIDialogue
 from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.dependencies import container
-from tools.states import Text, Dialogue, DAImage, Demo
+from tools.states import Text, Dialogue, DAImage, Demo, RegisterStates
 from tools.utils import split_into_chunks, check_bit_rate, email_patt, check
 
 config = container.get('config')
@@ -62,6 +62,33 @@ async def process_obs_content(message: types.Message, bot: Bot) -> None:
 
     if content:
         MessageProcessor.add_message(nickname, content, is_gif)
+
+
+@router.message(PrivateFilter(), Command(commands="start"))
+async def reg_start(message: types.Message, state: FSMContext, l10n: FluentLocalization):
+    payload = message.get_args()
+    if payload == 'reg_academy':
+        await message.answer(l10n.format_value("reg-hello"))
+        await state.set_state(RegisterStates.start)
+    else:
+        pass
+
+
+@router.message(PrivateFilter(), RegisterStates.start)
+async def reg_process(message: types.Message, session: AsyncSession) -> None:
+    manager = DatabaseManager(session)
+    email = message.text
+    telegram_id = message.from_user.id
+    user_exists = Customer.query.filter((Customer.email == email) | (Customer.telegram_id == str(telegram_id))).first()
+    if user_exists:
+        await message.answer("Пользователь с таким email или Telegram ID уже существует.")
+        return
+
+    # Создаем нового пользователя
+    new_user = Customer(email=email, telegram_id=str(telegram_id), password=generate_password_hash("default_password"), username="default_username", allowed_courses='', is_moderator=False, is_admin=False, is_banned=False)
+    db.session.add(new_user)
+    db.session.commit()
+    await message.answer("Вы успешно зарегистрированы!")
 
 
 @router.message(ChatFilter(), (F.message.from_user.id == 448071275))
@@ -136,7 +163,7 @@ async def process_ask_forum(message: types.Message) -> None:
 async def start_dialogue(message: types.Message, state: FSMContext, session: AsyncSession,
                          l10n: FluentLocalization) -> None:
     await state.update_data(chatid=message.chat.id)
-    user_manager = Manager(session)
+    user_manager = DatabaseManager(session)
     if not await user_manager.is_subscription_active(message.from_user.id, User):
         kb = [[types.InlineKeyboardButton(text=l10n.format_value("buy-sub"), callback_data="buy_subscription")], ]
         keyboard = types.InlineKeyboardMarkup(inline_keyboard=kb)
@@ -192,7 +219,7 @@ async def process_paint(message: types.Message, state: FSMContext) -> None:
 @router.message(PrivateFilter(), F.audio, ~StateFilter(Demo.get))
 async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot,
                        l10n: FluentLocalization):
-    user_manager = Manager(session)
+    user_manager = DatabaseManager(session)
 
     uid = message.from_user.id
     await state.update_data(chatid=message.chat.id)
@@ -238,7 +265,7 @@ async def course_choose(message: types.Message, state: FSMContext) -> None:
 
 @router.message(Command(commands="course_state"), PrivateFilter())
 async def state_course(message: types.Message, session: AsyncSession) -> None:
-    user_manager = Manager(session)
+    user_manager = DatabaseManager(session)
     end_date = await user_manager.get_subscription_end_date(message.from_user.id, NeuropunkPro)
     if end_date:
         await message.answer(f"Ваша подписка истекает: {end_date.strftime('%d.%m.%Y %H:%M:%S')}")

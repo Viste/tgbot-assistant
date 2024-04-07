@@ -17,7 +17,7 @@ from fluent.runtime import FluentLocalization, FluentResourceLoader
 
 from app import app
 from core import setup_routers
-from database.manager import Manager
+from database.databasemanager import DatabaseManager
 from database.models import NeuropunkPro
 from middlewares.basic import BasicMiddleware
 from middlewares.database import DbSessionMiddleware
@@ -43,7 +43,7 @@ async def set_bot_commands(bot: Bot):
 
 async def check_subscriptions_and_unban():
     async with session_maker() as session:
-        manager = Manager(session)
+        manager = DatabaseManager(session)
         con = await load_config(session_maker)
         paper = Bot(token=con.token)
         chat_member_ids = await manager.get_all_chat_member_telegram_ids()

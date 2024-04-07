@@ -11,7 +11,7 @@ from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
-from database.manager import Manager
+from database.databasemanager import DatabaseManager
 from tools.data import Merchant, Order
 
 logger = logging.getLogger(__name__)
@@ -72,7 +72,7 @@ class EmailChatState:
 
 
 async def reply_if_banned(message: types.Message, uid: int, l10n: FluentLocalization, session: AsyncSession) -> bool:
-    user_manager = Manager(session)
+    user_manager = DatabaseManager(session)
     if await user_manager.is_user_banned(uid):
         await message.reply(l10n.format_value("you-were-banned-error"))
         return True
@@ -142,7 +142,7 @@ async def send_payment_message(message: types.Message, link: str, l10n: FluentLo
 
 
 async def update_or_create_user(session: AsyncSession, user_data: dict, model: Type[DeclarativeMeta]):
-    user_manager = Manager(session)
+    user_manager = DatabaseManager(session)
     user = await user_manager.get_user(user_data['telegram_id'], model)
     if user:
         # Если подписка уже активна, продлеваем ее

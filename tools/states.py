@@ -1,6 +1,12 @@
 from aiogram.fsm.state import State, StatesGroup
 
 
+class RegisterStates(StatesGroup):
+    start = State()
+    process = State()
+    end = State()
+
+
 class Text(StatesGroup):
     get = State()
     result = State()
