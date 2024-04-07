@@ -41,9 +41,6 @@ async def process_obs_content(message: types.Message, bot: Bot) -> None:
     content = None
     is_gif = False
 
-    if message.from_user.id == 448071275:
-        nickname = "Рыгер-офишал"
-
     if message.content_type == 'text':
         content = html.escape(message.text)
     elif message.content_type in ['animation', 'sticker', 'photo']:
