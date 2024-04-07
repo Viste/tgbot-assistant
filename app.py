@@ -1,10 +1,9 @@
 import logging
 import os
 
-import flask_admin as admin
 import flask_login as login
 from flask import Flask, request, redirect, url_for, render_template, flash, send_from_directory, jsonify
-from flask_admin import expose, BaseView, helpers
+from flask_admin import expose, BaseView, helpers, AdminIndexView, Admin
 from flask_admin.contrib import rediscli
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
@@ -107,7 +106,7 @@ def init_login():
         return db.session.query(Admins).get(user_id)
 
 
-class MyAdminIndexView(admin.AdminIndexView):
+class MyAdminIndexView(AdminIndexView):
     @expose('/')
     def index(self):
         if not login.current_user.is_authenticated:
@@ -125,7 +124,7 @@ class MyModelView(ModelView):
         return redirect(url_for('login', next=request.url))
 
 
-class MyAdminIndexView(admin.AdminIndexView):
+class MyAdminIndexView(AdminIndexView):
     @expose('/')
     def index(self):
         if not login.current_user.is_authenticated:
@@ -270,7 +269,8 @@ def clear_chat():
 my_redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)
 init_login()
 
-admin = admin.Admin(app, name='Cyberpaper', index_view=MyAdminIndexView(), base_template='my_master.html', template_mode='bootstrap4', url='/admin')
+admin = Admin(app, name='Cyberpaper', index_view=MyAdminIndexView(), base_template='my_master.html', template_mode='bootstrap4', url='/admin')
+
 admin.add_view(OnlineView(name='Включение приема демок', endpoint='online', category='Управление Ботом'))
 admin.add_view(OfflineView(name='Выключение приема демок', endpoint='offline', category='Управление Ботом'))
 admin.add_view(StreamChatView(name='Управлением Чатом', endpoint='stream_chat', category='Управление Ботом'))
