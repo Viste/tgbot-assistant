@@ -230,7 +230,7 @@ def index():
 @app.route('/messages', methods=['GET'])
 def obs():
     messages = MessageProcessor.get_messages()
-    logger.info('response info', request.remote_addr, request.url, request.headers.get('User-Agent'))
+    logger.info('response info: % % %', request.remote_addr, request.url, request.headers.get('User-Agent'))
     return jsonify(messages), 200
 
 
