@@ -68,6 +68,25 @@ class Customer(db.Model):
     is_banned = db.Column(db.Boolean)
     mariadb_engine = "InnoDB"
 
+    def is_authenticated(self):
+        if not self.is_admin:
+            return True
+        else:
+            return False
+
+    @property
+    def is_active(self):
+        # пользователь активен, если он не забанен.
+        return self.is_admin
+
+    @property
+    def is_anonymous(self):
+        # должно возвращать False, так как пользователи не анонимны.
+        return False
+
+    def get_id(self):
+        # Возвращаем уникальный идентификатор пользователя в виде строки для управления пользовательской сессией.
+        return str(self.id)
 
 class Admins(db.Model):
     __tablename__ = 'admins'
@@ -80,7 +99,10 @@ class Admins(db.Model):
 
     @property
     def is_authenticated(self):
-        return True
+        if not self.is_admin:
+            return True
+        else:
+            return False
 
     @property
     def is_active(self):
@@ -118,7 +140,7 @@ class MyModelView(ModelView):
     form_base_class = SecureForm
 
     def is_accessible(self):
-        return login.current_user.is_authenticated
+        return current_user.is_authenticated
 
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('login', next=request.url))
