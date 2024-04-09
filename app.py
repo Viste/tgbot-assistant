@@ -24,6 +24,11 @@ app = Flask(__name__, static_folder='public', template_folder='public')
 app.config['SECRET_KEY'] = 'pprfnktechsekta2024'
 app.config['SQLALCHEMY_DATABASE_URI'] = config.db_string
 app.config['SQLALCHEMY_ECHO'] = True
+app.config['SQLALCHEMY_POOL_SIZE'] = 10
+app.config['SQLALCHEMY_POOL_TIMEOUT'] = 30
+app.config['SQLALCHEMY_POOL_RECYCLE'] = 1800
+app.config['SQLALCHEMY_MAX_OVERFLOW'] = 5
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
 db = SQLAlchemy(app)
 app.env = "production"
 chat_state = ChatState()
