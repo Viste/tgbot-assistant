@@ -9,6 +9,7 @@ from flask_admin.contrib import rediscli
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
 from flask_admin.menu import MenuLink
+from flask_login import logout_user, current_user, login_required, LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from redis import Redis
 from werkzeug.security import check_password_hash
@@ -32,6 +33,16 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
 db = SQLAlchemy(app)
 app.env = "production"
 chat_state = ChatState()
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    user = Customer.query.get(int(user_id))
+    print(user)
+    return user
 
 
 class Course(db.Model):
@@ -73,18 +84,17 @@ class Admins(db.Model):
 
     @property
     def is_active(self):
-        return True
+        # пользователь активен, если он не забанен.
+        return self.is_admin
 
     @property
     def is_anonymous(self):
+        # должно возвращать False, так как пользователи не анонимны.
         return False
 
     def get_id(self):
-        return self.id
-
-    # Required for administrative interface
-    def __unicode__(self):
-        return self.username
+        # Возвращаем уникальный идентификатор пользователя в виде строки для управления пользовательской сессией.
+        return str(self.id)
 
 
 class LoginForm(form.Form):
@@ -104,15 +114,6 @@ class LoginForm(form.Form):
         return db.session.query(Admins).filter_by(username=self.login.data).first()
 
 
-def init_login():
-    login_manager = login.LoginManager()
-    login_manager.init_app(app)
-
-    @login_manager.user_loader
-    def load_user(user_id):
-        return db.session.query(Admins).get(user_id)
-
-
 class MyModelView(ModelView):
     form_base_class = SecureForm
 
@@ -126,7 +127,7 @@ class MyModelView(ModelView):
 class MyAdminIndexView(admin.AdminIndexView):
     @expose('/')
     def index(self):
-        if not login.current_user.is_authenticated:
+        if not current_user.is_authenticated:
             return redirect(url_for('.login_view'))
         return super(MyAdminIndexView, self).index()
 
@@ -137,19 +138,20 @@ class MyAdminIndexView(admin.AdminIndexView):
             user = form.get_user()
             login.login_user(user)
 
-        if login.current_user.is_authenticated:
+        if current_user.is_authenticated:
             return redirect(url_for('.index'))
         self._template_args['form'] = form
         return super(MyAdminIndexView, self).render('admin/login.html')
 
     @expose('/logout/')
     def logout_view(self):
-        login.logout_user()
+        logout_user()
         return redirect(url_for('.index'))
 
 
 class OnlineView(BaseView):
     @expose('/', methods=('GET', 'POST'))
+    @login_required
     def index(self):
         if request.method == 'POST':
             dt = request.form.get('end_time')
@@ -161,7 +163,7 @@ class OnlineView(BaseView):
         return self.render('admin/online_form.html')
 
     def is_accessible(self):
-        return login.current_user.is_authenticated
+        return current_user.is_authenticated
 
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('login'))
@@ -169,6 +171,7 @@ class OnlineView(BaseView):
 
 class OfflineView(BaseView):
     @expose('/', methods=('POST',))
+    @login_required
     def index(self):
         db.session.query(Calendar).delete()
         db.session.query(StreamEmails).delete()
@@ -185,6 +188,7 @@ class OfflineView(BaseView):
 
 class StreamChatView(BaseView):
     @expose('/', methods=('GET', 'POST'))
+    @login_required
     def index(self):
         if request.method == 'POST':
             chat_name = request.form.get('chat_name')
@@ -207,6 +211,7 @@ class StreamChatView(BaseView):
 
 class EmailsView(BaseView):
     @expose('/', methods=['GET'])
+    @login_required
     def index(self):
         course_name = request.args.get('course', 'np_pro')
         course_models = {
@@ -266,7 +271,6 @@ def clear_chat():
 
 
 my_redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)
-init_login()
 
 admin_panel = Admin(app, name='Cyberpaper', index_view=MyAdminIndexView(), base_template='my_master.html', template_mode='bootstrap4', url='/admin')
 
