@@ -7,7 +7,7 @@ from pathlib import Path
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ChatMemberStatus
-from aiogram.exceptions import TelegramBadRequest
+from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from aiogram.fsm.storage.memory import SimpleEventIsolation
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.fsm.strategy import FSMStrategy
@@ -64,8 +64,12 @@ async def check_subscriptions_and_unban():
                         days_until_subscription_end = (user.subscription_end - datetime.utcnow()).days
                         # Уведомляем пользователя за 7 дней до окончания подписки
                         if days_until_subscription_end <= 7:
-                            await paper.send_message(chat_id=telegram_id, text=f"Не забудьте продлить подписку! Дата окончания: {user.subscription_end}. Осталось дней до конца подписки {days_until_subscription_end}")
-                            logger.info(f"Notified user {telegram_id} about subscription ending in 7 days")
+                            try:
+                                await paper.send_message(chat_id=telegram_id, text=f"Не забудьте продлить подписку! Осталось дней до конца подписки {days_until_subscription_end}!\n Дата окончания: {user.subscription_end}.")
+                                logger.info(f"Notified user {telegram_id} about subscription ending in 7 days")
+                            except TelegramForbiddenError as e:
+                                logger.error(f"Failed to start conversation member for user {telegram_id}: {e}")
+                                continue  # Продолжаем обработку следующих пользователей
 
                     if not is_subscription_active:
                         # Если подписка истекла сегодня
@@ -106,7 +110,7 @@ async def main():
     # await set_bot_admin_commands(paper)
     logger.info("Starting bot")
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_subscriptions_and_unban, 'interval', minutes=30)
+    scheduler.add_job(check_subscriptions_and_unban, 'interval', minutes=10)
 
     scheduler.start()
     await worker.start_polling(paper, allowed_updates=useful_updates, handle_signals=True)
