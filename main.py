@@ -2,7 +2,7 @@ import asyncio
 import logging
 import sys
 import threading
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 from aiogram import Bot, Dispatcher
@@ -57,18 +57,26 @@ async def check_subscriptions_and_unban():
                 if member.status == ChatMemberStatus.MEMBER:
                     # Проверяем статус подписки
                     is_subscription_active = await manager.is_subscription_active(telegram_id, NeuropunkPro)
+                    user = await manager.get_user(telegram_id, NeuropunkPro)
+                    logger.info("Info about User. Who: %s, %s Sub. end: %s", user.telegram_id, user.telegram_username, user.subscription_end)
+
+                    if user and user.subscription_end:
+                        days_until_subscription_end = (user.subscription_end - datetime.utcnow()).days
+                        # Уведомляем пользователя за 7 дней до окончания подписки
+                        if days_until_subscription_end <= 7:
+                            await paper.send_message(chat_id=telegram_id, text=f"Не забудьте продлить подписку! Дата окончания: {user.subscription_end}. Осталось дней до конца подписки {days_until_subscription_end}")
+                            logger.info(f"Notified user {telegram_id} about subscription ending in 7 days")
+
                     if not is_subscription_active:
-                        user = await manager.get_user(telegram_id, NeuropunkPro)
-                        logger.info("Info about User: %s", user)
-                        # Если пользователь не найден в таблице или подписка истекла более чем на 2 дня
-                        if user is None or (user.subscription_end and datetime.utcnow() - user.subscription_end > timedelta(days=2)):
+                        # Если подписка истекла сегодня
+                        if user is None or (user.subscription_end and datetime.utcnow() >= user.subscription_end):
                             try:
                                 await paper.unban_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
                             except Exception as e:
-                                logger.info(f"Unban user {telegram_id} failed because {e} in chat -1001814931266")
-                            await paper.send_message(chat_id=telegram_id, text="Подписка на Нейропанк Про закончилась")
+                                logger.info(f"Kick user {telegram_id} failed because {e} in chat -1001814931266")
+                            await paper.send_message(chat_id=telegram_id, text="Ваша подписка на Нейропанк Про закончилась. Вы были удалены из чата.")
                             await manager.delete_neuropunk_pro_user(telegram_id)
-                            logger.info(f"Unbanned user {telegram_id} in chat -1001814931266")
+                            logger.info(f"Kicked user {telegram_id} from chat -1001814931266")
             except TelegramBadRequest as e:
                 logger.error(f"Failed to get chat member for user {telegram_id}: {e}")
                 continue  # Продолжаем обработку следующих пользователей
