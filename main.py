@@ -106,7 +106,7 @@ async def main():
     # await set_bot_admin_commands(paper)
     logger.info("Starting bot")
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_subscriptions_and_unban, 'interval', hours=1)
+    scheduler.add_job(check_subscriptions_and_unban, 'interval', minutes=30)
 
     scheduler.start()
     await worker.start_polling(paper, allowed_updates=useful_updates, handle_signals=True)
