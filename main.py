@@ -7,6 +7,7 @@ from pathlib import Path
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ChatMemberStatus
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.storage.memory import SimpleEventIsolation
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.fsm.strategy import FSMStrategy
@@ -35,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 async def set_bot_commands(bot: Bot):
-    commands = [BotCommand(command="course_register", description="Купить PRO курс по подписке"),
+    commands = [BotCommand(command="course", description="Купить PRO курс/Zoom по подписке"),
                 BotCommand(command="help", description="Помощь"),
                 BotCommand(command="demo", description="Прислать демку"), ]
     await bot.set_my_commands(commands)
@@ -49,24 +50,28 @@ async def check_subscriptions_and_unban():
         chat_member_ids = await manager.get_all_chat_member_telegram_ids()
 
         for telegram_id in chat_member_ids:
-            # Проверяем, является ли пользователь участником чата
-            member = await paper.get_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
-            logger.info('Get Chat Member result: %s', member.status)
-            if member.status == ChatMemberStatus.MEMBER:
-                # Проверяем статус подписки
-                is_subscription_active = await manager.is_subscription_active(telegram_id, NeuropunkPro)
-                if not is_subscription_active:
-                    user = await manager.get_user(telegram_id, NeuropunkPro)
-                    logger.info("Info about User: %s", user)
-                    # Если пользователь не найден в таблице или подписка истекла более чем на 2 дня
-                    if user is None or (user.subscription_end and datetime.utcnow() - user.subscription_end > timedelta(days=2)):
-                        try:
-                            await paper.unban_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
-                        except Exception as e:
-                            logger.info(f"Unban user%: {telegram_id} failed because {e} in chat -1001814931266")
-                        await paper.send_message(chat_id=telegram_id, text="Подписка на Нейропанк Про закончилась")
-                        await manager.delete_neuropunk_pro_user(telegram_id)
-                        logger.info(f"Unbanned user {telegram_id} in chat -1001814931266")
+            try:
+                # Проверяем, является ли пользователь участником чата
+                member = await paper.get_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
+                logger.info('Get Chat Member result: %s', member.status)
+                if member.status == ChatMemberStatus.MEMBER:
+                    # Проверяем статус подписки
+                    is_subscription_active = await manager.is_subscription_active(telegram_id, NeuropunkPro)
+                    if not is_subscription_active:
+                        user = await manager.get_user(telegram_id, NeuropunkPro)
+                        logger.info("Info about User: %s", user)
+                        # Если пользователь не найден в таблице или подписка истекла более чем на 2 дня
+                        if user is None or (user.subscription_end and datetime.utcnow() - user.subscription_end > timedelta(days=2)):
+                            try:
+                                await paper.unban_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
+                            except Exception as e:
+                                logger.info(f"Unban user {telegram_id} failed because {e} in chat -1001814931266")
+                            await paper.send_message(chat_id=telegram_id, text="Подписка на Нейропанк Про закончилась")
+                            await manager.delete_neuropunk_pro_user(telegram_id)
+                            logger.info(f"Unbanned user {telegram_id} in chat -1001814931266")
+            except TelegramBadRequest as e:
+                logger.error(f"Failed to get chat member for user {telegram_id}: {e}")
+                continue  # Продолжаем обработку следующих пользователей
 
 
 def run_flask():
@@ -93,7 +98,7 @@ async def main():
     # await set_bot_admin_commands(paper)
     logger.info("Starting bot")
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_subscriptions_and_unban, 'interval', hours=6)
+    scheduler.add_job(check_subscriptions_and_unban, 'interval', hours=1)
 
     scheduler.start()
     await worker.start_polling(paper, allowed_updates=useful_updates, handle_signals=True)

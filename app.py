@@ -88,6 +88,7 @@ class Customer(db.Model):
         # Возвращаем уникальный идентификатор пользователя в виде строки для управления пользовательской сессией.
         return str(self.id)
 
+
 class Admins(db.Model):
     __tablename__ = 'admins'
 
