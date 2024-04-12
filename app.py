@@ -45,13 +45,20 @@ def load_user(user_id):
     return user
 
 
+class Broadcast(db.Model):
+    __tablename__ = 'broadcasts'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    course_id = db.Column(db.Integer, db.ForeignKey('courses.id'), nullable=False)
+    video_path = db.Column(db.String)
+    is_live = db.Column(db.Boolean, default=False)
+    course = db.relationship('Course', backref=db.backref('broadcasts', lazy=True))
+
+
 class Course(db.Model):
     __tablename__ = 'courses'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
     name = db.Column(db.String)
     description = db.Column(db.String, nullable=False)
-    video_path = db.Column(db.String)
-    is_live = db.Column(db.Boolean)
     mariadb_engine = "InnoDB"
 
 
@@ -312,5 +319,6 @@ admin_panel.add_view(MyModelView(menu_class_name='Таблица подписо�
 admin_panel.add_view(MyModelView(menu_class_name='Таблица всех пользователей', model=ChatMember, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица курсов', model=Course, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица пользователей с курсов', model=Customer, session=db.session, category="Управление базой"))
+admin_panel.add_view(MyModelView(menu_class_name='Таблица трансляций с курсов', model=Broadcast, session=db.session, category="Управление базой"))
 admin_panel.add_view(rediscli.RedisCli(Redis(my_redis)))
 admin_panel.add_link(MenuLink(name='Logout', url='/logout'))

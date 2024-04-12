@@ -45,8 +45,8 @@ async def set_bot_commands(bot: Bot):
 async def check_subscriptions_and_unban():
     async with session_maker() as session:
         manager = DatabaseManager(session)
-        con = await load_config(session_maker)
-        paper = Bot(token=con.token)
+        connect = await load_config(session_maker)
+        paper = Bot(token=connect.token)
         chat_member_ids = await manager.get_all_chat_member_telegram_ids()
 
         for telegram_id in chat_member_ids:
