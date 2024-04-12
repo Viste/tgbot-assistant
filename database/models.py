@@ -1,6 +1,7 @@
 from enum import Enum, unique
 
-from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime, Integer, Boolean, Text
+from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime, Integer, Boolean, Text, ForeignKey
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import expression
 
 from database.base import Base
@@ -89,13 +90,21 @@ class Zoom(Base):
     mariadb_engine = "InnoDB"
 
 
+class Broadcast(Base):
+    __tablename__ = 'broadcasts'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)
+    video_path = Column(String)
+    is_live = Column(Boolean, default=False)
+    course = relationship('Course', backref=backref('broadcasts', lazy=True))
+
+
 class Course(Base):
     __tablename__ = 'courses'
     id = Column(Integer, primary_key=True, autoincrement=True, unique=True)
     name = Column(String)
+    short_name = Column(String)
     description = Column(String, nullable=False)
-    video_path = Column(String)
-    is_live = Column(Boolean)
     mariadb_engine = "InnoDB"
 
 
