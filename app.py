@@ -59,6 +59,7 @@ class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
     name = db.Column(db.String)
     description = db.Column(db.String, nullable=False)
+    short_name = db.Column(db.String)
     mariadb_engine = "InnoDB"
 
 
