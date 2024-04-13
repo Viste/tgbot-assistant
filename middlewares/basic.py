@@ -28,7 +28,6 @@ class BasicMiddleware(BaseMiddleware):
         async with self.session_maker() as session:
             data['session'] = session
             user_manager = DatabaseManager(session)
-
             if await user_manager.is_user_banned(event.from_user.id):
                 await event.reply(l10n.format_value("you-were-banned-error"))
 

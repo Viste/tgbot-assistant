@@ -26,6 +26,9 @@ chat_settings = {
     "nerve": {"active_chat": -1002094481198, "thread_id": 72},
     "girls": {"active_chat": -1001921488615, "thread_id": 9075},
     "zoom": {"active_chat": -1002085114945, "thread_id": 30},
+    "fll21free": {"active_chat": -1002021584528, "thread_id": 12},
+    "gydra": {"active_chat": 12,"thread_id": 12},
+    "receptor": {"active_chat": -1002117966241,"thread_id": 12},
 }
 
 robokassa_payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx'

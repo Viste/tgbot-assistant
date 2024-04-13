@@ -21,7 +21,9 @@ class ForumFilter(BaseFilter):
                 (message.chat.id == -1002040950538 and message.message_thread_id == 305) or
                 (message.chat.id == -1002094481198 and message.message_thread_id == 58) or
                 (message.chat.id == -1001921488615 and message.message_thread_id == 9078) or
-                (message.chat.id == -1002085114945 and message.message_thread_id == 28)
+                (message.chat.id == -1002085114945 and message.message_thread_id == 28) or
+                (message.chat.id == -1002021584528 and message.message_thread_id == 28) or
+                (message.chat.id == -1002117966241 and message.message_thread_id == 28)
             )
         )
 
@@ -33,7 +35,9 @@ class ChatFilter(BaseFilter):
                                                               (message.chat.id == -1001700103389) or
                                                               (message.chat.id == -1001537420102) or
                                                               (message.chat.id == -1002004353654) or
-                                                              (message.chat.id == -1001170569681)))
+                                                              (message.chat.id == -1001170569681) or
+                                                              (message.chat.id == -1002021584528) or
+                                                              (message.chat.id == -1002117966241)))
 
 
 class PrivateFilter(BaseFilter):
