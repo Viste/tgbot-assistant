@@ -277,7 +277,7 @@ class OpenAI:
 
     def __init__(self):
         super().__init__()
-        self.model = "gpt-4-turbo-preview"
+        self.model = "gpt-4-turbo-2024-04-09"
         self.client = AsyncOpenAI(api_key=config.api_key, base_url='http://176.222.52.92:9000/v1')
         self.history = UserHistoryManager()
         self.max_retries = 5
@@ -388,7 +388,7 @@ class OpenAIDialogue:
 
     def __init__(self):
         super().__init__()
-        self.model = "gpt-4"
+        self.model = "gpt-4-turbo-2024-04-09"
         self.max_retries = 10
         self.max_tokens = 8196
         self.config_tokens = 1024
