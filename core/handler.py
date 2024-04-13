@@ -36,7 +36,6 @@ channel = config.channel
 
 @router.message(IsActiveChatFilter(), F.chat.type.in_({'group', 'supergroup'}), F.content_type.in_({'text', 'animation', 'sticker', 'photo'}))
 async def process_obs_content(message: types.Message, bot: Bot) -> None:
-    logger.info("%s", message)
     nickname = message.from_user.full_name
     content = None
     is_gif = False
@@ -70,7 +69,7 @@ async def reg_start(message: types.Message, state: FSMContext, l10n: FluentLocal
             await message.answer(l10n.format_value("reg-hello"))
             await state.set_state(RegisterStates.start)
     else:
-        pass
+        return await message.answer("Напиши /cancel для сброса контекста.")
 
 
 @router.message(PrivateFilter(), RegisterStates.start)
