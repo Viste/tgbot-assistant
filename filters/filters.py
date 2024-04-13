@@ -22,7 +22,7 @@ class ForumFilter(BaseFilter):
                 (message.chat.id == -1002094481198 and message.message_thread_id == 58) or
                 (message.chat.id == -1001921488615 and message.message_thread_id == 9078) or
                 (message.chat.id == -1002085114945 and message.message_thread_id == 28) or
-                (message.chat.id == -1002021584528 and message.message_thread_id == 52) or
+                (message.chat.id == -1002021584528 and message.message_thread_id == 136) or
                 (message.chat.id == -1002117966241 and message.message_thread_id == 36)
             )
         )
