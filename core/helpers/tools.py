@@ -16,6 +16,22 @@ from tools.data import Merchant, Order
 
 logger = logging.getLogger(__name__)
 
+ALLOWED_CHAT_IDS = {
+    -1001647523732, -1001700103389, -1001537420102,
+    -1002004353654, -1001170569681, -1002021584528,
+    -1002117966241
+}
+
+ALLOWED_CHAT_THREAD_IDS = {
+    -1001922960346: {12842},
+    -1002040950538: {305},
+    -1002094481198: {58},
+    -1001921488615: {9078},
+    -1002085114945: {28},
+    -1002021584528: {136},
+    -1002117966241: {36}
+}
+
 chat_settings = {
     "academy_chat": {"active_chat": -1001647523732, "thread_id": None},
     "np_pro": {"active_chat": -1001814931266, "thread_id": 5146},

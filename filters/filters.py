@@ -1,43 +1,24 @@
 from aiogram import types
 from aiogram.filters import BaseFilter
 
-from core.helpers.tools import ChatState
+from core.helpers.tools import ChatState, ALLOWED_CHAT_IDS, ALLOWED_CHAT_THREAD_IDS
 
 state = ChatState()
 
 
 class IsActiveChatFilter(BaseFilter):
     async def __call__(self, message: types.Message) -> bool:
-        return message.chat.id == state.active_chat and (
-                not message.chat.is_forum or message.message_thread_id == state.thread_id)
+        return message.chat.id == state.active_chat and (not message.chat.is_forum or message.message_thread_id == state.thread_id)
 
 
 class ForumFilter(BaseFilter):
     async def __call__(self, message: types.Message) -> bool:
-        return (
-            message.chat.type in {'group', 'supergroup'} and
-            (
-                (message.chat.id == -1001922960346 and message.message_thread_id == 12842) or
-                (message.chat.id == -1002040950538 and message.message_thread_id == 305) or
-                (message.chat.id == -1002094481198 and message.message_thread_id == 58) or
-                (message.chat.id == -1001921488615 and message.message_thread_id == 9078) or
-                (message.chat.id == -1002085114945 and message.message_thread_id == 28) or
-                (message.chat.id == -1002021584528 and message.message_thread_id == 136) or
-                (message.chat.id == -1002117966241 and message.message_thread_id == 36)
-            )
-        )
+        return message.chat.type in {'group', 'supergroup'} and (message.chat.id in ALLOWED_CHAT_THREAD_IDS and message.message_thread_id in ALLOWED_CHAT_THREAD_IDS[message.chat.id])
 
 
 class ChatFilter(BaseFilter):
     async def __call__(self, message: types.Message) -> bool:
-        return (
-            message.chat.type in {'group', 'supergroup'} and ((message.chat.id == -1001647523732) or
-                                                              (message.chat.id == -1001700103389) or
-                                                              (message.chat.id == -1001537420102) or
-                                                              (message.chat.id == -1002004353654) or
-                                                              (message.chat.id == -1001170569681) or
-                                                              (message.chat.id == -1002021584528) or
-                                                              (message.chat.id == -1002117966241)))
+        return message.chat.type in {'group', 'supergroup'} and message.chat.id in ALLOWED_CHAT_IDS
 
 
 class PrivateFilter(BaseFilter):
