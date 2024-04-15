@@ -3,7 +3,7 @@ import os
 
 import flask_admin as admin
 import flask_login as login
-from flask import Flask, request, redirect, url_for, render_template, flash, send_from_directory, jsonify
+from flask import Flask, request, redirect, url_for, render_template, flash, send_from_directory, jsonify, session
 from flask_admin import expose, BaseView, helpers, Admin
 from flask_admin.contrib import rediscli
 from flask_admin.contrib.sqla import ModelView
@@ -167,6 +167,9 @@ class MyAdminIndexView(admin.AdminIndexView):
         form = LoginForm(request.form)
         if helpers.validate_form_on_submit(form):
             user = form.get_user()
+            session['loggedin'] = True
+            session['id'] = user.id
+            session['username'] = user.username
             login.login_user(user)
 
         if current_user.is_authenticated:
