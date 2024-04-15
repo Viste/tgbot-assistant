@@ -1,5 +1,4 @@
 {% extends 'admin/master.html' %}
-{% if session.loggedin == True %}
 {% block body %}
     <form method="POST">
         <div class="form-group">
@@ -8,9 +7,4 @@
         </div>
         <button type="submit" class="btn btn-success">Установить</button>
     </form>
-{% else %}
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for('.login_view') }}">Login</a>
-  </li>
-{% endif %}
 {% endblock %}

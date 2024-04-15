@@ -179,8 +179,11 @@ class MyAdminIndexView(admin.AdminIndexView):
 
     @expose('/logout/')
     def logout_view(self):
+        session.pop('loggedin', None)
+        session.pop('id', None)
+        session.pop('username', None)
         logout_user()
-        return redirect(url_for('.index'))
+        return redirect(url_for('admin.login_view'))
 
 
 class OnlineView(BaseView):
@@ -200,7 +203,7 @@ class OnlineView(BaseView):
         return current_user.is_authenticated
 
     def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('login'))
+        return redirect(url_for('admin.login_view'))
 
 
 class OfflineView(BaseView):
@@ -211,13 +214,13 @@ class OfflineView(BaseView):
         db.session.query(StreamEmails).delete()
         db.session.commit()
         flash('Прием демок выключен.')
-        return redirect(url_for('.index'))
+        return redirect(url_for('admin.index'))
 
     def is_accessible(self):
         return login.current_user.is_authenticated
 
     def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('login'))
+        return redirect(url_for('admin.login_view'))
 
 
 class StreamChatView(BaseView):
@@ -233,7 +236,7 @@ class StreamChatView(BaseView):
                 flash(f'Чат стрима установлен на {chat_name}.')
             else:
                 flash('Неверное имя чата.')
-            return redirect(url_for('.index'))
+            return redirect(url_for('admin.index'))
         return self.render('admin/stream_chat_form.html')
 
     def is_accessible(self):
@@ -258,7 +261,7 @@ class EmailsView(BaseView):
             return self.render('admin/emails_list.html', emails=emails, course_name=course_name)
         else:
             flash('Неверное имя курса', 'error')
-            return redirect(url_for('.index'))
+            return redirect(url_for('admin.index'))
 
     def is_accessible(self):
         return login.current_user.is_authenticated

@@ -1,5 +1,4 @@
 {% extends 'admin/master.html' %}
-{% if session.loggedin == True %}
 {% block body %}
     <h2>Почты с курса {{ course_name }}</h2>
     <form action="" method="get">
@@ -21,9 +20,4 @@
     {% else %}
         <p>No emails found.</p>
     {% endif %}
-{% else %}
-  <li class="nav-item">
-    <a class="nav-link" href="{{ url_for('admin.login_view') }}">Login</a>
-  </li>
-{% endif %}
 {% endblock %}
