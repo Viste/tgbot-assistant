@@ -1,4 +1,5 @@
 {% extends 'admin/master.html' %}
+{% if session.loggedin == True %}
 {% block body %}
 {{ super() }}
 <div class="row-fluid">
@@ -36,4 +37,9 @@
 
     <a class="btn btn-primary" href="/"><i class="icon-arrow-left icon-white"></i> Back</a>
 </div>
+{% else %}
+  <li class="nav-item">
+    <a class="nav-link" href="{{ url_for('.login_view') }}">Login</a>
+  </li>
+{% endif %}
 {% endblock body %}
