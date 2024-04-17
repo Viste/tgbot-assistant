@@ -115,7 +115,7 @@ class Customer(Base):
     username = Column(String, nullable=False, unique=True)
     email = Column(String, nullable=False, unique=True)
     password = Column(String)
-    allowed_courses = Column(String, nullable=False)
+    allowed_courses = Column(String,  nullable=False, default='academy')
     is_moderator = Column(Boolean)
     is_admin = Column(Boolean)
     is_banned = Column(Boolean)

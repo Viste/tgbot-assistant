@@ -1,4 +1,5 @@
 {% extends 'admin/master.html' %}
+{% if current_user.is_authenticated %}
 {% block body %}
     <form method="POST">
         <div class="form-group">
@@ -20,4 +21,5 @@
         </div>
         <button type="submit" class="btn btn-info">Установить чат стрима</button>
     </form>
+
 {% endblock %}
