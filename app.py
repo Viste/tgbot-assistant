@@ -52,14 +52,16 @@ class Broadcast(db.Model):
     video_path = db.Column(db.String)
     is_live = db.Column(db.Boolean, default=False)
     course = db.relationship('Course', backref=db.backref('broadcasts', lazy=True))
+    mariadb_engine = "InnoDB"
 
 
 class Course(db.Model):
     __tablename__ = 'courses'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True, unique=True)
     name = db.Column(db.String)
-    description = db.Column(db.String, nullable=False)
     short_name = db.Column(db.String)
+    image_url = db.Column(db.String)
+    description = db.Column(db.String, nullable=False)
     mariadb_engine = "InnoDB"
 
 
@@ -70,7 +72,7 @@ class Customer(db.Model):
     username = db.Column(db.String, nullable=False, unique=True)
     email = db.Column(db.String, nullable=False, unique=True)
     password = db.Column(db.String)
-    allowed_courses = db.Column(db.String, nullable=False)
+    allowed_courses = db.Column(db.String, nullable=False, default='academy')
     is_moderator = db.Column(db.Boolean)
     is_admin = db.Column(db.Boolean)
     is_banned = db.Column(db.Boolean)
