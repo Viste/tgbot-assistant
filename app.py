@@ -33,6 +33,7 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {'pool_pre_ping': True}
 db = SQLAlchemy(app)
 app.env = "production"
 chat_state = ChatState()
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
@@ -40,7 +41,7 @@ login_manager.login_view = "login"
 
 @login_manager.user_loader
 def load_user(user_id):
-    user = Customer.query.get(int(user_id))
+    user = Admins.query.get(int(user_id))
     print(user)
     return user
 
@@ -145,10 +146,13 @@ class LoginForm(form.Form):
         user = self.get_user()
 
         if user is None:
-            raise validators.ValidationError('Invalid user')
+            raise validators.ValidationError('Вы не зарегистрированы')
 
         if not check_password_hash(user.password_hash, self.password.data):
-            raise validators.ValidationError('Invalid password')
+            raise validators.ValidationError('Неправильный Пароль')
+
+        if user.is_admin is False:
+            raise validators.ValidationError('Вы не администратор')
 
     def get_user(self):
         return db.session.query(Admins).filter_by(username=self.login.data).first()
