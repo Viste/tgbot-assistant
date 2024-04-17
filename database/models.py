@@ -105,6 +105,7 @@ class Course(Base):
     name = Column(String)
     short_name = Column(String)
     description = Column(String, nullable=False)
+    image_url = Column(String)
     mariadb_engine = "InnoDB"
 
 
