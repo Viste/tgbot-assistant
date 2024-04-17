@@ -117,10 +117,7 @@ class Admins(db.Model):
 
     @property
     def is_authenticated(self):
-        if not self.is_admin:
-            return True
-        else:
-            return False
+        return True
 
     @property
     def is_active(self):
@@ -180,7 +177,7 @@ class MyAdminIndexView(admin.AdminIndexView):
     def logout_view(self):
         logout_user()
         session.clear()
-        return redirect(url_for('admin.login_view'))
+        return redirect(url_for('.login_view'))
 
 
 class MyModelView(ModelView):
