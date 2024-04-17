@@ -2,14 +2,13 @@ import logging
 import os
 
 import flask_admin as admin
-import flask_login as login
 from flask import Flask, request, redirect, url_for, render_template, flash, send_from_directory, jsonify, session
 from flask_admin import expose, BaseView, helpers, Admin
 from flask_admin.contrib import rediscli
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import SecureForm
 from flask_admin.menu import MenuLink
-from flask_login import logout_user, current_user, login_required, LoginManager
+from flask_login import logout_user, current_user, login_required, LoginManager, login_user
 from flask_sqlalchemy import SQLAlchemy
 from redis import Redis
 from werkzeug.security import check_password_hash
@@ -158,16 +157,6 @@ class LoginForm(form.Form):
         return db.session.query(Admins).filter_by(username=self.login.data).first()
 
 
-class MyModelView(ModelView):
-    form_base_class = SecureForm
-
-    def is_accessible(self):
-        return current_user.is_authenticated
-
-    def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('login', next=request.url))
-
-
 class MyAdminIndexView(admin.AdminIndexView):
     @expose('/')
     def index(self):
@@ -180,10 +169,7 @@ class MyAdminIndexView(admin.AdminIndexView):
         form = LoginForm(request.form)
         if helpers.validate_form_on_submit(form):
             user = form.get_user()
-            session['loggedin'] = True
-            session['id'] = user.id
-            session['username'] = user.username
-            login.login_user(user)
+            login_user(user)
 
         if current_user.is_authenticated:
             return redirect(url_for('.index'))
@@ -195,6 +181,16 @@ class MyAdminIndexView(admin.AdminIndexView):
         logout_user()
         session.clear()
         return redirect(url_for('admin.login_view'))
+
+
+class MyModelView(ModelView):
+    form_base_class = SecureForm
+
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('login'))
 
 
 class OnlineView(BaseView):
@@ -214,7 +210,7 @@ class OnlineView(BaseView):
         return current_user.is_authenticated
 
     def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('admin.login_view'))
+        return redirect(url_for('login'))
 
 
 class OfflineView(BaseView):
@@ -228,10 +224,10 @@ class OfflineView(BaseView):
         return redirect(url_for('admin.index'))
 
     def is_accessible(self):
-        return login.current_user.is_authenticated
+        return current_user.is_authenticated
 
     def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('admin.login_view'))
+        return redirect(url_for('login'))
 
 
 class StreamChatView(BaseView):
@@ -251,7 +247,7 @@ class StreamChatView(BaseView):
         return self.render('admin/stream_chat_form.html')
 
     def is_accessible(self):
-        return login.current_user.is_authenticated
+        return current_user.is_authenticated
 
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('login'))
@@ -275,7 +271,7 @@ class EmailsView(BaseView):
             return redirect(url_for('admin.index'))
 
     def is_accessible(self):
-        return login.current_user.is_authenticated
+        return current_user.is_authenticated
 
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for('login'))
