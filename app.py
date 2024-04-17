@@ -188,10 +188,8 @@ class MyAdminIndexView(admin.AdminIndexView):
 
     @expose('/logout/')
     def logout_view(self):
-        session.pop('loggedin', None)
-        session.pop('id', None)
-        session.pop('username', None)
         logout_user()
+        session.clear()
         return redirect(url_for('admin.login_view'))
 
 
@@ -318,7 +316,7 @@ def clear_chat():
 
 my_redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)
 
-admin_panel = Admin(app, name='Cyberpaper', index_view=MyAdminIndexView(), base_template='my_master.html', template_mode='bootstrap4', url='/admin')
+admin_panel = Admin(app, name='Cyberpaper', index_view=MyAdminIndexView(), base_template='admin/my_master.html', template_mode='bootstrap4', url='/admin')
 
 admin_panel.add_view(OnlineView(name='Включение приема демок', endpoint='online', category='Управление Ботом'))
 admin_panel.add_view(OfflineView(name='Выключение приема демок', endpoint='offline', category='Управление Ботом'))
