@@ -97,6 +97,10 @@ class Broadcast(Base):
     video_path = Column(String)
     is_live = Column(Boolean, default=False)
     course = relationship('Course', backref=backref('broadcasts', lazy=True))
+    mariadb_engine = "InnoDB"
+
+    def __repr__(self):
+        return f'<Broadcast {self.id} for course {self.course.name}>'
 
 
 class Course(Base):
@@ -107,6 +111,9 @@ class Course(Base):
     description = Column(String, nullable=False)
     image_url = Column(String)
     mariadb_engine = "InnoDB"
+
+    def __repr__(self):
+        return f'<Course {self.name}>'
 
 
 class Customer(Base):

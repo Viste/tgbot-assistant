@@ -54,6 +54,9 @@ class Broadcast(db.Model):
     course = db.relationship('Course', backref=db.backref('broadcasts', lazy=True))
     mariadb_engine = "InnoDB"
 
+    def __repr__(self):
+        return f'<Broadcast {self.id} for course {self.course.name}>'
+
 
 class Course(db.Model):
     __tablename__ = 'courses'
@@ -63,6 +66,9 @@ class Course(db.Model):
     image_url = db.Column(db.String)
     description = db.Column(db.String, nullable=False)
     mariadb_engine = "InnoDB"
+
+    def __repr__(self):
+        return f'<Course {self.name}>'
 
 
 class Customer(db.Model):
@@ -107,6 +113,7 @@ class Admins(db.Model):
     telegram_id: int = db.Column(db.BigInteger, nullable=False, unique=True)
     password_hash = db.Column(db.String(256))
     is_admin = db.Column(db.Boolean, default=False)
+    mariadb_engine = "InnoDB"
 
     @property
     def is_authenticated(self):
