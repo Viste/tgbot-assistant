@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import tiktoken
@@ -275,7 +276,7 @@ class UserHistoryManager:
 class OpenAI:
     max_retries: int
 
-    def __init__(self):
+    def __init__(self, n_choices=1):
         super().__init__()
         self.model = "gpt-4-turbo-2024-04-09"
         self.client = AsyncOpenAI(api_key=config.api_key, base_url='http://176.222.52.92:9000/v1')
@@ -284,7 +285,9 @@ class OpenAI:
         self.max_tokens = 16096
         self.config_tokens = 1024
         self.max_history_size = 10
-        self.n_choices = 1
+        self.n_choices = n_choices
+        self.retry_delay = 5
+        self.max_retries = 3
         self.retries = 0
         self.show_tokens = False
         self.args = {
@@ -299,24 +302,32 @@ class OpenAI:
         await self.history.reset_history(user_id, content)
 
     async def get_resp(self, query: str, chat_id: int) -> str:
-        response = await self._query_gpt(chat_id, query)
-        answer = ''
-
-        logger.info('Response: %s, Answer: %s', response, answer)
-        if response.choices and len(response.choices) > 1 and self.n_choices > 1:
-            for index, choice in enumerate(response.choices):
-                content = choice.message.content.strip()
-                if index == 0:
-                    await self.add_to_history(chat_id, role="assistant", content=content)
-                answer += f'{index + 1}\u20e3\n'
-                answer += content
-                answer += '\n\n'
-        elif response.choices and len(response.choices) >= 0:
-            answer = response.choices[0].message.content.strip()
-            await self.add_to_history(chat_id, role="assistant", content=answer)
+        for attempt in range(self.max_retries):
+            response = await self._query_gpt(chat_id, query)
+            if response is not None:
+                break
+            logger.info(f'Response is None, retrying... (Attempt {attempt + 1}/{self.max_retries})')
+            await asyncio.sleep(self.retry_delay)
         else:
-            answer = response.choices[0].message.content.strip()
-            await self.add_to_history(chat_id, role="assistant", content=answer)
+            logger.error('Failed to get a valid response after retries')
+            return "Произошла ошибка, попробуйте позже."
+
+        answer = ''
+        if response.choices:
+            if len(response.choices) > 1 and self.n_choices > 1:
+                for index, choice in enumerate(response.choices):
+                    content = choice.message.content.strip()
+                    if index == 0:
+                        await self.add_to_history(chat_id, role="assistant", content=content)
+                    answer += f'{index + 1}\u20e3\n'
+                    answer += content
+                    answer += '\n\n'
+            else:
+                answer = response.choices[0].message.content.strip()
+                await self.add_to_history(chat_id, role="assistant", content=answer)
+        else:
+            logger.error('No choices available in the response')
+            return "Не удалось получить ответ."
 
         return answer
 
@@ -386,14 +397,16 @@ class OpenAI:
 class OpenAIDialogue:
     max_retries: int
 
-    def __init__(self):
+    def __init__(self, n_choices=1):
         super().__init__()
         self.model = "gpt-4-turbo-2024-04-09"
         self.max_retries = 10
         self.max_tokens = 8196
         self.config_tokens = 1024
         self.max_history_size = 30
-        self.n_choices = 1
+        self.n_choices = n_choices
+        self.retry_delay = 5
+        self.max_retries = 3
         self.retries = 0
         self.show_tokens = False
         self.client = AsyncOpenAI(api_key=config.api_key, base_url='http://176.222.52.92:9000/v1')
@@ -408,24 +421,32 @@ class OpenAIDialogue:
         await self.history.reset_history(user_id, content)
 
     async def get_resp(self, query: str, chat_id: int) -> str:
-        response = await self._query_gpt(chat_id, query)
-        # usage_observer = UsageObserver(chat_id, session)
-        answer = ''
-
-        if response.choices and len(response.choices) > 1 and self.n_choices > 1:
-            for index, choice in enumerate(response.choices):
-                content = choice.message.content.strip()
-                if index == 0:
-                    await self.add_to_history(chat_id, role="assistant", content=content)
-                answer += f'{index + 1}\u20e3\n'
-                answer += content
-                answer += '\n\n'
-        elif response.choices and len(response.choices) >= 0:
-            answer = response.choices[0].message.content.strip()
-            await self.add_to_history(chat_id, role="assistant", content=answer)
+        for attempt in range(self.max_retries):
+            response = await self._query_gpt(chat_id, query)
+            if response is not None:
+                break
+            logger.info(f'Response is None, retrying... (Attempt {attempt + 1}/{self.max_retries})')
+            await asyncio.sleep(self.retry_delay)
         else:
-            answer = response.choices[0].message.content.strip()
-            await self.add_to_history(chat_id, role="assistant", content=answer)
+            logger.error('Failed to get a valid response after retries')
+            return "Произошла ошибка, попробуйте позже."
+
+        answer = ''
+        if response.choices:
+            if len(response.choices) > 1 and self.n_choices > 1:
+                for index, choice in enumerate(response.choices):
+                    content = choice.message.content.strip()
+                    if index == 0:
+                        await self.add_to_history(chat_id, role="assistant", content=content)
+                    answer += f'{index + 1}\u20e3\n'
+                    answer += content
+                    answer += '\n\n'
+            else:
+                answer = response.choices[0].message.content.strip()
+                await self.add_to_history(chat_id, role="assistant", content=answer)
+        else:
+            logger.error('No choices available in the response')
+            return "Не удалось получить ответ."
 
         return answer
 
