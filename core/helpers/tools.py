@@ -45,7 +45,7 @@ chat_settings = {
     "zoom": {"active_chat": -1002085114945, "thread_id": 30},
     "fll21free": {"active_chat": -1002021584528, "thread_id": 52},
     "gydra": {"active_chat": 1002042364255, "thread_id": 76},
-    "receptor": {"active_chat": -1002117966241,"thread_id": 36},
+    "receptor": {"active_chat": -1002117966241, "thread_id": 36},
 }
 
 robokassa_payment_url = 'https://auth.robokassa.ru/Merchant/Index.aspx'
