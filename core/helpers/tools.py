@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 ALLOWED_CHAT_IDS = {
     -1001647523732, -1001700103389, -1001537420102,
     -1002004353654, -1001170569681, -1002021584528,
-    -1002117966241
+    -1002117966241, -1002042364255
 }
 
 ALLOWED_CHAT_THREAD_IDS = {
@@ -29,7 +29,8 @@ ALLOWED_CHAT_THREAD_IDS = {
     -1001921488615: {9078},
     -1002085114945: {28},
     -1002021584528: {136},
-    -1002117966241: {36}
+    -1002117966241: {36},
+    -1002042364255: {21}
 }
 
 chat_settings = {
@@ -43,7 +44,7 @@ chat_settings = {
     "girls": {"active_chat": -1001921488615, "thread_id": 9075},
     "zoom": {"active_chat": -1002085114945, "thread_id": 30},
     "fll21free": {"active_chat": -1002021584528, "thread_id": 52},
-    "gydra": {"active_chat": 12, "thread_id": 12},
+    "gydra": {"active_chat": 1002042364255, "thread_id": 76},
     "receptor": {"active_chat": -1002117966241,"thread_id": 36},
 }
 
