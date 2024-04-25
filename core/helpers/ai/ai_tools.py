@@ -282,7 +282,7 @@ class OpenAI:
         self.client = AsyncOpenAI(api_key=config.api_key, base_url='http://176.222.52.92:9000/v1')
         self.history = UserHistoryManager()
         self.max_retries = 5
-        self.max_tokens = 16096
+        self.max_tokens = 125096
         self.config_tokens = 1024
         self.max_history_size = 10
         self.n_choices = n_choices
@@ -291,7 +291,7 @@ class OpenAI:
         self.retries = 0
         self.show_tokens = False
         self.args = {
-            "temperature": 0.1, "max_tokens": 1024, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8,
+            "temperature": 0.1, "max_tokens": 4095, "top_p": 1, "frequency_penalty": 0, "presence_penalty": 0.8,
             "stop": None
         }
 

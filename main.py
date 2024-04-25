@@ -20,7 +20,6 @@ from app import app
 from core import setup_routers
 from database.databasemanager import DatabaseManager
 from database.models import NeuropunkPro
-from middlewares.basic import BasicMiddleware
 from middlewares.database import DbSessionMiddleware
 from middlewares.l10n import L10nMiddleware
 from tools.dependencies import container
@@ -101,7 +100,6 @@ async def main():
     storage = RedisStorage(redis=redis_client)
     worker = Dispatcher(storage=storage, fsm_strategy=FSMStrategy.USER_IN_CHAT, events_isolation=SimpleEventIsolation())
     router = setup_routers()
-    router.message.middleware(BasicMiddleware(session_maker))
     worker.update.middleware(db_middleware)
     worker.update.middleware(L10nMiddleware(l10n))
     worker.include_router(router)

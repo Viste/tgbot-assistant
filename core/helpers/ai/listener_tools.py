@@ -4,7 +4,7 @@ import essentia.standard as es
 import numpy as np
 from openai import AsyncOpenAI
 
-from tools.ai.ai_tools import UserHistoryManager
+from core.helpers.ai.ai_tools import UserHistoryManager
 from tools.dependencies import container
 
 logger = logging.getLogger(__name__)

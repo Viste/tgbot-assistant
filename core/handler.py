@@ -13,12 +13,12 @@ from fluent.runtime import FluentLocalization
 from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.helpers.ai.ai_tools import OpenAI, OpenAIDialogue
+from core.helpers.ai.listener_tools import OpenAIListener, Audio
 from core.helpers.tools import send_reply, handle_exception, MessageProcessor
 from database.databasemanager import DatabaseManager
 from database.models import Calendar, StreamEmails, NeuropunkPro, User
 from filters.filters import ChatFilter, ForumFilter, PrivateFilter, IsActiveChatFilter, IsAdmin
-from tools.ai.ai_tools import OpenAI, OpenAIDialogue
-from tools.ai.listener_tools import OpenAIListener, Audio
 from tools.dependencies import container
 from tools.states import Text, Dialogue, DAImage, Demo, RegisterStates
 from tools.utils import split_into_chunks, check_bit_rate, email_patt, check
