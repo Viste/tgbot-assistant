@@ -44,7 +44,7 @@ chat_settings = {
     "girls": {"active_chat": -1001921488615, "thread_id": 9075},
     "zoom": {"active_chat": -1002085114945, "thread_id": 30},
     "fll21free": {"active_chat": -1002021584528, "thread_id": 52},
-    "gydra": {"active_chat": 1002042364255, "thread_id": 76},
+    "gydra": {"active_chat": -1002042364255, "thread_id": 76},
     "receptor": {"active_chat": -1002117966241, "thread_id": 36},
 }
 

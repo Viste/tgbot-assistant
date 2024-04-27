@@ -26,7 +26,7 @@ class StreamEmails(Base):
     __tablename__ = "stream_emails"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    stream_id = Column(Integer, nullable=False, autoincrement=False, unique=True)
+    stream_id = Column(Integer, nullable=False, unique=True)
     email = Column(String(255), nullable=False, unique=False)
     mariadb_engine = "InnoDB"
 
@@ -128,3 +128,33 @@ class Customer(Base):
     is_admin = Column(Boolean)
     is_banned = Column(Boolean)
     mariadb_engine = "InnoDB"
+    
+
+class CourseProgram(Base):
+    __tablename__ = 'course_programs'
+    id = Column(Integer, primary_key=True)
+    course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=False)
+    course = relationship('Course', backref=backref('programs', lazy=True))
+
+
+class Homework(Base):
+    __tablename__ = 'homeworks'
+    id = Column(Integer, primary_key=True)
+    course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=False)
+    course = relationship('Course', backref=backref('homeworks', lazy=True))
+
+
+class HomeworkSubmission(Base):
+    __tablename__ = 'homework_submissions'
+    id = Column(Integer, primary_key=True)
+    homework_id = Column(Integer, ForeignKey('homeworks.id'), nullable=False)
+    student_id = Column(Integer, ForeignKey('customers.id'), nullable=False)
+    file_path = Column(String(255))
+    grade = Column(Integer)
+    comments = Column(Text)
+    homework = relationship('Homework', backref=backref('submissions', lazy=True))
+    student = relationship('Customer', backref=backref('submissions', lazy=True))
