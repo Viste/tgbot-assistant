@@ -154,7 +154,7 @@ class DatabaseManager:
 
         try:
             new_user = Customer(email=email, telegram_id=str(telegram_id), password=generate_password_hash(password), username=name,
-                                allowed_courses='', is_moderator=False, is_admin=False, is_banned=False)
+                                allowed_courses='academy', is_moderator=False, is_admin=False, is_banned=False)
             self.session.add(new_user)
             await self.session.commit()
             return ("Вы успешно зарегистрированы! Логин это твой username в телеграмм!\n"
