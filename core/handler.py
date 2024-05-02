@@ -277,6 +277,24 @@ async def info_user(message: types.Message, l10n: FluentLocalization):
     await message.answer(l10n.format_value("help"))
 
 
+@router.message(Command(commands="reg"), F.chat.type.in_({'group', 'supergroup'}), (F.message.chat.id == -1002021584528 and F.message_thread_id == 543))
+async def register_course(message: types.Message, session: AsyncSession):
+    telegram_id = message.from_user.id
+    course_shortname = "fll21free"
+    db_manager = DatabaseManager(session)
+    result = await db_manager.add_course_to_customer(telegram_id, course_shortname)
+    await message.answer(result)
+
+
+@router.message(Command(commands="academy"), ChatFilter())
+async def register_course(message: types.Message, session: AsyncSession):
+    telegram_id = message.from_user.id
+    course_shortname = "academy"
+    db_manager = DatabaseManager(session)
+    result = await db_manager.add_course_to_customer(telegram_id, course_shortname)
+    await message.answer(result)
+
+
 @router.message(PrivateFilter(), Command(commands="demo", ignore_case=True))
 async def start_cmd(message: types.Message, state: FSMContext, session: AsyncSession):
     first_name = message.chat.first_name

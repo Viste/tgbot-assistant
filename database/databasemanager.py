@@ -163,3 +163,21 @@ class DatabaseManager:
         except IntegrityError:
             await self.session.rollback()
             return "Ошибка при создании пользователя."
+
+    async def add_course_to_customer(self, telegram_id: int, course_shortname: str) -> str:
+        stmt = select(Customer).where(Customer.telegram_id == str(telegram_id))
+        result = await self.session.execute(stmt)
+        customer = result.scalar_one_or_none()
+
+        if customer:
+            current_courses = customer.allowed_courses.split(',')
+            if course_shortname in current_courses:
+                return "Курс уже добавлен к пользователю."
+
+            current_courses.append(course_shortname)
+            customer.allowed_courses = ','.join(current_courses)
+
+            await self.session.commit()
+            return "Курс успешно добавлен."
+        else:
+            return "Пользователь не найден."

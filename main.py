@@ -37,7 +37,8 @@ logger = logging.getLogger(__name__)
 async def set_bot_commands(bot: Bot):
     commands = [BotCommand(command="course", description="Купить PRO курс/Zoom по подписке"),
                 BotCommand(command="help", description="Помощь"),
-                BotCommand(command="demo", description="Прислать демку"), ]
+                BotCommand(command="academy", description="Получения контента с общего потока нейропанк академии"),
+                BotCommand(command="reg", description="Регистрация на бесплатном курсе FL21!!! РАБОТАЕТ ТОЛЬКО В СПЕЦ РАЗДЕЛЕ КУРСА!!!!"),]
     await bot.set_my_commands(commands)
 
 
