@@ -65,7 +65,7 @@ async def check_subscriptions_and_unban():
                         # Уведомляем пользователя за 7 дней до окончания подписки
                         if days_until_subscription_end <= 7:
                             try:
-                                await paper.send_message(chat_id=telegram_id, text=f"Не забудьте продлить подписку! Осталось дней до конца подписки {days_until_subscription_end}!\n Дата окончания: {user.subscription_end}.")
+                                await paper.send_message(chat_id=telegram_id, text=f"Не забудьте продлить подписку на курс НЕЙРОПАНК PRO (КОНТЕНТ ПО ПОДПИСКЕ) by Paperclip!\nОсталось дней до конца подписки {days_until_subscription_end}!\n Дата окончания: {user.subscription_end}.")
                                 logger.info(f"Notified user {telegram_id} about subscription ending in 7 days")
                             except TelegramForbiddenError as e:
                                 logger.error(f"Failed to start conversation member for user {telegram_id}: {e}")
