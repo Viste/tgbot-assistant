@@ -71,19 +71,24 @@ async def check_subscriptions_and_unban():
                                 logger.error(f"Failed to start conversation member for user {telegram_id}: {e}")
                                 continue  # Продолжаем обработку следующих пользователей
 
-                    if not is_subscription_active:
+                    if is_subscription_active is False:
                         # Если подписка истекла сегодня
                         if user is None or (user.subscription_end and datetime.utcnow() >= user.subscription_end):
                             try:
                                 await paper.unban_chat_member(chat_id=np_pro_chat, user_id=telegram_id)
                             except Exception as e:
                                 logger.info(f"Kick user {telegram_id} failed because {e} in chat -1001814931266")
-                            await paper.send_message(chat_id=telegram_id, text="Ваша подписка на Нейропанк Про закончилась. Вы были удалены из чата.")
+                                continue
+                            try:
+                                await paper.send_message(chat_id=telegram_id, text="Ваша подписка на Нейропанк Про закончилась. Вы были удалены из чата.")
+                            except TelegramForbiddenError as e:
+                                logger.error(f"Failed to start conversation member for user {telegram_id}: {e}")
+                                continue
                             await manager.delete_neuropunk_pro_user(telegram_id)
                             logger.info(f"Kicked user {telegram_id} from chat -1001814931266")
             except TelegramBadRequest as e:
                 logger.error(f"Failed to get chat member for user {telegram_id}: {e}")
-                continue  # Продолжаем обработку следующих пользователей
+                continue
 
 
 def run_flask():
@@ -109,7 +114,7 @@ async def main():
     # await set_bot_admin_commands(paper)
     logger.info("Starting bot")
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_subscriptions_and_unban, 'interval', hours=12)
+    scheduler.add_job(check_subscriptions_and_unban, 'interval', minutes=30)
 
     scheduler.start()
     await worker.start_polling(paper, allowed_updates=useful_updates, handle_signals=True)
