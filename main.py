@@ -111,10 +111,9 @@ async def main():
     worker.include_router(router)
     useful_updates = worker.resolve_used_update_types()
     await set_bot_commands(paper)
-    # await set_bot_admin_commands(paper)
     logger.info("Starting bot")
     scheduler = AsyncIOScheduler()
-    scheduler.add_job(check_subscriptions_and_unban, 'interval', minutes=30)
+    scheduler.add_job(check_subscriptions_and_unban, 'interval', hours=12)
 
     scheduler.start()
     await worker.start_polling(paper, allowed_updates=useful_updates, handle_signals=True)
