@@ -286,6 +286,15 @@ async def reg_free(message: types.Message, session: AsyncSession):
     await message.reply(result)
 
 
+@router.message(Command(commands="basic"), F.chat.type.in_({'group', 'supergroup'}), (F.message.chat.id == -1001922960346 and F.message_thread_id == 41181))
+async def reg_academy(message: types.Message, session: AsyncSession):
+    telegram_id = message.from_user.id
+    course_shortname = "np_basic"
+    db_manager = DatabaseManager(session)
+    result = await db_manager.add_course_to_customer(telegram_id, course_shortname)
+    await message.reply(result)
+
+
 @router.message(Command(commands="academy"), F.chat.type.in_({'group', 'supergroup'}), (F.message.chat.id == -1001647523732))
 async def reg_academy(message: types.Message, session: AsyncSession):
     telegram_id = message.from_user.id
