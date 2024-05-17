@@ -127,13 +127,13 @@ class Customer(Base):
     is_moderator = Column(Boolean)
     is_admin = Column(Boolean)
     is_banned = Column(Boolean)
+    is_podpivas = Column(Boolean, default=False, nullable=False)
     avatar_url = Column(String(255), nullable=True)
     city = Column(String(255), nullable=True)
     headphones = Column(String(255), nullable=True)
     sound_card = Column(String(255), nullable=True)
     pc_setup = Column(String(255), nullable=True)
     mariadb_engine = "InnoDB"
-    
 
 class CourseProgram(Base):
     __tablename__ = 'course_programs'
