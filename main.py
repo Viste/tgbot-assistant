@@ -47,9 +47,9 @@ async def check_subscriptions_and_unban():
         manager = DatabaseManager(session)
         connect = await load_config(session_maker)
         paper = Bot(token=connect.token)
-        chat_member_ids = await manager.get_all_chat_member_telegram_ids()
+        customer_ids = await manager.get_all_customer_telegram_ids()
 
-        for telegram_id in chat_member_ids:
+        for telegram_id in customer_ids:
             try:
                 # Проверяем, является ли пользователь участником чата
                 member = await paper.get_chat_member(chat_id=np_pro_chat, user_id=telegram_id)

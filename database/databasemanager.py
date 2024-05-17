@@ -50,51 +50,6 @@ class DatabaseManager:
         emails = [email[0] for email in result.all() if email[0] is not None]
         return emails
 
-    async def create_chat_member(self, telegram_id: int, telegram_username: str, chat_name: str, chat_id: int,
-                                 status: str = 'active') -> ChatMember:
-        stmt = select(ChatMember).where(ChatMember.telegram_id == telegram_id, ChatMember.chat_id == chat_id)
-        result = await self.session.execute(stmt)
-        chat_member = result.scalar_one_or_none()
-
-        if chat_member:
-            updated = False
-            if chat_member.telegram_username != telegram_username:
-                chat_member.telegram_username = telegram_username
-                updated = True
-            if chat_member.chat_name != chat_name:
-                chat_member.chat_name = chat_name
-                updated = True
-            if chat_member.status != status:
-                chat_member.status = status
-                updated = True
-
-            if updated:
-                await self.session.commit()
-                logging.info(f"Chat member updated: telegram_id={telegram_id}, chat_name={chat_name}")
-            else:
-                logging.info(
-                    f"Chat member already exists with the same data: telegram_id={telegram_id}, chat_name={chat_name}")
-            return chat_member
-        else:
-            # Если член чата не существует, создаем новую запись
-            chat_member = ChatMember(telegram_id=telegram_id, telegram_username=telegram_username, chat_name=chat_name,
-                                     chat_id=chat_id, status=status)
-            self.session.add(chat_member)
-            await self.session.commit()
-            logging.info(f"New chat member created: telegram_id={telegram_id}, chat_name={chat_name}")
-            return chat_member
-
-    async def update_chat_member_status(self, telegram_id: int, new_status: str) -> None:
-        stmt = select(ChatMember).where(ChatMember.telegram_id == telegram_id)
-        result = await self.session.execute(stmt)
-        chat_member = result.scalar_one_or_none()
-        if chat_member:
-            chat_member.status = new_status
-            await self.session.commit()
-            logger.info(f"Chat member status updated: telegram_id={telegram_id}, new_status={new_status}")
-        else:
-            logger.info(f"No chat member found for telegram_id={telegram_id} to update status")
-
     async def extend_subscription(self, user_id: int, model: Type[DeclarativeMeta]) -> None:
         user = await self.get_user(user_id, model)
         if user and user.subscription_end and user.subscription_end > datetime.utcnow():
@@ -104,11 +59,11 @@ class DatabaseManager:
         else:
             logger.info(f"No active subscription found for user_id={user_id} to extend")
 
-    async def get_all_chat_member_telegram_ids(self) -> list[int]:
-        stmt = select(ChatMember.telegram_id).distinct()
+    async def get_all_customer_telegram_ids(self) -> list[int]:
+        stmt = select(Customer.telegram_id).distinct()
         result = await self.session.execute(stmt)
-        telegram_ids = [telegram_id[0] for telegram_id in result.all()]
-        logger.info(f"Retrieved {len(telegram_ids)} unique telegram_ids from chat_members")
+        telegram_ids = [int(telegram_id[0]) for telegram_id in result.all()]
+        logger.info(f"Retrieved {len(telegram_ids)} unique telegram_ids from customers")
         return telegram_ids
 
     async def is_user_banned(self, telegram_id: int) -> bool:
