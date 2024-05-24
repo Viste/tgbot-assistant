@@ -1,7 +1,6 @@
 import html
 import logging
 import os
-from datetime import datetime
 
 from aiogram import types, F, Router, Bot
 from aiogram.enums import ParseMode
@@ -10,18 +9,17 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from fluent.runtime import FluentLocalization
-from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.ai.ai_tools import OpenAI, OpenAIDialogue
 from core.helpers.ai.listener_tools import OpenAIListener, Audio
 from core.helpers.tools import send_reply, handle_exception, MessageProcessor
 from database.databasemanager import DatabaseManager
-from database.models import Calendar, StreamEmails, NeuropunkPro, User
+from database.models import NeuropunkPro, User
 from filters.filters import ChatFilter, ForumFilter, PrivateFilter, IsActiveChatFilter, IsAdmin
 from tools.dependencies import container
 from tools.states import Text, Dialogue, DAImage, Demo, RegisterStates
-from tools.utils import split_into_chunks, check_bit_rate, email_patt, check
+from tools.utils import split_into_chunks, email_patt, check
 
 config = container.get('config')
 
@@ -32,32 +30,6 @@ openai = OpenAI()
 openai_dialogue = OpenAIDialogue()
 audio = Audio()
 channel = config.channel
-
-
-@router.message(IsActiveChatFilter(), F.chat.type.in_({'group', 'supergroup'}), F.content_type.in_({'text', 'animation', 'sticker', 'photo'}))
-async def process_obs_content(message: types.Message, bot: Bot) -> None:
-    nickname = message.from_user.full_name
-    content = None
-    is_gif = False
-
-    if message.content_type == 'text':
-        content = html.escape(message.text)
-    elif message.content_type in ['animation', 'sticker', 'photo']:
-        content_id = None
-        if message.content_type == 'photo':
-            content_id = message.photo[-1].file_id
-        elif message.content_type == 'animation':
-            content_id = message.animation.file_id
-        elif message.content_type == 'sticker':
-            content_id = message.sticker.thumbnail.file_id
-
-        if content_id:
-            is_gif = True
-            file_info = await bot.get_file(content_id)
-            content = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
-
-    if content:
-        MessageProcessor.add_message(nickname, content, is_gif)
 
 
 @router.message(PrivateFilter(), Command(commands="start"))
@@ -155,6 +127,32 @@ async def process_ask_forum(message: types.Message) -> None:
     for index, chunk in enumerate(chunks):
         if index == 0:
             await send_reply(message, chunk)
+
+
+@router.message(IsActiveChatFilter(), F.chat.type.in_({'group', 'supergroup'}), F.content_type.in_({'text', 'animation', 'sticker', 'photo'}))
+async def process_obs_content(message: types.Message, bot: Bot) -> None:
+    nickname = message.from_user.full_name
+    content = None
+    is_gif = False
+
+    if message.content_type == 'text':
+        content = html.escape(message.text)
+    elif message.content_type in ['animation', 'sticker', 'photo']:
+        content_id = None
+        if message.content_type == 'photo':
+            content_id = message.photo[-1].file_id
+        elif message.content_type == 'animation':
+            content_id = message.animation.file_id
+        elif message.content_type == 'sticker':
+            content_id = message.sticker.thumbnail.file_id
+
+        if content_id:
+            is_gif = True
+            file_info = await bot.get_file(content_id)
+            content = f"https://api.telegram.org/file/bot{config.token}/{file_info.file_path}"
+
+    if content:
+        MessageProcessor.add_message(nickname, content, is_gif)
 
 
 @router.message(PrivateFilter(), (F.text.regexp(r"[\s\S]+?Киберпапер[\s\S]+?") | F.text.startswith("Киберпапер")))
@@ -302,96 +300,3 @@ async def reg_academy(message: types.Message, session: AsyncSession):
     db_manager = DatabaseManager(session)
     result = await db_manager.add_course_to_customer(telegram_id, course_shortname)
     await message.reply(result)
-
-
-@router.message(PrivateFilter(), Command(commands="demo", ignore_case=True))
-async def start_demo(message: types.Message, state: FSMContext, session: AsyncSession):
-    first_name = message.chat.first_name
-    now = datetime.now()
-    result = await session.execute(select(Calendar).order_by(desc(Calendar.end_time)).limit(1))
-    close_date = result.scalar_one_or_none()
-
-    if close_date and now < close_date.end_time:
-        await message.answer(f"Привет {first_name}!\nЯ принимаю демки на эфиры Нейропанк академии\n"
-                             f"Для начала пришли мне свою почту(gmail), чтобы я предоставил тебе доступ к стриму")
-        await state.set_state(Demo.process)
-    else:
-        await message.answer(f"Привет {first_name}!\nСейчас не время присылать демки, попробуй позже")
-
-
-@router.message(PrivateFilter(), Demo.process)
-async def process_demo(message: types.Message, state: FSMContext, session: AsyncSession):
-    email = message.text
-    first_name = message.from_user.first_name
-    if check(email, email_patt):
-        await state.update_data(email=str(message.text))
-        new_email = StreamEmails(email=str(message.text), stream_id=1)
-        async with session.begin():
-            session.add(new_email)
-            await session.commit()
-        await message.reply(f"{first_name}, записал твой Email! Самое время прислать демку!\n"
-                            "Пожалуйста, убедись что отправляешь 320 mp3 длиной не менее 2 минут,'\n"
-                            "с полностью прописанными тегами\n"
-                            """и названием файла в виде "Автор - Трек".\n""")
-        await state.set_state(Demo.get)
-    else:
-        await message.reply(f"{first_name}, это не похоже на Email попробуй снова")
-
-
-@router.message(PrivateFilter(), Demo.get, F.content_type.in_({'audio'}))
-async def get_and_send_from_state(message: types.Message, state: FSMContext, bot: Bot, l10n: FluentLocalization):
-    uid = message.from_user.id
-
-    username = message.chat.username
-    track = message.audio.file_id
-    duration = message.audio.duration
-    artist = message.audio.performer
-    title = message.audio.title
-    data = await state.get_data()
-    email = data['email']
-
-    logger.info('Full message info: %s', message)
-    logger.info('username: %s, duration: %s, artist: %s , title: %s, file_name: %s', message.chat.username,
-                message.audio.duration, message.audio.performer, message.audio.title,
-                message.audio.file_name)
-
-    file_info = await bot.get_file(track)
-    file_data = file_info.file_path
-    await bot.download_file(file_data, f"{str(uid)}.mp3")
-
-    if username is None:
-        await message.reply(l10n.format_value("empty-name-error"))
-    elif duration <= 119:
-        await message.reply(l10n.format_value("short-demo-error"))
-    elif title is None:
-        await message.reply(l10n.format_value("empty-title-tag-error"))
-    elif artist is None:
-        await message.reply(l10n.format_value("empty-artist-tag-error"))
-    elif check_bit_rate(f"{str(uid)}.mp3") is False:
-        await message.reply(l10n.format_value("bad-bitrate"))
-        os.remove(f"{str(uid)}.mp3")
-    else:
-        text = f"Пришел трек.\n" \
-               f"Отправил: @{username}\n" \
-               f"Почта: {email}\n" \
-               f"Длина файла: {duration} секунды\n" \
-               f"title: {title}\n" \
-               f"Artist: {artist}"
-        await bot.send_audio(config.channel, audio=track, caption=text)
-
-        await message.reply(l10n.format_value("demo-thanks-message"))
-        os.remove(f"{str(uid)}.mp3")
-        await state.clear()
-
-
-@router.message(Command(commands="emails"), IsAdmin())
-async def mails_get(message: types.Message, session: AsyncSession):
-    stmt = select(StreamEmails.email)
-    result = await session.execute(stmt)
-    emails = result.fetchall()
-    if emails:
-        email_list = [email[0] for email in emails]
-        all_emails_str = ", ".join(email_list)
-        await message.reply(all_emails_str, parse_mode=None)
-    else:
-        await message.reply("Нет записей", parse_mode=None)

@@ -15,7 +15,7 @@ from werkzeug.security import check_password_hash
 from wtforms import form, fields, validators
 
 from core.helpers.tools import chat_settings, ChatState, MessageProcessor
-from database.models import Calendar, NeuropunkPro, Zoom, StreamEmails, User, Config, ChatMember
+from database.models import NeuropunkPro, Zoom, User, Config
 from tools.utils import config
 
 logger = logging.getLogger(__name__)
@@ -190,43 +190,6 @@ class MyModelView(ModelView):
         return redirect(url_for('login'))
 
 
-class OnlineView(BaseView):
-    @expose('/', methods=('GET', 'POST'))
-    @login_required
-    def index(self):
-        if request.method == 'POST':
-            dt = request.form.get('end_time')
-            new_date = Calendar(end_time=dt)
-            db.session.add(new_date)
-            db.session.commit()
-            flash('Время окончания приема демок установлено.')
-            return redirect(url_for('.index'))
-        return self.render('admin/online_form.html')
-
-    def is_accessible(self):
-        return current_user.is_authenticated
-
-    def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('login'))
-
-
-class OfflineView(BaseView):
-    @expose('/', methods=('POST',))
-    @login_required
-    def index(self):
-        db.session.query(Calendar).delete()
-        db.session.query(StreamEmails).delete()
-        db.session.commit()
-        flash('Прием демок выключен.')
-        return redirect(url_for('admin.index'))
-
-    def is_accessible(self):
-        return current_user.is_authenticated
-
-    def inaccessible_callback(self, name, **kwargs):
-        return redirect(url_for('login'))
-
-
 class StreamChatView(BaseView):
     @expose('/', methods=('GET', 'POST'))
     @login_required
@@ -315,19 +278,14 @@ my_redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis
 
 admin_panel = Admin(app, name='Cyberpaper', index_view=MyAdminIndexView(), base_template='admin/my_master.html', template_mode='bootstrap4', url='/admin')
 
-admin_panel.add_view(OnlineView(name='Включение приема демок', endpoint='online', category='Управление Ботом'))
-admin_panel.add_view(OfflineView(name='Выключение приема демок', endpoint='offline', category='Управление Ботом'))
 admin_panel.add_view(StreamChatView(name='Управлением Чатом', endpoint='stream_chat', category='Управление Ботом'))
 admin_panel.add_view(EmailsView(name='Получение Email c курсов', endpoint='emails', category='Управление Ботом'))
 
-admin_panel.add_view(MyModelView(menu_class_name='Таблица даты окончания приема демок', model=Calendar, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица курса Pro по подписке', model=NeuropunkPro, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица курса Zoom', model=Zoom, session=db.session, category="Управление базой"))
-admin_panel.add_view(MyModelView(menu_class_name='Таблица с эмейлами', model=StreamEmails, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица c админами', model=Admins, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица конфига', model=Config, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица подписок на приват', model=User, session=db.session, category="Управление базой"))
-admin_panel.add_view(MyModelView(menu_class_name='Таблица всех пользователей', model=ChatMember, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица курсов', model=Course, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица пользователей с курсов', model=Customer, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица трансляций с курсов', model=Broadcast, session=db.session, category="Управление базой"))

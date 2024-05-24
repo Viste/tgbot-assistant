@@ -1,8 +1,7 @@
 from enum import Enum, unique
 
-from sqlalchemy import Column, BigInteger, TIMESTAMP, String, Float, DateTime, Integer, Boolean, Text, ForeignKey
+from sqlalchemy import Column, BigInteger, String, Float, DateTime, Integer, Boolean, Text, ForeignKey
 from sqlalchemy.orm import relationship, backref
-from sqlalchemy.sql import expression
 
 from database.base import Base
 
@@ -12,23 +11,6 @@ class MemberStatus(Enum):
     ACTIVE = "active"
     LEFT = "left"
     KICKED = "kicked"
-
-
-class Calendar(Base):
-    __tablename__ = "calendar"
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True, unique=True)
-    end_time = Column(TIMESTAMP, unique=True, nullable=False)
-    mariadb_engine = "InnoDB"
-
-
-class StreamEmails(Base):
-    __tablename__ = "stream_emails"
-
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    stream_id = Column(Integer, nullable=False, unique=True)
-    email = Column(String(255), nullable=False, unique=False)
-    mariadb_engine = "InnoDB"
 
 
 class User(Base):
@@ -55,19 +37,6 @@ class NeuropunkPro(Base):
     subscription_start = Column(DateTime, nullable=True)
     subscription_end = Column(DateTime, nullable=True)
     subscription_status = Column(String(50), nullable=False, default='inactive')
-    mariadb_engine = "InnoDB"
-
-
-class ChatMember(Base):
-    __tablename__ = "chat_members"
-
-    id = Column(BigInteger, primary_key=True, autoincrement=True)
-    telegram_id = Column(BigInteger, nullable=False)
-    telegram_username = Column(String(255), nullable=True)
-    chat_name = Column(String(255), nullable=False)
-    chat_id = Column(BigInteger, nullable=False)
-    status = Column(String(50), nullable=False, default='active')
-    banned = Column(Boolean, default=False, server_default=expression.false())
     mariadb_engine = "InnoDB"
 
 
@@ -134,6 +103,7 @@ class Customer(Base):
     sound_card = Column(String(255), nullable=True)
     pc_setup = Column(String(255), nullable=True)
     mariadb_engine = "InnoDB"
+
 
 class CourseProgram(Base):
     __tablename__ = 'course_programs'

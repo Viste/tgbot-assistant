@@ -7,7 +7,6 @@ from typing import List
 from xml.etree.ElementTree import fromstring
 
 import aiohttp
-import mutagen
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -79,15 +78,6 @@ async def check_payment(url) -> dict:
 
 def check(string, performer):
     if re.search(performer, string):
-        return True
-    else:
-        return False
-
-
-def check_bit_rate(file):
-    f = mutagen.File(file)
-    bit_rate = f.info.bitrate / 1000
-    if bit_rate >= 320:
         return True
     else:
         return False

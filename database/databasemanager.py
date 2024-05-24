@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from werkzeug.security import generate_password_hash
 
-from database.models import ChatMember, Config, NeuropunkPro, Customer
+from database.models import Config, NeuropunkPro, Customer
 
 logger = logging.getLogger(__name__)
 
@@ -67,7 +67,7 @@ class DatabaseManager:
         return telegram_ids
 
     async def is_user_banned(self, telegram_id: int) -> bool:
-        result = await self.session.execute(select(ChatMember.banned).where(ChatMember.telegram_id == telegram_id))
+        result = await self.session.execute(select(Customer.is_banned).where(Customer.telegram_id == telegram_id))
         chat_member_bans = result.scalars().all()
         return any(chat_member_bans)
 
