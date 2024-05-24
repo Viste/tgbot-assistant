@@ -40,7 +40,7 @@ login_manager.login_view = "login"
 
 @login_manager.user_loader
 def load_user(user_id):
-    user = Admins.query.get(int(user_id))
+    user = Customer.query.get(int(user_id))
     print(user)
     return user
 
@@ -105,35 +105,6 @@ class Customer(db.Model):
         return str(self.id)
 
 
-class Admins(db.Model):
-    __tablename__ = 'admins'
-
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(50), unique=True)
-    telegram_id: int = db.Column(db.BigInteger, nullable=False, unique=True)
-    password_hash = db.Column(db.String(256))
-    is_admin = db.Column(db.Boolean, default=False)
-    mariadb_engine = "InnoDB"
-
-    @property
-    def is_authenticated(self):
-        return True
-
-    @property
-    def is_active(self):
-        # пользователь активен, если он не забанен.
-        return self.is_admin
-
-    @property
-    def is_anonymous(self):
-        # должно возвращать False, так как пользователи не анонимны.
-        return False
-
-    def get_id(self):
-        # Возвращаем уникальный идентификатор пользователя в виде строки для управления пользовательской сессией.
-        return str(self.id)
-
-
 class LoginForm(form.Form):
     login = fields.StringField(validators=[validators.InputRequired()])
     password = fields.PasswordField(validators=[validators.InputRequired()])
@@ -151,7 +122,7 @@ class LoginForm(form.Form):
             raise validators.ValidationError('Вы не администратор')
 
     def get_user(self):
-        return db.session.query(Admins).filter_by(username=self.login.data).first()
+        return db.session.query(Customer).filter_by(username=self.login.data).first()
 
 
 class MyAdminIndexView(admin.AdminIndexView):
@@ -283,7 +254,6 @@ admin_panel.add_view(EmailsView(name='Получение Email c курсов', 
 
 admin_panel.add_view(MyModelView(menu_class_name='Таблица курса Pro по подписке', model=NeuropunkPro, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица курса Zoom', model=Zoom, session=db.session, category="Управление базой"))
-admin_panel.add_view(MyModelView(menu_class_name='Таблица c админами', model=Admins, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица конфига', model=Config, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица подписок на приват', model=User, session=db.session, category="Управление базой"))
 admin_panel.add_view(MyModelView(menu_class_name='Таблица курсов', model=Course, session=db.session, category="Управление базой"))
