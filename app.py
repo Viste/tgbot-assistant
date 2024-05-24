@@ -115,7 +115,7 @@ class LoginForm(form.Form):
         if user is None:
             raise validators.ValidationError('Вы не зарегистрированы')
 
-        if not check_password_hash(user.password_hash, self.password.data):
+        if not check_password_hash(user.password, self.password.data):
             raise validators.ValidationError('Неправильный Пароль')
 
         if user.is_admin is False:
