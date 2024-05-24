@@ -17,12 +17,6 @@ class Dialogue(StatesGroup):
     result = State()
 
 
-class Demo(StatesGroup):
-    start = State()
-    process = State()
-    get = State()
-
-
 class Payment(StatesGroup):
     start = State()
     process = State()
@@ -39,10 +33,6 @@ class ZoomPayment(StatesGroup):
     start = State()
     process = State()
     end = State()
-
-
-class Mail(StatesGroup):
-    start = State()
 
 
 class DAImage(StatesGroup):

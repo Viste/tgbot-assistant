@@ -85,6 +85,7 @@ async def check_subscriptions_and_unban():
                                 logger.error(f"Failed to start conversation member for user {telegram_id}: {e}")
                                 continue
                             await manager.delete_neuropunk_pro_user(telegram_id)
+                            await manager.remove_course_from_customer(telegram_id, "np_pro_sub")
                             logger.info(f"Kicked user {telegram_id} from chat -1001814931266")
             except TelegramBadRequest as e:
                 logger.error(f"Failed to get chat member for user {telegram_id}: {e}")

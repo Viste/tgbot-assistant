@@ -9,7 +9,7 @@ from fluent.runtime import FluentLocalization
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.tools import Robokassa, send_payment_message, update_or_create_user
-from core.helpers.tools import generate_robokassa_link, get_payment_status_message
+from core.helpers.tools import generate_robokassa_link, get_payment_status_message, reg_course
 from database.models import NeuropunkPro, User, Zoom
 from filters.filters import PrivateFilter
 from tools.data import Merchant, Order
@@ -98,6 +98,7 @@ async def pay_course_end(message: types.Message, state: FSMContext, session: Asy
         await message.answer(text=f"Для входа в чат курса перейди по ссылке: {link.invite_link}")
         await message.reply(status_message)
         await update_or_create_user(session, user_data, NeuropunkPro)
+        await reg_course(message, session, "np_pro_sub")
     else:
         await message.reply(status_message)
 
@@ -138,5 +139,6 @@ async def pay_course_end(message: types.Message, state: FSMContext, session: Asy
         # await message.reply(status_message)
         await message.answer(text=f"Для входа в чат курса перейди по ссылке: {link.invite_link}")
         await update_or_create_user(session, user_data, Zoom)
+        await reg_course(message, session, "zoom")
     else:
         await message.reply(status_message)

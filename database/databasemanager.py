@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from werkzeug.security import generate_password_hash
 
-from database.models import Config, NeuropunkPro, Customer
+from database.models import Config, NeuropunkPro, Customer, CourseRegistration, Course
 
 logger = logging.getLogger(__name__)
 
@@ -120,19 +120,67 @@ class DatabaseManager:
             return "Ошибка при создании пользователя."
 
     async def add_course_to_customer(self, telegram_id: int, course_shortname: str) -> str:
-        stmt = select(Customer).where(Customer.telegram_id == str(telegram_id))
-        result = await self.session.execute(stmt)
-        customer = result.scalar_one_or_none()
+        # Находим пользователя по telegram_id
+        stmt_customer = select(Customer).where(Customer.telegram_id == str(telegram_id))
+        result_customer = await self.session.execute(stmt_customer)
+        customer = result_customer.scalar_one_or_none()
 
-        if customer:
-            current_courses = customer.allowed_courses.split(',')
-            if course_shortname in current_courses:
-                return "Курс уже добавлен к пользователю."
-
-            current_courses.append(course_shortname)
-            customer.allowed_courses = ','.join(current_courses)
-
-            await self.session.commit()
-            return "Курс успешно добавлен."
-        else:
+        if not customer:
             return "Пользователь не найден."
+
+        # Находим курс по короткому имени
+        stmt_course = select(Course).where(Course.short_name == course_shortname)
+        result_course = await self.session.execute(stmt_course)
+        course = result_course.scalar_one_or_none()
+
+        if not course:
+            return "Курс не найден."
+
+        # Проверяем, зарегистрирован ли уже пользователь на курс
+        stmt_reg = select(CourseRegistration).where(
+            CourseRegistration.customer_id == customer.id,
+            CourseRegistration.course_id == course.id
+        )
+        result_reg = await self.session.execute(stmt_reg)
+        registration = result_reg.scalar_one_or_none()
+
+        if registration:
+            return "Курс уже добавлен к пользователю."
+
+        # Добавляем новую регистрацию
+        new_registration = CourseRegistration(customer_id=customer.id, course_id=course.id)
+        self.session.add(new_registration)
+        await self.session.commit()
+
+        return "Курс успешно добавлен."
+
+    async def remove_course_from_customer(self, telegram_id: int, course_shortname: str) -> str:
+        # Находим пользователя по telegram_id
+        stmt_customer = select(Customer).where(Customer.telegram_id == str(telegram_id))
+        result_customer = await self.session.execute(stmt_customer)
+        customer = result_customer.scalar_one_or_none()
+
+        if not customer:
+            return "Пользователь не найден."
+
+        # Находим курс по короткому имени
+        stmt_course = select(Course).where(Course.short_name == course_shortname)
+        result_course = await self.session.execute(stmt_course)
+        course = result_course.scalar_one_or_none()
+
+        if not course:
+            return "Курс не найден."
+
+        # Находим регистрацию пользователя на курс
+        stmt_reg = select(CourseRegistration).where(CourseRegistration.customer_id == customer.id, CourseRegistration.course_id == course.id)
+        result_reg = await self.session.execute(stmt_reg)
+        registration = result_reg.scalar_one_or_none()
+
+        if not registration:
+            return "Регистрация на курс не найдена."
+
+        # Удаляем регистрацию
+        await self.session.delete(registration)
+        await self.session.commit()
+
+        return "Регистрация на курс успешно удалена."

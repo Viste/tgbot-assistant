@@ -4,7 +4,7 @@ import os
 
 from aiogram import types, F, Router, Bot
 from aiogram.enums import ParseMode
-from aiogram.filters import Command, StateFilter
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
@@ -13,12 +13,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.helpers.ai.ai_tools import OpenAI, OpenAIDialogue
 from core.helpers.ai.listener_tools import OpenAIListener, Audio
-from core.helpers.tools import send_reply, handle_exception, MessageProcessor
+from core.helpers.tools import send_reply, handle_exception, MessageProcessor, reg_course
 from database.databasemanager import DatabaseManager
 from database.models import NeuropunkPro, User
 from filters.filters import ChatFilter, ForumFilter, PrivateFilter, IsActiveChatFilter, IsAdmin
 from tools.dependencies import container
-from tools.states import Text, Dialogue, DAImage, Demo, RegisterStates
+from tools.states import Text, Dialogue, DAImage, RegisterStates
 from tools.utils import split_into_chunks, email_patt, check
 
 config = container.get('config')
@@ -212,7 +212,7 @@ async def process_paint(message: types.Message, state: FSMContext) -> None:
     logger.info("%s", message)
 
 
-@router.message(PrivateFilter(), F.audio, ~StateFilter(Demo.get))
+@router.message(PrivateFilter(), F.audio)
 async def handle_audio(message: types.Message, state: FSMContext, session: AsyncSession, bot: Bot,
                        l10n: FluentLocalization):
     user_manager = DatabaseManager(session)
@@ -277,26 +277,14 @@ async def info_user(message: types.Message, l10n: FluentLocalization):
 
 @router.message(Command(commands="reg"), F.chat.type.in_({'group', 'supergroup'}), (F.message.chat.id == -1002021584528 and F.message_thread_id == 543))
 async def reg_free(message: types.Message, session: AsyncSession):
-    telegram_id = message.from_user.id
-    course_shortname = "fll21free"
-    db_manager = DatabaseManager(session)
-    result = await db_manager.add_course_to_customer(telegram_id, course_shortname)
-    await message.reply(result)
+    await reg_course(message, session, "fll21free")
 
 
 @router.message(Command(commands="basic"), F.chat.type.in_({'group', 'supergroup'}), (F.message.chat.id == -1001922960346 and F.message_thread_id == 41181))
-async def reg_academy(message: types.Message, session: AsyncSession):
-    telegram_id = message.from_user.id
-    course_shortname = "np_basic"
-    db_manager = DatabaseManager(session)
-    result = await db_manager.add_course_to_customer(telegram_id, course_shortname)
-    await message.reply(result)
+async def reg_basic(message: types.Message, session: AsyncSession):
+    await reg_course(message, session, "np_basic")
 
 
 @router.message(Command(commands="academy"), F.chat.type.in_({'group', 'supergroup'}), (F.message.chat.id == -1001647523732))
 async def reg_academy(message: types.Message, session: AsyncSession):
-    telegram_id = message.from_user.id
-    course_shortname = "academy"
-    db_manager = DatabaseManager(session)
-    result = await db_manager.add_course_to_customer(telegram_id, course_shortname)
-    await message.reply(result)
+    await reg_course(message, session, "academy")

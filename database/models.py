@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum, unique
 
 from sqlalchemy import Column, BigInteger, String, Float, DateTime, Integer, Boolean, Text, ForeignKey
@@ -61,38 +62,27 @@ class Zoom(Base):
 
 class Broadcast(Base):
     __tablename__ = 'broadcasts'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    course_id = Column(Integer, ForeignKey('courses.id'), nullable=False)
-    video_path = Column(String)
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    course_id = Column(BigInteger, ForeignKey('courses.id'), nullable=False)
+    video_path = Column(String(255))
     is_live = Column(Boolean, default=False)
+    title = Column(String(255))
     course = relationship('Course', backref=backref('broadcasts', lazy=True))
-    mariadb_engine = "InnoDB"
 
     def __repr__(self):
         return f'<Broadcast {self.id} for course {self.course.name}>'
 
 
-class Course(Base):
-    __tablename__ = 'courses'
-    id = Column(Integer, primary_key=True, autoincrement=True, unique=True)
-    name = Column(String)
-    short_name = Column(String)
-    description = Column(String, nullable=False)
-    image_url = Column(String)
-    mariadb_engine = "InnoDB"
-
-    def __repr__(self):
-        return f'<Course {self.name}>'
-
-
 class Customer(Base):
     __tablename__ = 'customers'
-    id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
-    telegram_id = Column(String, unique=True)
-    username = Column(String, nullable=False, unique=True)
-    email = Column(String, nullable=False, unique=True)
-    password = Column(String)
-    allowed_courses = Column(String,  nullable=False, default='academy')
+
+    id = Column(BigInteger, primary_key=True, unique=True, autoincrement=True)
+    telegram_id = Column(String(255), unique=True)
+    username = Column(String(255), nullable=False, unique=True)
+    email = Column(String(255), nullable=False, unique=True)
+    password = Column(String(255))
+    allowed_courses = Column(String(255), nullable=False, default='academy')
     is_moderator = Column(Boolean)
     is_admin = Column(Boolean)
     is_banned = Column(Boolean)
@@ -101,8 +91,49 @@ class Customer(Base):
     city = Column(String(255), nullable=True)
     headphones = Column(String(255), nullable=True)
     sound_card = Column(String(255), nullable=True)
-    pc_setup = Column(String(255), nullable=True)
-    mariadb_engine = "InnoDB"
+    pc_setup = Column(Text, nullable=True)
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_active(self):
+        return not self.is_banned
+
+    @property
+    def is_anonymous(self):
+        return False
+
+    def get_id(self):
+        return str(self.id)
+
+
+class Course(Base):
+    __tablename__ = 'courses'
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True, unique=True)
+    name = Column(String(255))
+    short_name = Column(String(255))
+    description = Column(Text, nullable=False)
+    image_url = Column(String(255))
+    start_date = Column(DateTime, default=datetime.utcnow)
+    end_date = Column(DateTime)
+    students = relationship('Customer', secondary='course_registrations', back_populates='courses')
+
+    def __repr__(self):
+        return f'<Course {self.name}>'
+
+
+class CourseRegistration(Base):
+    __tablename__ = 'course_registrations'
+
+    course_id = Column(BigInteger, ForeignKey('courses.id'), primary_key=True)
+    customer_id = Column(BigInteger, ForeignKey('customers.id'), primary_key=True)
+    registration_date = Column(DateTime, default=datetime.utcnow)
+
+
+Customer.courses = relationship('Course', secondary='course_registrations', back_populates='students')
 
 
 class CourseProgram(Base):

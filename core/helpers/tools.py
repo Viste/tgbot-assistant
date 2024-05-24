@@ -198,3 +198,17 @@ class MessageProcessor:
     @classmethod
     def clear_messages(cls):
         cls.messages.clear()
+
+
+async def reg_course(message: types.Message, session: AsyncSession, course_shortname: str):
+    telegram_id = message.from_user.id
+    db_manager = DatabaseManager(session)
+    result = await db_manager.add_course_to_customer(telegram_id, course_shortname)
+    await message.reply(result)
+
+
+async def drop_course(message: types.Message, session: AsyncSession, course_shortname: str):
+    telegram_id = message.from_user.id
+    db_manager = DatabaseManager(session)
+    result = await db_manager.remove_course_from_customer(telegram_id, course_shortname)
+    await message.reply(result)
