@@ -21,7 +21,7 @@ from tools.utils import config
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__, static_folder='public', template_folder='public')
-app.config['SECRET_KEY'] = 'pprfnktechsekta2024'
+app.config['SECRET_KEY'] = ''
 app.config['SQLALCHEMY_DATABASE_URI'] = config.db_string
 app.config['SQLALCHEMY_ECHO'] = True
 app.config['SQLALCHEMY_POOL_SIZE'] = 10
@@ -247,7 +247,7 @@ def clear_chat():
 
 my_redis = Redis(host=config.redis.host, port=config.redis.port, db=config.redis.db)
 
-admin_panel = Admin(app, name='Cyberpaper', index_view=MyAdminIndexView(), base_template='admin/my_master.html', template_mode='bootstrap4', url='/admin')
+admin_panel = Admin(app, name='SOMENAME', index_view=MyAdminIndexView(), base_template='admin/my_master.html', template_mode='bootstrap4', url='/admin')
 
 admin_panel.add_view(StreamChatView(name='Управлением Чатом', endpoint='stream_chat', category='Управление Ботом'))
 admin_panel.add_view(EmailsView(name='Получение Email c курсов', endpoint='emails', category='Управление Ботом'))

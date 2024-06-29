@@ -1,0 +1,11 @@
+{
+  "remove_sent_confirmation": true,
+  "redis": {
+    "host": "redis-master.redis.svc.pprfnk.local",
+    "port": 6379,
+    "password": null,
+    "db": 5,
+    "conversation": 6
+  },
+  "db_url": "mariadb+aiomysql://sysop:0Z3tcFg7FE60YBpKdquwrQRk@pprfnkdb-primary.mariadb.svc.pprfnk.local/cyber?charset=utf8mb4"
+}

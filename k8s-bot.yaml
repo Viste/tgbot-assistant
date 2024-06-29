@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: somebot-bot
+  namespace: somenamespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: somebot-bot
+  template:
+    metadata:
+      labels:
+        app: somebot-bot
+    spec:
+      containers:
+      - name: somebot-bot
+        image: some-image
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - name: somebot-config
+          mountPath: "/app/tools/config.json"
+          subPath: "config.json"
+      imagePullSecrets:
+      - name: some-creds
+      volumes:
+      - name: somebot-config
+        configMap:
+          name: somebot-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: some-service
+  namespace: somenamespace
+spec:
+  selector:
+    app: somebot-bot
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: some-ingress
+  namespace: somenamespace
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/issuer: "someissuer"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+  - hosts:
+    - some.domen.com
+    secretName: some-secret
+  ingressClassName: nginx
+  rules:
+  - host: some.domen.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: some-service
+            port:
+              number: 5000⏎
